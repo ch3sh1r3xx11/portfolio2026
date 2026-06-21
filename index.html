@@ -123,7 +123,6 @@
         .panel[data-index="4"] .panel-bg { background: radial-gradient(circle at 10% 80%, rgba(0,201,200,0.4), transparent 60%), radial-gradient(circle at 90% 20%, rgba(232,25,122,0.3), transparent 60%), #050505; }
         .panel[data-index="5"] .panel-bg { background: radial-gradient(circle at 50% 20%, rgba(155,61,232,0.4), transparent 70%), radial-gradient(circle at 50% 80%, rgba(0,201,200,0.3), transparent 50%), #050505; }
         .panel[data-index="6"] .panel-bg { background: radial-gradient(circle at 90% 90%, rgba(232,25,122,0.4), transparent 60%), radial-gradient(circle at 10% 10%, rgba(155,61,232,0.3), transparent 60%), #050505; }
-        .panel[data-index="7"] .panel-bg { background: radial-gradient(circle at 50% 50%, rgba(0,201,200,0.4), transparent 70%), radial-gradient(circle at 10% 90%, rgba(232,25,122,0.3), transparent 60%), #050505; }
 
         /* ── FRONT FRAME (Content / Glassmorphism) ── */
         .panel-content {
@@ -278,8 +277,27 @@
             </div>
         </div>
 
-        <!-- 1: CERTYFIKATY -->
+        <!-- 1: PROJEKTY -->
         <div class="panel" data-index="1">
+            <div class="panel-bg"></div>
+            <div class="panel-content">
+                <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>Evidence</div>
+                <h2 class="panel-title">Buduję<br>na żywo.</h2>
+                <div class="cert-list">
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">System Operacyjny 2026</span><span class="cert-org" style="color:var(--white-dim)">Aplikacja HTML (localStorage, Offline-first) zbudowana z AI.</span></div></div>
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">PM Learning Roadmapa</span><span class="cert-org" style="color:var(--white-dim)">WBS, mapowanie zasobów AI, dekompozycja celów na Q1-Q4.</span></div></div>
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">Przeprowadzka Wrocław</span><span class="cert-org" style="color:var(--white-dim)">WIP: Risk register, budżet 15k PLN, kaucja na Q4.</span></div></div>
+                </div>
+                <div class="stack-wrap">
+                    <span class="chip" style="border-color:rgba(232,25,122,0.3);color:var(--magenta)">AI Dev</span>
+                    <span class="chip" style="border-color:rgba(0,201,200,0.3);color:var(--teal)">PM Scope</span>
+                    <span class="chip">Risk Register</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2: WIEDZA UNIKALNA -->
+        <div class="panel" data-index="2">
             <div class="panel-bg"></div>
             <div class="panel-content">
                 <div class="panel-num" style="color:var(--teal)"><span class="panel-num-line" style="background:var(--teal)"></span>Certyfikaty & Stack</div>
@@ -299,82 +317,60 @@
             </div>
         </div>
 
-        <!-- 2: MANIFESTO -->
-        <div class="panel" data-index="2">
-            <div class="panel-bg"></div>
-            <div class="panel-content">
-                <div class="panel-num" style="color:var(--teal)"><span class="panel-num-line" style="background:var(--teal)"></span>Manifest</div>
-                <h2 class="panel-title">Ship first,<br>polish never.</h2>
-                <div class="cert-list">
-                    <div class="cert-row"><div class="cert-left"><span class="cert-name">Sprint tygodniowy, nie plan kwartalny</span><span class="cert-org" style="color:var(--white-dim);">Zamiast backlogu — jeden temat. Minimum 3 posty. Retrospektywa.</span></div></div>
-                    <div class="cert-row"><div class="cert-left"><span class="cert-name">Twoje życie jest contentem</span><span class="cert-org" style="color:var(--white-dim);">Wszystko co robisz jako AI-Driven PM jest materiałem.</span></div></div>
-                    <div class="cert-row"><div class="cert-left"><span class="cert-name">Niedokończone posty</span><span class="cert-org" style="color:var(--white-dim);">Obserwatorzy nie kupują perfekcji — kupują progres w czasie rzeczywistym.</span></div></div>
-                </div>
-                <div class="stack-wrap">
-                    <span class="chip" style="border-color:rgba(232,25,122,0.3);color:var(--magenta)">Bez Bullshitu</span>
-                    <span class="chip" style="border-color:rgba(0,201,200,0.3);color:var(--teal)">Autentyczność to atut</span>
-                    <span class="chip">Surowy Polish</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- 3: TECH & PM -->
+        <!-- 3: SKILLS -->
         <div class="panel" data-index="3">
             <div class="panel-bg"></div>
             <div class="panel-content">
-                <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>Obszar umiejętności 01</div>
-                <h2 class="panel-title">AI Leverage<br>& Systems.</h2>
-                <div class="panel-body"><strong>AI & Tech literacy:</strong> Codzienny research w PPLX zamiast Google, łączenie narzędzi (Gemini, Claude, NotebookLM), praca z modelami i budowanie prototypów z AI.<br><br><strong>Project Management:</strong> Prowadzenie własnego życia i konta na IG jak projektu. Sprinty tygodniowe, definiowanie celów (SMART/OKR), risk management i ciągła iteracyjna praca.</div>
-                <div class="panel-tags"><span class="tag m">PPLX / Gemini</span><span class="tag t">PM Academy</span><span class="tag p">Prototypy</span></div>
-            </div>
-        </div>
-
-        <!-- 4: HUMAN SKILLS -->
-        <div class="panel" data-index="4">
-            <div class="panel-bg"></div>
-            <div class="panel-content">
-                <div class="panel-num" style="color:var(--purple)"><span class="panel-num-line" style="background:var(--purple)"></span>Obszar umiejętności 02</div>
-                <h2 class="panel-title">Human<br>Skills.</h2>
-                <div class="panel-body">AI nie wymyśli szczerego posta i nie zbuduje odporności. Stawiam na analityczne myślenie, <em>resilience</em>, elastyczność i influence bez stanowiska.<br><br><strong>Autentyczność:</strong> Uczę się na oczach innych. Piszę posty o prawdziwym życiu, realnych porażkach i decyzjach — bez wstydu. 1 szczere review tygodniowo w Notatkach.</div>
-                <div class="panel-tags"><span class="tag m">Resilience</span><span class="tag p">Review tygodniowe</span><span class="tag t">Storytelling</span></div>
-            </div>
-        </div>
-
-        <!-- 5: FINANSE -->
-        <div class="panel" data-index="5">
-            <div class="panel-bg"></div>
-            <div class="panel-content">
-                <div class="wip-label"><span class="wip-dot"></span>Biedny Inwestor</div>
-                <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>Finanse & Portfel</div>
-                <h2 class="panel-title">Żyję jak<br>milioner.</h2>
-                <div class="panel-body"><strong>Złote zasady:</strong> Płacę sobie — zawsze na zawsze. Żyję poniżej stanu — skromnie i oszczędnie. Myślę na papierze (notatki i budżet). Nie przestaję się uczyć.<br><br>Myślenie portfelem, decyzyjność przy małym kapitale. Buduję portfel traktując go jako "emeryturę 2029-30". Storytelling "biednego inwestora".</div>
-                <div class="panel-tags"><span class="tag">10% Automatu</span><span class="tag">Budżet Kotka</span><span class="tag m">Emerytura 2030</span></div>
-            </div>
-        </div>
-
-        <!-- 6: HABITS -->
-        <div class="panel" data-index="6">
-            <div class="panel-bg"></div>
-            <div class="panel-content">
-                <div class="panel-num" style="color:var(--teal)"><span class="panel-num-line" style="background:var(--teal)"></span>Skupienie</div>
-                <h2 class="panel-title" style="margin-bottom:0.75rem">Zdrowie i<br>Side Hustle.</h2>
-                <div class="manifest-quote">"If > then - mitygacja - plany awaryjne - ochrona przed zagrożeniem to jego rozpoznanie."</div>
-                <div class="values-mini">
-                    <div class="val-item"><div class="val-num">01</div><div class="val-title">Zdrowie</div><div class="val-desc">Min. 7h snu, 10-20 min ruchu. Psychika i ciało.</div></div>
-                    <div class="val-item"><div class="val-num">02</div><div class="val-title">Skupiona Praca</div><div class="val-desc">3-5 bloków tyg. nad jednym projektem dochodowym.</div></div>
-                    <div class="val-item"><div class="val-num">03</div><div class="val-title">Sieć Kontaktów</div><div class="val-desc">Relacje do przodu. 1 interakcja tyg. (Super umysł).</div></div>
-                    <div class="val-item"><div class="val-num">04</div><div class="val-title">Wiele Źródeł</div><div class="val-desc">Praca + mały side hustle + inwestycje.</div></div>
+                <div class="panel-num" style="color:var(--purple)"><span class="panel-num-line" style="background:var(--purple)"></span>Mapa Kompetencji</div>
+                <h2 class="panel-title">Skills.</h2>
+                <div class="values-mini" style="grid-template-columns: 1fr;">
+                    <div class="val-item" style="padding:0.6rem;"><div class="val-title" style="color:var(--magenta)">Tech & AI</div><div class="val-desc">AI literacy, prompting, pipeline'y, NotebookLM, Gemini, PPLX, podstawy HTML/CSS/JS do prototypów.</div></div>
+                    <div class="val-item" style="padding:0.6rem;"><div class="val-title" style="color:var(--teal)">PM & Systems</div><div class="val-desc">Inicjacja projektu, scope, ryzyko, iteracja, systemy egzekucji, charter, kanban.</div></div>
+                    <div class="val-item" style="padding:0.6rem;"><div class="val-title" style="color:var(--purple)">Human Skills</div><div class="val-desc">Resilience, analityczne myślenie, influence bez stanowiska, komunikacja pisemna, zdrowie mentalne jako asset.</div></div>
                 </div>
             </div>
         </div>
 
-        <!-- 7: KONTAKT -->
-        <div class="panel" data-index="7">
+        <!-- 4: BUILD IN PUBLIC -->
+        <div class="panel" data-index="4">
+            <div class="panel-bg"></div>
+            <div class="panel-content">
+                <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>Proces</div>
+                <h2 class="panel-title">Build in<br>Public.</h2>
+                <div class="cert-list">
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">Tools</span><span class="cert-org" style="color:var(--white-dim)">PPLX / Gemini / Claude / NotebookLM / Antigravity / iPhone Notatnik</span></div></div>
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">System</span><span class="cert-org" style="color:var(--white-dim)">Moodscape → Project → Plan → Resources</span></div></div>
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">Zasada</span><span class="cert-org" style="color:var(--white-dim)">Ship first, iterate publicznie, AI jako leverage nie jako kostium.</span></div></div>
+                </div>
+                <div class="stack-wrap">
+                    <span class="chip" style="border-color:rgba(0,201,200,0.3);color:var(--teal)">Jak pracuję</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5: CTA / MISJA -->
+        <div class="panel" data-index="5">
+            <div class="panel-bg"></div>
+            <div class="panel-content">
+                <div class="panel-num" style="color:var(--teal)"><span class="panel-num-line" style="background:var(--teal)"></span>Misja</div>
+                <h2 class="panel-title" style="margin-bottom:0.75rem">Szukam<br>roli.</h2>
+                <div class="manifest-quote">"Szukam pierwszej roli: junior PM / project coordinator / operations"</div>
+                <div class="panel-body">Buduję systemy, contentem i narzędziami AI. Na żywo. Nie korporacyjnie, autentycznie. Masz projekt? Pogadajmy.</div>
+                <div class="hero-ctas" style="margin-top: 1.5rem">
+                    <a href="https://linkedin.com" target="_blank" rel="noopener" class="btn btn-fill">LinkedIn ↗</a>
+                    <a href="mailto:polomski10@gmail.com" class="btn btn-ghost">Email ↗</a>
+                    <a href="#" class="btn btn-ghost">CV ↗</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6: KONTAKT -->
+        <div class="panel" data-index="6">
             <div class="panel-bg"></div>
             <div class="panel-content" style="justify-content:center">
                 <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>Kontakt</div>
                 <h2 class="cta-big">Śledź<br>moją<br>piaskownicę.</h2>
-                <p class="panel-body" style="max-width:420px;margin-bottom:1.5rem">Publikuję "surowy" proces, bez brand-polishu. 3 posty w tygodniu (AI/Tech, PM, Investing). Buduję portfel cyfrowych produktów. Jeśli chcesz to obserwować — zapraszam.</p>
+                <p class="panel-body" style="max-width:420px;margin-bottom:1.5rem">Publikuję "surowy" proces, bez brand-polishu. Buduję portfel cyfrowych produktów. Jeśli chcesz to obserwować — zapraszam.</p>
                 <div class="hero-ctas">
                     <a href="https://instagram.com" target="_blank" rel="noopener" class="btn btn-fill">Instagram → @creative_ai_driven_pm</a>
                 </div>
