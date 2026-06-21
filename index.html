@@ -69,11 +69,10 @@
         }
 
         .cylinder {
-            width: 80vw;
+            width: 70vw;
             height: 80vh;
             position: relative;
             transform-style: preserve-3d;
-            transition: transform 1.3s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
         /* ── PANEL (full-screen face of the prism) ── */
@@ -369,54 +368,73 @@
     const N        = panels.length;
     const theta    = 360 / N; // degrees between faces
 
-    let current = 0;
-    let locked  = false;
-    let radius  = 0;
-    const LOCK_MS = 1100;
+    let currentAngle = 0;
+    let velocity = 0;
+    let isDragging = false;
+    let isAutoRotating = false;
+    let autoRotateTarget = 0;
+    let radius = 0;
 
     // ── Calculate prism geometry and position panels ──
     function initGeometry() {
-        // Since cylinder width is 80vw, use 80% of window width for radius
-        const w = window.innerWidth * 0.8;
-        // radius = half-width / tan(π/N) + 100px for spacing gaps
-        radius = Math.round((w / 2) / Math.tan(Math.PI / N)) + 100;
+        const w = window.innerWidth * 0.7; // Match the 70vw
+        radius = Math.round((w / 2) / Math.tan(Math.PI / N)) + 150; // Increased gap
 
         panels.forEach((panel, i) => {
             panel.style.transform = `rotateY(${i * theta}deg) translateZ(${radius}px)`;
         });
-
-        rotateTo(current, false);
     }
 
-    // ── Rotate cylinder to show face [index] ──
-    function rotateTo(index, animate) {
-        if (!animate) {
-            cylinder.style.transition = 'none';
-            requestAnimationFrame(() => {
-                cylinder.style.transform = `translateZ(${-radius}px) rotateY(${-index * theta}deg)`;
-                requestAnimationFrame(() => {
-                    cylinder.style.transition = '';
-                });
-            });
-        } else {
-            cylinder.style.transform = `translateZ(${-radius}px) rotateY(${-index * theta}deg)`;
+    // Physics Loop for smooth drag and magnetic snapping
+    function loop() {
+        if (isAutoRotating) {
+            const distance = currentAngle - autoRotateTarget;
+            velocity -= distance * 0.04;
+            velocity *= 0.85; // dampening
+            if (Math.abs(distance) < 0.1 && Math.abs(velocity) < 0.1) {
+                currentAngle = autoRotateTarget;
+                isAutoRotating = false;
+                velocity = 0;
+            }
+        } else if (!isDragging) {
+            velocity *= 0.95; // base friction
+
+            if (Math.abs(velocity) < 2) { // When slow enough, snap
+                const snapPoint = Math.round(currentAngle / theta) * theta;
+                const distance = currentAngle - snapPoint;
+                
+                // Magnetic snap only in the middle 50%
+                if (Math.abs(distance) < (theta * 0.25)) {
+                    velocity -= distance * 0.05;
+                    velocity *= 0.9; // extra damping during snap
+                }
+            }
         }
 
-        const realIndex = ((index % N) + N) % N;
-        counter.textContent =
-            String(realIndex + 1).padStart(2, '0') + ' / ' + String(N).padStart(2, '0');
+        currentAngle += velocity;
+        cylinder.style.transform = `translateZ(${-radius}px) rotateY(${currentAngle}deg)`;
+
+        // Update counter based on nearest panel
+        const nearestIndex = Math.round(-currentAngle / theta);
+        const realIndex = ((nearestIndex % N) + N) % N;
+        counter.textContent = String(realIndex + 1).padStart(2, '0') + ' / ' + String(N).padStart(2, '0');
+
+        requestAnimationFrame(loop);
     }
 
     function goTo(index) {
-        if (locked) return;
-        current = index;
-        rotateTo(current, true);
-        locked = true;
-        setTimeout(() => { locked = false; }, LOCK_MS);
+        isAutoRotating = true;
+        autoRotateTarget = -index * theta;
     }
 
-    function next() { goTo(current + 1); }
-    function prev() { goTo(current - 1); }
+    function rotateRelative(dir) {
+        let currentIndex = Math.round(-currentAngle / theta);
+        isAutoRotating = true;
+        autoRotateTarget = -(currentIndex + dir) * theta;
+    }
+
+    function next() { rotateRelative(1); }
+    function prev() { rotateRelative(-1); }
 
     // ── Keyboard ──
     document.addEventListener('keydown', e => {
@@ -424,39 +442,46 @@
         else if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   prev();
     });
 
-    // ── Scroll wheel → rotate ──
-    let scrollAccum = 0;
-    const SCROLL_THRESHOLD = 40;
-
+    // ── Scroll wheel ──
     document.addEventListener('wheel', e => {
         e.preventDefault();
-        scrollAccum += e.deltaY;
-
-        if (Math.abs(scrollAccum) >= SCROLL_THRESHOLD) {
-            if (scrollAccum > 0) next();
-            else                 prev();
-            scrollAccum = 0;
-        }
-
-        clearTimeout(window._sd);
-        window._sd = setTimeout(() => { scrollAccum = 0; }, 180);
+        isAutoRotating = false;
+        velocity -= e.deltaY * 0.015; // Smooth scroll inertia
     }, { passive: false });
 
-    // ── Touch / Swipe ──
-    let tx = null, ty = null;
-    document.addEventListener('touchstart', e => {
-        tx = e.touches[0].clientX; ty = e.touches[0].clientY;
-    }, { passive: true });
-    document.addEventListener('touchend', e => {
-        if (tx === null) return;
-        const dx = e.changedTouches[0].clientX - tx;
-        const dy = e.changedTouches[0].clientY - ty;
-        // Tylko gesty lewo-prawo (horizontal) obracają karuzelę
-        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
-            dx < 0 ? next() : prev();
-        }
-        tx = null; ty = null;
-    }, { passive: true });
+    // ── Touch / Drag ──
+    let tx = 0;
+    function startDrag(x) {
+        isDragging = true;
+        isAutoRotating = false;
+        tx = x;
+        velocity = 0;
+    }
+    function moveDrag(x) {
+        if (!isDragging) return;
+        const dx = x - tx;
+        tx = x;
+        const deltaAngle = dx * 0.15;
+        currentAngle += deltaAngle;
+        velocity = deltaAngle;
+    }
+    function endDrag() {
+        isDragging = false;
+    }
+
+    // Touch events
+    document.addEventListener('touchstart', e => startDrag(e.touches[0].clientX), { passive: true });
+    document.addEventListener('touchmove', e => moveDrag(e.touches[0].clientX), { passive: true });
+    document.addEventListener('touchend', endDrag, { passive: true });
+
+    // Mouse drag events (for desktop fluidity)
+    document.addEventListener('mousedown', e => {
+        if (e.button !== 0) return; // Only left click
+        if (e.target.closest('a') || e.target.closest('.btn')) return; // Allow clicking links
+        startDrag(e.clientX);
+    });
+    document.addEventListener('mousemove', e => moveDrag(e.clientX));
+    document.addEventListener('mouseup', endDrag);
 
     // ── Resize ──
     let rt;
@@ -467,6 +492,7 @@
 
     // ── Init ──
     initGeometry();
+    loop();
 </script>
 </body>
 </html>
