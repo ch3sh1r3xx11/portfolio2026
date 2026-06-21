@@ -467,12 +467,21 @@
     });
 
     // ── Scroll wheel ──
+    let wheelTimeout;
     document.addEventListener('wheel', e => {
-        // Obługujemy tylko swipe poziomy na obrót karuzeli
+        // Obsługujemy tylko swipe poziomy na obrót karuzeli
         if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
             e.preventDefault();
             isAutoRotating = false;
-            velocity -= e.deltaX * 0.015; // Smooth scroll inertia (lewo-prawo)
+            isDragging = true; // Blokuje magnetyczne zatrzymywanie podczas scrollowania
+            
+            clearTimeout(wheelTimeout);
+            wheelTimeout = setTimeout(() => {
+                isDragging = false; // Odblokuj snap dopiero jak przestanie scrollować
+            }, 60);
+
+            currentAngle -= e.deltaX * 0.3; // Bezpośredni obrót (1:1 z gładzikiem)
+            velocity = -e.deltaX * 0.2;     // Nadanie pędu przy puszczeniu
         }
     }, { passive: false });
 
