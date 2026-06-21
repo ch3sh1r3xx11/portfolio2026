@@ -23,7 +23,7 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { width:100%; height:100%; overflow:hidden;
+        html, body { width:100%; min-height:100vh; overflow-x:hidden; overflow-y:auto; overscroll-behavior-y: auto;
             font-family: var(--font-body); background: var(--black);
             color: var(--white); -webkit-font-smoothing: antialiased; }
         
@@ -69,10 +69,13 @@
         }
 
         .cylinder {
-            width: 70vw;
+            width: 85vw;
             height: 80vh;
             position: relative;
             transform-style: preserve-3d;
+        }
+        @media (min-width: 768px) {
+            .cylinder { width: 70vw; }
         }
 
         /* ── PANEL (full-screen face of the prism) ── */
@@ -91,9 +94,9 @@
         /* BACK FRAME (Wallpaper / Holographic effect) */
         .panel-bg {
             position: absolute;
-            inset: 0;
-            border-radius: 2rem;
-            transform: translateZ(-30px) scale(1.05); /* Scaled up to hide edges behind the front glass */
+            inset: clamp(12px, 3vw, 24px); /* Smaller than front panel */
+            border-radius: 1.5rem;
+            transform: translateZ(-30px);
             border: 1px solid rgba(255,255,255,0.06);
             box-shadow: 0 0 100px rgba(0,0,0,0.8);
             overflow: hidden;
@@ -377,8 +380,9 @@
 
     // ── Calculate prism geometry and position panels ──
     function initGeometry() {
-        const w = window.innerWidth * 0.7; // Match the 70vw
-        radius = Math.round((w / 2) / Math.tan(Math.PI / N)) + 150; // Increased gap
+        const w = cylinder.offsetWidth;
+        const gap = window.innerWidth < 768 ? 60 : 150;
+        radius = Math.round((w / 2) / Math.tan(Math.PI / N)) + gap;
 
         panels.forEach((panel, i) => {
             panel.style.transform = `rotateY(${i * theta}deg) translateZ(${radius}px)`;
