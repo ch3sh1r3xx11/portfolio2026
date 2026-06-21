@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Driven PM | Portfolio</title>
+    <meta name="description" content="Creative AI Driven PM. Zamieniam chaos w systemy egzekucji. Build in public.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --black:     #070707;
+            --off-black: #0e0e0e;
+            --card-bg:   #0c0c0c;
+            --white:     #f5f5f0;
+            --white-dim: rgba(245,245,240,0.50);
+            --magenta:   #e8197a;
+            --purple:    #9b3de8;
+            --teal:      #00c9c8;
+            --font-body: 'Outfit', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { width:100%; height:100%; overflow:hidden;
+            font-family: var(--font-body); background: var(--black);
+            color: var(--white); -webkit-font-smoothing: antialiased; }
+        
+        /* ── GLOWING BACKGROUND (Visible through the translucent cube) ── */
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(232, 25, 122, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 85% 30%, rgba(155, 61, 232, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 50% 80%, rgba(0, 201, 200, 0.1) 0%, transparent 50%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ── STRIPES ── */
+        .stripe { position:fixed; left:0; right:0; height:3px; z-index:200;
+            background: linear-gradient(90deg, var(--purple), var(--magenta) 50%, var(--teal)); }
+        .stripe-top { top:0; }
+        .stripe-bot { bottom:0; }
+
+        /* ── NAV ── */
+        nav { position:fixed; top:3px; left:0; right:0; z-index:100;
+            display:flex; justify-content:space-between; align-items:center;
+            padding:0.85rem 2.5rem;
+            background: rgba(7,7,7,0.6);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .nav-logo { font-family: var(--font-mono); font-size:0.75rem; font-weight:700;
+            letter-spacing:0.12em; text-transform:uppercase; }
+        .nav-counter { font-family: var(--font-mono); font-size:0.75rem; font-weight:700;
+            color: var(--magenta); letter-spacing:0.1em; }
+
+        /* ── 3D SCENE ── */
+        .scene {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            perspective: 1500px; /* FIXED: Added perspective for 3D effect */
+        }
+
+        .cylinder {
+            width: 80vw;
+            height: 80vh;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* ── PANEL (full-screen face of the prism) ── */
+        .panel {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            overflow: hidden;
+        }
+
+        .panel-bg {
+            position: absolute;
+            inset: 0;
+            background: rgba(12, 12, 12, 0.7); /* Translucent background */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* Subtle per-panel tints */
+        .panel[data-index="0"] .panel-bg {
+            background: linear-gradient(160deg, rgba(12,10,16,0.7) 0%, rgba(8,8,8,0.7) 50%, rgba(10,8,16,0.7) 100%);
+        }
+        .panel[data-index="1"] .panel-bg {
+            background: linear-gradient(160deg, rgba(8,12,12,0.7) 0%, rgba(8,8,8,0.7) 50%, rgba(10,13,12,0.7) 100%);
+        }
+        .panel[data-index="2"] .panel-bg {
+            background: linear-gradient(160deg, rgba(12,8,10,0.7) 0%, rgba(8,8,8,0.7) 50%, rgba(13,8,16,0.7) 100%);
+        }
+        .panel[data-index="3"] .panel-bg {
+            background: linear-gradient(160deg, rgba(10,8,13,0.7) 0%, rgba(8,8,8,0.7) 50%, rgba(8,10,12,0.7) 100%);
+        }
+        .panel[data-index="4"] .panel-bg {
+            background: linear-gradient(160deg, rgba(13,8,10,0.7) 0%, rgba(8,8,8,0.7) 50%, rgba(12,10,13,0.7) 100%);
+        }
+        .panel[data-index="5"] .panel-bg {
+            background: linear-gradient(160deg, rgba(8,12,11,0.7) 0%, rgba(8,8,8,0.7) 50%, rgba(10,12,12,0.7) 100%);
+        }
+        .panel[data-index="6"] .panel-bg {
+            background: linear-gradient(160deg, rgba(12,8,16,0.7) 0%, rgba(8,8,8,0.7) 50%, rgba(13,10,12,0.7) 100%);
+        }
+
+        /* Vertical edge glow — visible during rotation */
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0; left: 0;
+            width: 1px;
+            background: linear-gradient(180deg, transparent, rgba(232,25,122,0.15), transparent);
+            z-index: 2;
+        }
+        .panel::after {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0; right: 0;
+            width: 1px;
+            background: linear-gradient(180deg, transparent, rgba(155,61,232,0.15), transparent);
+            z-index: 2;
+        }
+
+        /* ── PANEL CONTENT ── */
+        .panel-content {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 5rem clamp(2rem, 8vw, 8rem);
+            max-width: 900px;
+        }
+
+        .panel-num {
+            font-family: var(--font-mono); font-size:0.6rem;
+            letter-spacing:0.2em; text-transform:uppercase;
+            margin-bottom:1.5rem;
+            display:flex; align-items:center; gap:0.6rem;
+        }
+        .panel-num-line { width:20px; height:1px; display:block; }
+
+        .panel-title {
+            font-size: clamp(2.2rem, 5vw, 4rem);
+            font-weight: 900; line-height: 0.95;
+            letter-spacing: -0.03em; margin-bottom: 1.25rem;
+        }
+
+        .panel-body {
+            font-size: 0.92rem; line-height: 1.8;
+            color: var(--white-dim); max-width: 560px;
+        }
+        .panel-body strong { color: var(--white); }
+
+        .panel-tags { display:flex; flex-wrap:wrap; gap:0.4rem; margin-top:1.5rem; }
+        .tag { font-family: var(--font-mono); font-size:0.6rem; letter-spacing:0.1em;
+            text-transform:uppercase; padding:0.25rem 0.6rem;
+            border: 1px solid rgba(255,255,255,0.08); color:rgba(245,245,240,0.35); border-radius:2px; }
+        .tag.m { border-color: rgba(232,25,122,0.35); color: var(--magenta); }
+        .tag.p { border-color: rgba(155,61,232,0.35); color: var(--purple); }
+        .tag.t { border-color: rgba(0,201,200,0.35);  color: var(--teal); }
+
+        /* ── HERO SPECIFICS ── */
+        .hero-eyebrow { font-family: var(--font-mono); font-size:0.7rem; letter-spacing:0.2em;
+            text-transform:uppercase; color: var(--magenta); margin-bottom:1.5rem;
+            display:flex; align-items:center; gap:0.5rem; }
+        .hero-eyebrow::before { content:''; width:24px; height:1px; background:var(--magenta); display:block; }
+
+        .hero-title { font-size: clamp(3.5rem, 8vw, 7rem); font-weight:900;
+            line-height:0.88; letter-spacing:-0.04em; margin-bottom:1.5rem; }
+        .hero-title .outline { -webkit-text-stroke:1.5px rgba(245,245,240,0.25); color:transparent; }
+        .hero-title .accent { color: var(--magenta); }
+
+        .hero-sub { font-size:1rem; line-height:1.75; color:var(--white-dim);
+            max-width:480px; margin-bottom:2rem; }
+        .hero-sub strong { color: var(--white); }
+
+        .hero-ctas { display:flex; gap:0.75rem; flex-wrap:wrap; }
+        .btn { font-family: var(--font-mono); font-size:0.75rem; font-weight:700;
+            letter-spacing:0.08em; text-transform:uppercase; padding:0.7rem 1.5rem;
+            border-radius:2px; text-decoration:none; display:inline-flex;
+            align-items:center; gap:0.4rem; transition:all 0.2s; }
+        .btn-fill { background:var(--white); color:var(--black); border:1px solid var(--white); }
+        .btn-fill:hover { background:var(--magenta); border-color:var(--magenta); color:var(--white); }
+        .btn-ghost { background:transparent; border:1px solid rgba(255,255,255,0.15); color:var(--white-dim); }
+        .btn-ghost:hover { border-color:rgba(255,255,255,0.4); color:var(--white); }
+
+        /* ── CERT ROWS ── */
+        .cert-list { display:flex; flex-direction:column; margin-top:0.75rem; }
+        .cert-row { display:flex; justify-content:space-between; align-items:center;
+            padding:0.85rem 0; border-bottom:1px solid rgba(255,255,255,0.05); gap:1rem; }
+        .cert-row:first-child { border-top:1px solid rgba(255,255,255,0.05); }
+        .cert-name { font-size:0.88rem; font-weight:700; }
+        .cert-org { font-family:var(--font-mono); font-size:0.6rem; letter-spacing:0.08em;
+            color:var(--white-dim); text-transform:uppercase; }
+        .cert-left { display:flex; flex-direction:column; gap:0.15rem; }
+        .cert-badge { font-family:var(--font-mono); font-size:0.58rem; letter-spacing:0.12em;
+            text-transform:uppercase; padding:0.2rem 0.5rem; border-radius:2px; white-space:nowrap; }
+        .badge-done { background:rgba(0,201,200,0.12); color:var(--teal); border:1px solid rgba(0,201,200,0.25); }
+        .badge-wip  { background:rgba(232,25,122,0.1); color:var(--magenta); border:1px solid rgba(232,25,122,0.25); }
+
+        .stack-wrap { display:flex; flex-wrap:wrap; gap:0.4rem; margin-top:1.25rem; }
+        .chip { font-family:var(--font-mono); font-size:0.6rem; letter-spacing:0.1em;
+            text-transform:uppercase; padding:0.25rem 0.6rem;
+            border:1px solid rgba(255,255,255,0.08); border-radius:2px; color:var(--white-dim); }
+
+        /* ── MANIFEST ── */
+        .manifest-quote { font-size:0.95rem; font-style:italic; line-height:1.8;
+            color:var(--white); border-left:2px solid var(--magenta); padding-left:1.25rem; margin:1rem 0; }
+
+        /* ── VALUES ── */
+        .values-mini { display:grid; grid-template-columns:1fr 1fr; gap:0.6rem; margin-top:1rem; }
+        .val-item { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05);
+            border-radius:3px; padding:0.75rem; }
+        .val-num { font-family:var(--font-mono); font-size:0.55rem; letter-spacing:0.15em;
+            color:var(--magenta); margin-bottom:0.3rem; }
+        .val-title { font-size:0.82rem; font-weight:700; margin-bottom:0.2rem; }
+        .val-desc { font-size:0.75rem; line-height:1.5; color:var(--white-dim); }
+
+        /* ── WIP ── */
+        .wip-label { font-family:var(--font-mono); font-size:0.58rem; letter-spacing:0.15em;
+            text-transform:uppercase; color:var(--magenta); display:flex;
+            align-items:center; gap:0.4rem; margin-bottom:0.75rem; }
+        .wip-dot { width:5px; height:5px; border-radius:50%; background:var(--magenta);
+            animation: blink 1.5s infinite; }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+        /* ── CTA ── */
+        .cta-big { font-size:clamp(2.5rem, 6vw, 5rem); font-weight:900;
+            line-height:0.92; letter-spacing:-0.04em; margin-bottom:1rem; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 640px) {
+            nav { padding:0.7rem 1.25rem; }
+            .panel-content { padding: 5rem 1.5rem; }
+            .values-mini { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="stripe stripe-top"></div>
+<div class="stripe stripe-bot"></div>
+
+<nav>
+    <div class="nav-logo" style="cursor: pointer;" onclick="goTo(0)">creative ai driven pm</div>
+    <span class="nav-counter" id="counter">01 / 07</span>
+</nav>
+
+<!-- 3D Scene -->
+<div class="scene">
+    <div class="cylinder" id="cylinder">
+
+        <!-- 0: HERO -->
+        <div class="panel" data-index="0">
+            <div class="panel-bg"></div>
+            <div class="panel-content">
+                <div class="hero-eyebrow">Build in public · 2026</div>
+                <h1 class="hero-title">Chaos<span class="accent"> →</span><br><span class="outline">system.</span></h1>
+                <p class="hero-sub"><strong>AI-Driven Project Manager.</strong> Używam narzędzi AI jako dźwigni — żeby dowozić szybciej, myśleć głębiej i zarządzać projektem pod nazwą <em>Moje Życie</em> z równą precyzją co każdy inny projekt.</p>
+                <div class="hero-ctas">
+                    <a href="#" onclick="goTo(2);return false;" class="btn btn-fill">Zobacz projekty →</a>
+                    <a href="https://instagram.com" target="_blank" rel="noopener" class="btn btn-ghost">Instagram ↗</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1: CERTYFIKATY -->
+        <div class="panel" data-index="1">
+            <div class="panel-bg"></div>
+            <div class="panel-content">
+                <div class="panel-num" style="color:var(--teal)"><span class="panel-num-line" style="background:var(--teal)"></span>Certyfikaty & Stack</div>
+                <h2 class="panel-title">Wiedza<br>na dziś.</h2>
+                <div class="cert-list">
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">McKinsey Forward</span><span class="cert-org">McKinsey & Company</span></div><span class="cert-badge badge-done">Ukończony</span></div>
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">PM Kickoff</span><span class="cert-org">PMI</span></div><span class="cert-badge badge-done">Ukończony</span></div>
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">Gen AI for PM</span><span class="cert-org">PMI</span></div><span class="cert-badge badge-done">Ukończony</span></div>
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">Google PM Certificate</span><span class="cert-org">Google / Coursera</span></div><span class="cert-badge badge-wip">W trakcie</span></div>
+                </div>
+                <div class="stack-wrap">
+                    <span class="chip" style="border-color:rgba(232,25,122,0.3);color:var(--magenta)">Perplexity Pro</span>
+                    <span class="chip" style="border-color:rgba(155,61,232,0.3);color:var(--purple)">Gemini Advanced</span>
+                    <span class="chip" style="border-color:rgba(0,201,200,0.3);color:var(--teal)">Antigravity IDE</span>
+                    <span class="chip">Claude</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2: PROJEKT 01 -->
+        <div class="panel" data-index="2">
+            <div class="panel-bg"></div>
+            <div class="panel-content">
+                <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>Projekt 01 · Czerwiec 2026</div>
+                <h2 class="panel-title">System<br>Operacyjny<br>2026</h2>
+                <div class="panel-body">Zaprojektowałem i wdrożyłem interaktywną aplikację HTML do zarządzania własną strategią życiową. Zbieranie wymagań, definicja success criteria, iteracyjny development z AI.<br><br><strong>Wynik:</strong> działający dashboard z localStorage — w pełni offline, zero kosztów.</div>
+                <div class="panel-tags"><span class="tag m">AI Dev</span><span class="tag t">localStorage</span><span class="tag p">PM Scope</span><span class="tag">Offline-first</span></div>
+            </div>
+        </div>
+
+        <!-- 3: PROJEKT 02 -->
+        <div class="panel" data-index="3">
+            <div class="panel-bg"></div>
+            <div class="panel-content">
+                <div class="panel-num" style="color:var(--purple)"><span class="panel-num-line" style="background:var(--purple)"></span>Projekt 02 · Czerwiec 2026</div>
+                <h2 class="panel-title">PM Learning<br>Roadmapa</h2>
+                <div class="panel-body">Zdefiniowałem 4-fazowy plan nauki Project Management z mapą monetyzacji.<br><br><strong>Zastosowane:</strong> WBS, mapowanie zasobów AI, dekompozycja celów, kamienie milowe z punktami kontrolnymi na Q1–Q4.</div>
+                <div class="panel-tags"><span class="tag m">Planowanie</span><span class="tag p">WBS</span><span class="tag t">AI Stack</span><span class="tag">Build in Public</span></div>
+            </div>
+        </div>
+
+        <!-- 4: PROJEKT 03 WIP -->
+        <div class="panel" data-index="4">
+            <div class="panel-bg"></div>
+            <div class="panel-content">
+                <div class="wip-label"><span class="wip-dot"></span>W trakcie · Q3-Q4 2026</div>
+                <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>Projekt 03</div>
+                <h2 class="panel-title">Przeprowadzka<br>Wrocław</h2>
+                <div class="panel-body">Zarządzam procesem wyprowadzki jako projektem PM: budżet 15 000 PLN, pełny WBS, risk register (naprawa auta, przerwy w dochodzie), decision log tygodniowy.<br><br><strong>Cel:</strong> kaucja + 3 miesiące wynajmu, Q4 2026.</div>
+                <div class="panel-tags"><span class="tag">Risk Register</span><span class="tag">Budżet</span><span class="tag m">15 000 PLN</span><span class="tag">Q4 2026</span></div>
+            </div>
+        </div>
+
+        <!-- 5: O MNIE -->
+        <div class="panel" data-index="5">
+            <div class="panel-bg"></div>
+            <div class="panel-content">
+                <div class="panel-num" style="color:var(--teal)"><span class="panel-num-line" style="background:var(--teal)"></span>O mnie</div>
+                <h2 class="panel-title" style="margin-bottom:0.75rem">Chaos → System.<br>Bez bullshitu.</h2>
+                <div class="manifest-quote">"I'm the herald of the change. I'm the one who turns chaos into order, order into chaos, and everything between."</div>
+                <div class="values-mini">
+                    <div class="val-item"><div class="val-num">01</div><div class="val-title">Speed to Clarity</div><div class="val-desc">Od chaosu do roadmapy w jednej sesji.</div></div>
+                    <div class="val-item"><div class="val-num">02</div><div class="val-title">AI Leverage</div><div class="val-desc">AI amplifikuje myślenie, nie zastępuje.</div></div>
+                    <div class="val-item"><div class="val-num">03</div><div class="val-title">Ship First</div><div class="val-desc">Progress over perfection. Zawsze.</div></div>
+                    <div class="val-item"><div class="val-num">04</div><div class="val-title">Build in Public</div><div class="val-desc">Uczę się na oczach innych. Bez wstydu.</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6: KONTAKT -->
+        <div class="panel" data-index="6">
+            <div class="panel-bg"></div>
+            <div class="panel-content" style="justify-content:center">
+                <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>Kontakt</div>
+                <h2 class="cta-big">Śledź<br>build in<br>public.</h2>
+                <p class="panel-body" style="max-width:420px;margin-bottom:1.5rem">Publikuję co tydzień: notatki z nauki PM, narzędzia AI, retrospektywy projektów. Bez filtra.</p>
+                <div class="hero-ctas">
+                    <a href="https://instagram.com" target="_blank" rel="noopener" class="btn btn-fill">Instagram → @twojanazwa</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const cylinder = document.getElementById('cylinder');
+    const panels   = Array.from(document.querySelectorAll('.panel'));
+    const counter  = document.getElementById('counter');
+    const N        = panels.length;
+    const theta    = 360 / N; // degrees between faces
+
+    let current = 0;
+    let locked  = false;
+    let radius  = 0;
+    const LOCK_MS = 750;
+
+    // ── Calculate prism geometry and position panels ──
+    function initGeometry() {
+        // Since cylinder width is 80vw, use 80% of window width for radius
+        const w = window.innerWidth * 0.8;
+        // radius = half-width / tan(π/N)
+        radius = Math.round((w / 2) / Math.tan(Math.PI / N));
+
+        panels.forEach((panel, i) => {
+            panel.style.transform = `rotateY(${i * theta}deg) translateZ(${radius}px)`;
+        });
+
+        rotateTo(current, false);
+    }
+
+    // ── Rotate cylinder to show face [index] ──
+    function rotateTo(index, animate) {
+        if (!animate) {
+            cylinder.style.transition = 'none';
+            requestAnimationFrame(() => {
+                cylinder.style.transform = `translateZ(${-radius}px) rotateY(${-index * theta}deg)`;
+                requestAnimationFrame(() => {
+                    cylinder.style.transition = '';
+                });
+            });
+        } else {
+            cylinder.style.transform = `translateZ(${-radius}px) rotateY(${-index * theta}deg)`;
+        }
+
+        counter.textContent =
+            String(index + 1).padStart(2, '0') + ' / ' + String(N).padStart(2, '0');
+    }
+
+    function goTo(index) {
+        if (locked) return;
+        current = ((index % N) + N) % N;
+        rotateTo(current, true);
+        locked = true;
+        setTimeout(() => { locked = false; }, LOCK_MS);
+    }
+
+    function next() { goTo(current + 1); }
+    function prev() { goTo(current - 1); }
+
+    // ── Keyboard ──
+    document.addEventListener('keydown', e => {
+        if      (e.key === 'ArrowRight' || e.key === 'ArrowDown') next();
+        else if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   prev();
+    });
+
+    // ── Scroll wheel → rotate ──
+    let scrollAccum = 0;
+    const SCROLL_THRESHOLD = 40;
+
+    document.addEventListener('wheel', e => {
+        e.preventDefault();
+        scrollAccum += e.deltaY;
+
+        if (Math.abs(scrollAccum) >= SCROLL_THRESHOLD) {
+            if (scrollAccum > 0) next();
+            else                 prev();
+            scrollAccum = 0;
+        }
+
+        clearTimeout(window._sd);
+        window._sd = setTimeout(() => { scrollAccum = 0; }, 180);
+    }, { passive: false });
+
+    // ── Touch / Swipe ──
+    let tx = null, ty = null;
+    document.addEventListener('touchstart', e => {
+        tx = e.touches[0].clientX; ty = e.touches[0].clientY;
+    }, { passive: true });
+    document.addEventListener('touchend', e => {
+        if (tx === null) return;
+        const dx = e.changedTouches[0].clientX - tx;
+        const dy = e.changedTouches[0].clientY - ty;
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+            dx < 0 ? next() : prev();
+        } else if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 40) {
+            dy > 0 ? next() : prev();
+        }
+        tx = null; ty = null;
+    }, { passive: true });
+
+    // ── Resize ──
+    let rt;
+    window.addEventListener('resize', () => {
+        clearTimeout(rt);
+        rt = setTimeout(initGeometry, 100);
+    });
+
+    // ── Init ──
+    initGeometry();
+</script>
+</body>
+</html>
