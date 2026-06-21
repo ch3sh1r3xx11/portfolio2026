@@ -81,6 +81,12 @@
             justify-content: center;
             overflow: hidden;
             perspective: 1500px; /* FIXED: Added perspective for 3D effect */
+            transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        body.detail-active .scene {
+            transform: translateY(-30vh) scale(0.85);
+            pointer-events: none;
         }
 
         .cylinder {
@@ -192,6 +198,69 @@
         .hero-title .outline { -webkit-text-stroke:1.5px rgba(245,245,240,0.25); color:transparent; }
         .hero-title .accent { color: var(--magenta); }
 
+        .hero-subtitle { font-size:1rem; line-height:1.75; color:var(--white-dim); max-width:480px; }
+
+        /* ── MINORITY REPORT DEMO ── */
+        .detail-view {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 65vh;
+            z-index: 150;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            transform: translateY(100vh);
+            opacity: 0;
+            transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.8s;
+            pointer-events: none;
+            padding: 0 1rem;
+        }
+        
+        body.detail-active .detail-view {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .detail-card {
+            width: 100%;
+            max-width: 800px;
+            height: 100%;
+            position: relative;
+            border-radius: 1.5rem 1.5rem 0 0;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-bottom: none;
+            box-shadow: 0 -20px 100px rgba(0,0,0,0.8);
+            overflow: hidden;
+            background: rgba(12, 12, 14, 0.45);
+            backdrop-filter: blur(20px);
+            padding: 3rem clamp(1.5rem, 5vw, 4rem);
+        }
+
+        .detail-card-bg {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 0%, rgba(169,99,139,0.3), transparent 70%), 
+                        radial-gradient(circle at 10% 100%, rgba(33,136,157,0.2), transparent 60%), 
+                        rgba(15,20,25,0.7);
+            z-index: -1;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1.5rem; right: 1.5rem;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.05);
+            color: var(--white);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            font-family: monospace;
+            transition: all 0.2s;
+        }
+        .close-btn:hover { background: rgba(255,255,255,0.1); }
+
         .hero-sub { font-size:1rem; line-height:1.75; color:var(--white-dim);
             max-width:480px; margin-bottom:2rem; }
         .hero-sub strong { color: var(--white); }
@@ -279,7 +348,7 @@
                 <h1 class="hero-title" style="font-size:clamp(3.3rem, 8vw, 5.5rem);line-height:1.1;">Permission<br>less.<br>Iterate.<br>Leverage.</h1>
                 <p class="hero-subtitle">To moja własna nisza skoro nie mam doświadczenia, wiedzy ani umiejętności jeszcze to korzystam z ai jako dźwigni.</p>
                 <div class="stack-wrap" style="margin-top: 2rem">
-                    <a href="#projekty" onclick="goTo(1);return false;" class="chip" style="border-color:rgba(169,99,139,0.4);color:var(--magenta)">#PROJEKTY</a>
+                    <a href="#projekty" onclick="toggleDemo();return false;" class="chip" style="border-color:rgba(169,99,139,0.4);color:var(--magenta)">#PROJEKTY</a>
                     <a href="#skills" onclick="goTo(3);return false;" class="chip" style="border-color:rgba(37,163,173,0.4);color:var(--teal)">#SKILLS</a>
                 </div>
             </div>
@@ -388,7 +457,27 @@
     </div>
 </div>
 
+<!-- Minority Report Detail View -->
+<div id="demo-detail" class="detail-view">
+    <div class="detail-card">
+        <div class="detail-card-bg"></div>
+        <button class="close-btn" onclick="toggleDemo()">X</button>
+        <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>EVIDENCE DETAIL</div>
+        <h2 class="panel-title" style="margin-top: 1rem; font-size: clamp(2rem, 5vw, 3.5rem);">System Operacyjny 2026</h2>
+        <p style="color: var(--white-dim); line-height: 1.8; margin-top: 1.5rem; font-family: monospace;">To jest pokazowa karta zrzucana z góry. Karuzela powędrowała w górę, a ta karta płynnie "wypadła" ze stosu.</p>
+        <p style="color: var(--white-dim); line-height: 1.8; margin-top: 1rem; font-family: monospace;">W ten sposób możemy ładować głębokie treści dla każdego projektu bez zaśmiecania głównego ekranu karuzeli.</p>
+        
+        <div class="stack-wrap" style="margin-top: 2.5rem;">
+            <span class="chip" style="border-color:rgba(232,25,122,0.3);color:var(--magenta)">Case Study</span>
+            <span class="chip" style="border-color:rgba(0,201,200,0.3);color:var(--teal)">Demo</span>
+        </div>
+    </div>
+</div>
+
 <script>
+    function toggleDemo() {
+        document.body.classList.toggle('detail-active');
+    }
     const cylinder = document.getElementById('cylinder');
     const panels   = Array.from(document.querySelectorAll('.panel'));
     const counter  = document.getElementById('counter');
