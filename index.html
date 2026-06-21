@@ -73,7 +73,7 @@
             height: 80vh;
             position: relative;
             transform-style: preserve-3d;
-            transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+            transition: transform 1.3s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
         /* ── PANEL (full-screen face of the prism) ── */
@@ -379,7 +379,7 @@
     let current = 0;
     let locked  = false;
     let radius  = 0;
-    const LOCK_MS = 750;
+    const LOCK_MS = 1100;
 
     // ── Calculate prism geometry and position panels ──
     function initGeometry() {
@@ -409,13 +409,14 @@
             cylinder.style.transform = `translateZ(${-radius}px) rotateY(${-index * theta}deg)`;
         }
 
+        const realIndex = ((index % N) + N) % N;
         counter.textContent =
-            String(index + 1).padStart(2, '0') + ' / ' + String(N).padStart(2, '0');
+            String(realIndex + 1).padStart(2, '0') + ' / ' + String(N).padStart(2, '0');
     }
 
     function goTo(index) {
         if (locked) return;
-        current = ((index % N) + N) % N;
+        current = index;
         rotateTo(current, true);
         locked = true;
         setTimeout(() => { locked = false; }, LOCK_MS);
