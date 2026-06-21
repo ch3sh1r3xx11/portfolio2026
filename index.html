@@ -123,6 +123,7 @@
         .panel[data-index="4"] .panel-bg { background: radial-gradient(circle at 10% 80%, rgba(0,201,200,0.4), transparent 60%), radial-gradient(circle at 90% 20%, rgba(232,25,122,0.3), transparent 60%), #050505; }
         .panel[data-index="5"] .panel-bg { background: radial-gradient(circle at 50% 20%, rgba(155,61,232,0.4), transparent 70%), radial-gradient(circle at 50% 80%, rgba(0,201,200,0.3), transparent 50%), #050505; }
         .panel[data-index="6"] .panel-bg { background: radial-gradient(circle at 90% 90%, rgba(232,25,122,0.4), transparent 60%), radial-gradient(circle at 10% 10%, rgba(155,61,232,0.3), transparent 60%), #050505; }
+        .panel[data-index="7"] .panel-bg { background: radial-gradient(circle at 50% 50%, rgba(0,201,200,0.4), transparent 70%), radial-gradient(circle at 10% 90%, rgba(232,25,122,0.3), transparent 60%), #050505; }
 
         /* ── FRONT FRAME (Content / Glassmorphism) ── */
         .panel-content {
@@ -277,8 +278,29 @@
             </div>
         </div>
 
-        <!-- 1: MANIFESTO -->
+        <!-- 1: CERTYFIKATY -->
         <div class="panel" data-index="1">
+            <div class="panel-bg"></div>
+            <div class="panel-content">
+                <div class="panel-num" style="color:var(--teal)"><span class="panel-num-line" style="background:var(--teal)"></span>Certyfikaty & Stack</div>
+                <h2 class="panel-title">Wiedza<br>na dziś.</h2>
+                <div class="cert-list">
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">McKinsey Forward</span><span class="cert-org">McKinsey & Company</span></div><span class="cert-badge badge-done">Ukończony</span></div>
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">PM Kickoff</span><span class="cert-org">PMI</span></div><span class="cert-badge badge-done">Ukończony</span></div>
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">Gen AI for PM</span><span class="cert-org">PMI</span></div><span class="cert-badge badge-done">Ukończony</span></div>
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">Google PM Certificate</span><span class="cert-org">Google / Coursera</span></div><span class="cert-badge badge-wip">W trakcie</span></div>
+                </div>
+                <div class="stack-wrap">
+                    <span class="chip" style="border-color:rgba(232,25,122,0.3);color:var(--magenta)">Perplexity Pro</span>
+                    <span class="chip" style="border-color:rgba(155,61,232,0.3);color:var(--purple)">Gemini Advanced</span>
+                    <span class="chip" style="border-color:rgba(0,201,200,0.3);color:var(--teal)">Antigravity IDE</span>
+                    <span class="chip">Claude</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2: MANIFESTO -->
+        <div class="panel" data-index="2">
             <div class="panel-bg"></div>
             <div class="panel-content">
                 <div class="panel-num" style="color:var(--teal)"><span class="panel-num-line" style="background:var(--teal)"></span>Manifest</div>
@@ -296,8 +318,8 @@
             </div>
         </div>
 
-        <!-- 2: TECH & PM -->
-        <div class="panel" data-index="2">
+        <!-- 3: TECH & PM -->
+        <div class="panel" data-index="3">
             <div class="panel-bg"></div>
             <div class="panel-content">
                 <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>Obszar umiejętności 01</div>
@@ -307,8 +329,8 @@
             </div>
         </div>
 
-        <!-- 3: HUMAN SKILLS -->
-        <div class="panel" data-index="3">
+        <!-- 4: HUMAN SKILLS -->
+        <div class="panel" data-index="4">
             <div class="panel-bg"></div>
             <div class="panel-content">
                 <div class="panel-num" style="color:var(--purple)"><span class="panel-num-line" style="background:var(--purple)"></span>Obszar umiejętności 02</div>
@@ -318,8 +340,8 @@
             </div>
         </div>
 
-        <!-- 4: FINANSE -->
-        <div class="panel" data-index="4">
+        <!-- 5: FINANSE -->
+        <div class="panel" data-index="5">
             <div class="panel-bg"></div>
             <div class="panel-content">
                 <div class="wip-label"><span class="wip-dot"></span>Biedny Inwestor</div>
@@ -330,8 +352,8 @@
             </div>
         </div>
 
-        <!-- 5: HABITS -->
-        <div class="panel" data-index="5">
+        <!-- 6: HABITS -->
+        <div class="panel" data-index="6">
             <div class="panel-bg"></div>
             <div class="panel-content">
                 <div class="panel-num" style="color:var(--teal)"><span class="panel-num-line" style="background:var(--teal)"></span>Skupienie</div>
@@ -346,8 +368,8 @@
             </div>
         </div>
 
-        <!-- 6: KONTAKT -->
-        <div class="panel" data-index="6">
+        <!-- 7: KONTAKT -->
+        <div class="panel" data-index="7">
             <div class="panel-bg"></div>
             <div class="panel-content" style="justify-content:center">
                 <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>Kontakt</div>
@@ -391,8 +413,8 @@
     function loop() {
         if (isAutoRotating) {
             const distance = currentAngle - autoRotateTarget;
-            velocity -= distance * 0.04;
-            velocity *= 0.85; // dampening
+            velocity -= distance * 0.1; // Stiffer spring
+            velocity *= 0.75; // Higher damping to stop smoothly without wobbling
             if (Math.abs(distance) < 0.1 && Math.abs(velocity) < 0.1) {
                 currentAngle = autoRotateTarget;
                 isAutoRotating = false;
@@ -407,8 +429,8 @@
                 
                 // Magnetic snap only in the middle 50%
                 if (Math.abs(distance) < (theta * 0.25)) {
-                    velocity -= distance * 0.05;
-                    velocity *= 0.9; // extra damping during snap
+                    velocity -= distance * 0.15; // Stronger pull
+                    velocity *= 0.5; // Very high damping to kill oscillation immediately
                 }
             }
         }
@@ -446,9 +468,12 @@
 
     // ── Scroll wheel ──
     document.addEventListener('wheel', e => {
-        e.preventDefault();
-        isAutoRotating = false;
-        velocity -= e.deltaY * 0.015; // Smooth scroll inertia
+        // Obługujemy tylko swipe poziomy na obrót karuzeli
+        if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+            e.preventDefault();
+            isAutoRotating = false;
+            velocity -= e.deltaX * 0.015; // Smooth scroll inertia (lewo-prawo)
+        }
     }, { passive: false });
 
     // ── Touch / Drag ──
