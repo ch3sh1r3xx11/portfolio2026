@@ -231,37 +231,36 @@
             position: absolute;
             inset: 0;
             border-radius: 1.5rem 1.5rem 0 0;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-bottom: none;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-top: 1px solid rgba(255,255,255,0.4); /* Shiny top edge */
             overflow: hidden;
-            background: rgba(12, 12, 14, 0.45);
-            backdrop-filter: blur(20px);
+            background: rgba(12, 12, 14, 0.15); /* Much more transparent */
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
         }
 
         .detail-front {
             z-index: 3;
-            box-shadow: 0 -20px 100px rgba(0,0,0,0.8);
             padding: 3rem clamp(1.5rem, 5vw, 4rem);
         }
 
         .detail-back-1 {
             z-index: 2;
-            transform: translateY(-20px) scale(0.95);
-            opacity: 0.6;
+            transform: translateY(-30px) scale(0.96);
+            opacity: 0.8;
         }
 
         .detail-back-2 {
             z-index: 1;
-            transform: translateY(-40px) scale(0.90);
-            opacity: 0.3;
+            transform: translateY(-60px) scale(0.92);
+            opacity: 0.5;
         }
 
         .detail-card-bg {
             position: absolute;
             inset: 0;
-            background: radial-gradient(circle at 50% 0%, rgba(169,99,139,0.3), transparent 70%), 
-                        radial-gradient(circle at 10% 100%, rgba(33,136,157,0.2), transparent 60%), 
-                        rgba(15,20,25,0.7);
+            background: radial-gradient(circle at 50% 0%, rgba(169,99,139,0.15), transparent 60%), 
+                        radial-gradient(circle at 10% 100%, rgba(33,136,157,0.1), transparent 50%);
             z-index: -1;
         }
 
