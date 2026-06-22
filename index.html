@@ -107,9 +107,22 @@
             transform-style: preserve-3d;
         }
 
-        .panel-bg, .panel-content {
+        .panel-bg, .panel-content, .panel-bg-deep {
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
+        }
+
+        /* DEEP BACK FRAME (3rd layer) */
+        .panel-bg-deep {
+            position: absolute;
+            inset: clamp(24px, 5vw, 48px);
+            border-radius: 1.5rem;
+            transform: translateZ(-90px);
+            border: 1px solid rgba(255,255,255,0.3); /* Shiny glass edge */
+            box-shadow: 0 0 60px rgba(0,0,0,0.5);
+            background: rgba(255, 255, 255, 0.03); /* Transparent */
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            pointer-events: none;
         }
 
         /* BACK FRAME (Wallpaper / Holographic effect) */
@@ -360,6 +373,7 @@
 
         <!-- 0: HERO -->
         <div class="panel" data-index="0">
+            <div class="panel-bg-deep"></div>
             <div class="panel-bg"></div>
             <div class="panel-content">
                 <div class="hero-eyebrow">Creative AI-Driven PM</div>
@@ -374,6 +388,7 @@
 
         <!-- 1: PROJEKTY -->
         <div class="panel" data-index="1">
+            <div class="panel-bg-deep"></div>
             <div class="panel-bg"></div>
             <div class="panel-content">
                 <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>Evidence</div>
@@ -393,6 +408,7 @@
 
         <!-- 2: WIEDZA UNIKALNA -->
         <div class="panel" data-index="2">
+            <div class="panel-bg-deep"></div>
             <div class="panel-bg"></div>
             <div class="panel-content">
                 <div class="panel-num" style="color:var(--teal)"><span class="panel-num-line" style="background:var(--teal)"></span>Certyfikaty & Stack</div>
@@ -414,6 +430,7 @@
 
         <!-- 3: SKILLS -->
         <div class="panel" data-index="3">
+            <div class="panel-bg-deep"></div>
             <div class="panel-bg"></div>
             <div class="panel-content">
                 <div class="panel-num" style="color:var(--purple)"><span class="panel-num-line" style="background:var(--purple)"></span>Mapa Kompetencji</div>
@@ -428,6 +445,7 @@
 
         <!-- 4: BUILD IN PUBLIC -->
         <div class="panel" data-index="4">
+            <div class="panel-bg-deep"></div>
             <div class="panel-bg"></div>
             <div class="panel-content">
                 <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>Proces</div>
@@ -445,6 +463,7 @@
 
         <!-- 5: CTA / MISJA -->
         <div class="panel" data-index="5">
+            <div class="panel-bg-deep"></div>
             <div class="panel-bg"></div>
             <div class="panel-content">
                 <div class="panel-num" style="color:var(--teal)"><span class="panel-num-line" style="background:var(--teal)"></span>Misja</div>
@@ -461,6 +480,7 @@
 
         <!-- 6: KONTAKT -->
         <div class="panel" data-index="6">
+            <div class="panel-bg-deep"></div>
             <div class="panel-bg"></div>
             <div class="panel-content" style="justify-content:center">
                 <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>Kontakt</div>
