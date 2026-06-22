@@ -222,19 +222,38 @@
             pointer-events: all;
         }
 
-        .detail-card {
-            width: 100%;
-            max-width: 800px;
-            height: 100%;
+        .detail-stack {
             position: relative;
+            width: 100%; max-width: 800px; height: 100%;
+        }
+
+        .detail-card {
+            position: absolute;
+            inset: 0;
             border-radius: 1.5rem 1.5rem 0 0;
             border: 1px solid rgba(255,255,255,0.1);
             border-bottom: none;
-            box-shadow: 0 -20px 100px rgba(0,0,0,0.8);
             overflow: hidden;
             background: rgba(12, 12, 14, 0.45);
             backdrop-filter: blur(20px);
+        }
+
+        .detail-front {
+            z-index: 3;
+            box-shadow: 0 -20px 100px rgba(0,0,0,0.8);
             padding: 3rem clamp(1.5rem, 5vw, 4rem);
+        }
+
+        .detail-back-1 {
+            z-index: 2;
+            transform: translateY(-20px) scale(0.95);
+            opacity: 0.6;
+        }
+
+        .detail-back-2 {
+            z-index: 1;
+            transform: translateY(-40px) scale(0.90);
+            opacity: 0.3;
         }
 
         .detail-card-bg {
@@ -345,10 +364,10 @@
             <div class="panel-bg"></div>
             <div class="panel-content">
                 <div class="hero-eyebrow">Creative AI-Driven PM</div>
-                <h1 class="hero-title" style="font-size:clamp(3.3rem, 8vw, 5.5rem);line-height:1.1;">Permission<br>less.<br>Iterate.<br>Leverage.</h1>
+                <h1 class="hero-title" style="font-size:clamp(1.8rem, 6vw, 3.5rem);line-height:1.2;white-space:nowrap;letter-spacing:-0.05em;">permissionless iterate leverage</h1>
                 <p class="hero-subtitle">To moja własna nisza skoro nie mam doświadczenia, wiedzy ani umiejętności jeszcze to korzystam z ai jako dźwigni.</p>
                 <div class="stack-wrap" style="margin-top: 2rem">
-                    <a href="#projekty" onclick="toggleDemo();return false;" class="chip" style="border-color:rgba(169,99,139,0.4);color:var(--magenta)">#PROJEKTY</a>
+                    <a href="#projekty" onclick="goTo(1);return false;" class="chip" style="border-color:rgba(169,99,139,0.4);color:var(--magenta)">#PROJEKTY</a>
                     <a href="#skills" onclick="goTo(3);return false;" class="chip" style="border-color:rgba(37,163,173,0.4);color:var(--teal)">#SKILLS</a>
                 </div>
             </div>
@@ -361,9 +380,9 @@
                 <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>Evidence</div>
                 <h2 class="panel-title">Buduję<br>na żywo.</h2>
                 <div class="cert-list">
-                    <div class="cert-row"><div class="cert-left"><span class="cert-name">System Operacyjny 2026</span><span class="cert-org" style="color:var(--white-dim)">Aplikacja HTML (localStorage, Offline-first) zbudowana z AI.</span></div></div>
-                    <div class="cert-row"><div class="cert-left"><span class="cert-name">PM Learning Roadmapa</span><span class="cert-org" style="color:var(--white-dim)">WBS, mapowanie zasobów AI, dekompozycja celów na Q1-Q4.</span></div></div>
-                    <div class="cert-row"><div class="cert-left"><span class="cert-name">Przeprowadzka Wrocław</span><span class="cert-org" style="color:var(--white-dim)">WIP: Risk register, budżet 15k PLN, kaucja na Q4.</span></div></div>
+                    <div class="cert-row" style="cursor:pointer" onclick="openProject(0)"><div class="cert-left"><span class="cert-name" style="color:var(--magenta)">System Operacyjny 2026 ↗</span><span class="cert-org" style="color:var(--white-dim)">Aplikacja HTML (localStorage, Offline-first) zbudowana z AI.</span></div></div>
+                    <div class="cert-row" style="cursor:pointer" onclick="openProject(1)"><div class="cert-left"><span class="cert-name" style="color:var(--teal)">PM Learning Roadmapa ↗</span><span class="cert-org" style="color:var(--white-dim)">WBS, mapowanie zasobów AI, dekompozycja celów na Q1-Q4.</span></div></div>
+                    <div class="cert-row" style="cursor:pointer" onclick="openProject(2)"><div class="cert-left"><span class="cert-name" style="color:var(--purple)">Przeprowadzka Wrocław ↗</span><span class="cert-org" style="color:var(--white-dim)">WIP: Risk register, budżet 15k PLN, kaucja na Q4.</span></div></div>
                 </div>
                 <div class="stack-wrap">
                     <span class="chip" style="border-color:rgba(232,25,122,0.3);color:var(--magenta)">AI Dev</span>
@@ -378,7 +397,7 @@
             <div class="panel-bg"></div>
             <div class="panel-content">
                 <div class="panel-num" style="color:var(--teal)"><span class="panel-num-line" style="background:var(--teal)"></span>Certyfikaty & Stack</div>
-                <h2 class="panel-title">Wiedza<br>na dziś.</h2>
+                <h2 class="panel-title">Wiedza.</h2>
                 <div class="cert-list">
                     <div class="cert-row"><div class="cert-left"><span class="cert-name">McKinsey Forward</span><span class="cert-org">McKinsey & Company</span></div><span class="cert-badge badge-done">Ukończony</span></div>
                     <div class="cert-row"><div class="cert-left"><span class="cert-name">PM Kickoff</span><span class="cert-org">PMI</span></div><span class="cert-badge badge-done">Ukończony</span></div>
@@ -386,9 +405,9 @@
                     <div class="cert-row"><div class="cert-left"><span class="cert-name">Google PM Certificate</span><span class="cert-org">Google / Coursera</span></div><span class="cert-badge badge-wip">W trakcie</span></div>
                 </div>
                 <div class="stack-wrap">
-                    <span class="chip" style="border-color:rgba(232,25,122,0.3);color:var(--magenta)">Perplexity Pro</span>
-                    <span class="chip" style="border-color:rgba(155,61,232,0.3);color:var(--purple)">Gemini Advanced</span>
-                    <span class="chip" style="border-color:rgba(0,201,200,0.3);color:var(--teal)">Antigravity IDE</span>
+                    <span class="chip" style="border-color:rgba(0,201,200,0.3);color:var(--teal)">Perplexity Pro</span>
+                    <span class="chip" style="border-color:rgba(232,25,122,0.3);color:var(--magenta)">Antigravity IDE</span>
+                    <span class="chip" style="border-color:rgba(155,61,232,0.3);color:var(--purple)">Google Pro</span>
                     <span class="chip">Claude</span>
                 </div>
             </div>
@@ -401,8 +420,8 @@
                 <div class="panel-num" style="color:var(--purple)"><span class="panel-num-line" style="background:var(--purple)"></span>Mapa Kompetencji</div>
                 <h2 class="panel-title">Skills.</h2>
                 <div class="values-mini" style="grid-template-columns: 1fr;">
-                    <div class="val-item" style="padding:0.6rem;"><div class="val-title" style="color:var(--magenta)">Tech & AI</div><div class="val-desc">AI literacy, prompting, pipeline'y, NotebookLM, Gemini, PPLX, podstawy HTML/CSS/JS do prototypów.</div></div>
                     <div class="val-item" style="padding:0.6rem;"><div class="val-title" style="color:var(--teal)">PM & Systems</div><div class="val-desc">Inicjacja projektu, scope, ryzyko, iteracja, systemy egzekucji, charter, kanban.</div></div>
+                    <div class="val-item" style="padding:0.6rem;"><div class="val-title" style="color:var(--magenta)">Tech & AI</div><div class="val-desc">AI literacy, prompting, pipeline'y, NotebookLM, Gemini, PPLX, podstawy HTML/CSS/JS do prototypów.</div></div>
                     <div class="val-item" style="padding:0.6rem;"><div class="val-title" style="color:var(--purple)">Human Skills</div><div class="val-desc">Resilience, analityczne myślenie, influence bez stanowiska, komunikacja pisemna, zdrowie mentalne jako asset.</div></div>
                 </div>
             </div>
@@ -413,10 +432,10 @@
             <div class="panel-bg"></div>
             <div class="panel-content">
                 <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>Proces</div>
-                <h2 class="panel-title">Build in<br>Public.</h2>
+                <h2 class="panel-title">Workflow<br>i system.</h2>
                 <div class="cert-list">
-                    <div class="cert-row"><div class="cert-left"><span class="cert-name">Tools</span><span class="cert-org" style="color:var(--white-dim)">PPLX / Gemini / Claude / NotebookLM / Antigravity / iPhone Notatnik</span></div></div>
-                    <div class="cert-row"><div class="cert-left"><span class="cert-name">System</span><span class="cert-org" style="color:var(--white-dim)">Moodscape → Project → Plan → Resources</span></div></div>
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">System</span><span class="cert-org" style="color:var(--white-dim)">Moodscape → Projekt → Plan → Resources</span></div></div>
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">Tools</span><span class="cert-org" style="color:var(--white-dim)">PPLX / Gemini / Claude / NotebookLM / Antigravity / iNotes</span></div></div>
                     <div class="cert-row"><div class="cert-left"><span class="cert-name">Zasada</span><span class="cert-org" style="color:var(--white-dim)">Ship first, iterate publicznie, AI jako leverage nie jako kostium.</span></div></div>
                 </div>
                 <div class="stack-wrap">
@@ -430,7 +449,7 @@
             <div class="panel-bg"></div>
             <div class="panel-content">
                 <div class="panel-num" style="color:var(--teal)"><span class="panel-num-line" style="background:var(--teal)"></span>Misja</div>
-                <h2 class="panel-title" style="margin-bottom:0.75rem">Szukam<br>roli.</h2>
+                <h2 class="panel-title" style="margin-bottom:0.75rem">Kolejny<br>krok.</h2>
                 <div class="manifest-quote">"Szukam pierwszej roli: junior PM / project coordinator / operations"</div>
                 <div class="panel-body">Buduję systemy, contentem i narzędziami AI. Na żywo. Nie korporacyjnie, autentycznie. Masz projekt? Pogadajmy.</div>
                 <div class="hero-ctas" style="margin-top: 1.5rem">
@@ -459,24 +478,77 @@
 
 <!-- Minority Report Detail View -->
 <div id="demo-detail" class="detail-view">
-    <div class="detail-card">
-        <div class="detail-card-bg"></div>
-        <button class="close-btn" onclick="toggleDemo()">X</button>
-        <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>EVIDENCE DETAIL</div>
-        <h2 class="panel-title" style="margin-top: 1rem; font-size: clamp(2rem, 5vw, 3.5rem);">System Operacyjny 2026</h2>
-        <p style="color: var(--white-dim); line-height: 1.8; margin-top: 1.5rem; font-family: monospace;">To jest pokazowa karta zrzucana z góry. Karuzela powędrowała w górę, a ta karta płynnie "wypadła" ze stosu.</p>
-        <p style="color: var(--white-dim); line-height: 1.8; margin-top: 1rem; font-family: monospace;">W ten sposób możemy ładować głębokie treści dla każdego projektu bez zaśmiecania głównego ekranu karuzeli.</p>
-        
-        <div class="stack-wrap" style="margin-top: 2.5rem;">
-            <span class="chip" style="border-color:rgba(232,25,122,0.3);color:var(--magenta)">Case Study</span>
-            <span class="chip" style="border-color:rgba(0,201,200,0.3);color:var(--teal)">Demo</span>
+    <div class="detail-stack">
+        <!-- Tło 2 (najgłębsze) -->
+        <div class="detail-card detail-back-2">
+            <div class="detail-card-bg"></div>
+        </div>
+        <!-- Tło 1 (średnie) -->
+        <div class="detail-card detail-back-1">
+            <div class="detail-card-bg"></div>
+        </div>
+        <!-- Karta główna (na wierzchu) -->
+        <div class="detail-card detail-front">
+            <div class="detail-card-bg"></div>
+            <button class="close-btn" onclick="toggleDemo()">X</button>
+            <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>PROJECT CHARTER</div>
+            <h2 id="detail-title" class="panel-title" style="margin-top: 1rem; font-size: clamp(2rem, 5vw, 3.5rem);">Tytuł Projektu</h2>
+            <div id="detail-content">
+                <!-- Treść dynamiczna -->
+            </div>
+            
+            <div id="detail-chips" class="stack-wrap" style="margin-top: 2.5rem;">
+                <!-- Tagi dynamiczne -->
+            </div>
         </div>
     </div>
 </div>
 
 <script>
+    const projectData = [
+        {
+            title: "System Operacyjny 2026",
+            html: `<p style="color: var(--white-dim); line-height: 1.8; margin-top: 1.5rem; font-family: monospace;">
+                <strong>Cel:</strong> Budowa interfejsu (HTML/CSS/JS) łączącego notatki, projekty i zasoby w jedną aplikację offline-first działającą w LocalStorage.</p>
+                <p style="color: var(--white-dim); line-height: 1.8; margin-top: 1rem; font-family: monospace;">
+                <strong>Rola AI:</strong> Narzędzia LLM wygenerowały cały fundament kodu z moich promptów architektonicznych, co pozwoliło mi pominąć naukę syntaxu i skupić się na logice PM.</p>
+                <p style="color: var(--white-dim); line-height: 1.8; margin-top: 1rem; font-family: monospace;">
+                <strong>Status:</strong> Zakończone, działające lokalnie.</p>`,
+            chips: `<span class="chip" style="border-color:rgba(232,25,122,0.3);color:var(--magenta)">AI Dev</span><span class="chip" style="border-color:rgba(0,201,200,0.3);color:var(--teal)">HTML/JS</span>`
+        },
+        {
+            title: "PM Learning Roadmapa",
+            html: `<p style="color: var(--white-dim); line-height: 1.8; margin-top: 1.5rem; font-family: monospace;">
+                <strong>Cel:</strong> Stworzenie kompleksowego planu rozwoju na rok 2026 (Q1-Q4) pod kątem znalezienia zatrudnienia w IT jako PM / Project Coordinator.</p>
+                <p style="color: var(--white-dim); line-height: 1.8; margin-top: 1rem; font-family: monospace;">
+                <strong>Zakres:</strong> Rozbicie WBS na kursy (Google, PMI), budowanie portfolio publicznego oraz zdobywanie praktycznej wiedzy używając AI jako asystenta (Perplexity).</p>
+                <p style="color: var(--white-dim); line-height: 1.8; margin-top: 1rem; font-family: monospace;">
+                <strong>Status:</strong> W realizacji (Q2).</p>`,
+            chips: `<span class="chip" style="border-color:rgba(232,25,122,0.3);color:var(--magenta)">WBS</span><span class="chip" style="border-color:rgba(0,201,200,0.3);color:var(--teal)">Roadmapping</span>`
+        },
+        {
+            title: "Przeprowadzka Wrocław",
+            html: `<p style="color: var(--white-dim); line-height: 1.8; margin-top: 1.5rem; font-family: monospace;">
+                <strong>Cel:</strong> Zarządzanie osobistym projektem relokacji jak klasycznym projektem biznesowym, z określonym budżetem i rejestrem ryzyk.</p>
+                <p style="color: var(--white-dim); line-height: 1.8; margin-top: 1rem; font-family: monospace;">
+                <strong>Metryki:</strong> Budżet całkowity 15k PLN, odłożenie kaucji do Q4, logistyka, umowa najmu, research dzielnic we Wrocławiu przez AI.</p>
+                <p style="color: var(--white-dim); line-height: 1.8; margin-top: 1rem; font-family: monospace;">
+                <strong>Status:</strong> Faza planowania i budżetowania.</p>`,
+            chips: `<span class="chip" style="border-color:rgba(232,25,122,0.3);color:var(--magenta)">Risk Register</span><span class="chip" style="border-color:rgba(0,201,200,0.3);color:var(--teal)">Budgeting</span>`
+        }
+    ];
+
+    function openProject(index) {
+        const data = projectData[index];
+        document.getElementById('detail-title').innerText = data.title;
+        document.getElementById('detail-content').innerHTML = data.html;
+        document.getElementById('detail-chips').innerHTML = data.chips;
+        
+        document.body.classList.add('detail-active');
+    }
+
     function toggleDemo() {
-        document.body.classList.toggle('detail-active');
+        document.body.classList.remove('detail-active');
     }
     const cylinder = document.getElementById('cylinder');
     const panels   = Array.from(document.querySelectorAll('.panel'));
