@@ -385,34 +385,7 @@
     </div>
 </div>
 
-<!-- Minority Report Detail View -->
-<div id="demo-detail" class="detail-view">
-    <div class="detail-stack">
-        <!-- Tło 2 (najgłębsze) -->
-        <div class="detail-card detail-back-2">
-            <div class="detail-card-bg"></div>
-        </div>
-        <!-- Tło 1 (średnie) -->
-        <div class="detail-card detail-back-1">
-            <div class="detail-card-bg"></div>
-        </div>
-        <!-- Karta główna (na wierzchu) -->
-        <div class="detail-card detail-front">
-            <div class="detail-card-bg"></div>
-            <button class="close-btn" onclick="toggleDemo()">X</button>
-            <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>PROJECT CHARTER</div>
-            <h2 id="detail-title" class="panel-title" style="margin-top: 1rem; font-size: clamp(2rem, 5vw, 3.5rem);">Tytuł Projektu</h2>
-            <div id="detail-content">
-                <!-- Treść dynamiczna -->
-            </div>
-            
-            <div id="detail-chips" class="stack-wrap" style="margin-top: 2.5rem;">
-                <!-- Tagi dynamiczne -->
-            </div>
-        </div>
-    </div>
-</div>
-
+<script>
     const cylinder = document.getElementById('cylinder');
     const panels   = Array.from(document.querySelectorAll('.panel'));
     const counter  = document.getElementById('counter');
