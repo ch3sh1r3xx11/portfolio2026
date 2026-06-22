@@ -585,7 +585,7 @@
     // ── Calculate prism geometry and position panels ──
     function initGeometry() {
         const w = cylinder.offsetWidth;
-        const gap = window.innerWidth < 768 ? 60 : 150;
+        const gap = window.innerWidth < 768 ? 30 : 75; // Zmniejszony odstęp o połowę
         radius = Math.round((w / 2) / Math.tan(Math.PI / N)) + gap;
 
         panels.forEach((panel, i) => {
