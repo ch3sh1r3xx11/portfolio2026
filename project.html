@@ -11,10 +11,10 @@
             --off-black: #142028;
             --white:     #f5f5f0;
             --white-dim: rgba(245,245,240, 0.7);
+            --magenta:   #E8197A;
+            --teal:      #00C9C8;
             --font-body: 'JetBrains Mono', ui-monospace, SFMono-Regular, Consolas, "Courier New", monospace;
             --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Consolas, "Courier New", monospace;
-            --primary: #25A3AD; 
-            --secondary: #A9638B;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -40,43 +40,48 @@
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(255,255,255,0.04); }
         .nav-logo { font-family: var(--font-mono); font-size:0.75rem; font-weight:700;
-            letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; color: var(--white); text-decoration: none; transition: 0.2s;}
-        .nav-logo:hover { color: var(--primary); }
+            letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; color: var(--white); text-decoration:none; transition: color 0.2s; }
+        .nav-logo:hover { color: var(--magenta); }
         .nav-counter { font-family: var(--font-mono); font-size:0.75rem; font-weight:700;
-            color: var(--primary); letter-spacing:0.1em; }
+            color: var(--white-dim); letter-spacing:0.1em; }
 
         .scene { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; perspective: 1500px; }
         
-        .cylinder { width: 85vw; height: 60vh; position: relative; transform-style: preserve-3d; }
-        @media (min-width: 768px) { .cylinder { width: 60vw; height: 50vh; } }
+        .cylinder { width: 100%; height: 100%; position: absolute; transform-style: preserve-3d; }
+        
+        .panel { 
+            position: absolute; 
+            width: 60vw; height: 65vh; 
+            left: 50%; top: 50%; 
+            margin-left: -30vw; margin-top: -32.5vh; 
+            transform-style: preserve-3d; 
+        }
+        @media (max-width: 768px) { 
+            .panel { width: 85vw; height: 70vh; margin-left: -42.5vw; margin-top: -35vh; }
+            nav { padding:0.7rem 1.25rem; }
+            .panel-content { padding: 3rem 1.5rem; }
+        }
 
-        .panel { position: absolute; width: 100%; height: 100%; transform-style: preserve-3d; }
         .panel-bg, .panel-content, .panel-bg-deep { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 
         .panel-bg-deep { position: absolute; inset: clamp(24px, 5vw, 48px); border-radius: 1.5rem; transform: translateZ(-70px); border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 0 60px rgba(0,0,0,0.5); background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); pointer-events: none; }
         .panel-bg { position: absolute; inset: clamp(12px, 3vw, 24px); border-radius: 1.5rem; transform: translateZ(-25px); border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 0 100px rgba(0,0,0,0.8); overflow: hidden; background: rgba(15,20,25,0.8); }
-        .panel-content { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; justify-content: center; padding: 3rem clamp(2rem, 5vw, 4rem); transform: translateZ(20px); background: rgba(12, 12, 14, 0.45); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.12); border-radius: 2rem; box-shadow: inset 0 0 30px rgba(255,255,255,0.02), 0 40px 100px rgba(0,0,0,0.8); }
+        .panel-content { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; justify-content: center; padding: 5rem clamp(2rem, 8vw, 8rem); transform: translateZ(20px); background: rgba(12, 12, 14, 0.45); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.12); border-radius: 2rem; box-shadow: inset 0 0 30px rgba(255,255,255,0.02), 0 40px 100px rgba(0,0,0,0.8); }
 
         .panel-num { font-family: var(--font-mono); font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.6rem; }
         .panel-num-line { width:20px; height:1px; display:block; }
-        .panel-title { font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 1.25rem; text-transform: lowercase; }
-        .panel-body { font-size: 0.95rem; line-height: 1.8; color: var(--white-dim); max-width: 600px; }
-        .panel-body strong { color: var(--white); }
-
-        .stack-wrap { display:flex; flex-wrap:wrap; gap:0.75rem; margin-top:2rem; }
+        .panel-title { font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 900; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 1.25rem; text-transform: lowercase; }
+        
+        .stack-wrap { display:flex; flex-wrap:wrap; gap:0.75rem; margin-top:2.5rem; }
         .chip { display:inline-flex; align-items:center; justify-content:center; padding:0.6rem 1.2rem; border:1px solid rgba(255,255,255,0.2); border-radius:4px; font-size:0.9rem; color:var(--white-dim); font-family: monospace; text-transform: uppercase; letter-spacing: 0.05em; }
 
-        @media (max-width: 640px) {
-            nav { padding:0.7rem 1.25rem; }
-            .panel-content { padding: 3rem 1.5rem; }
-        }
     </style>
 </head>
 <body>
 
 <nav>
-    <a href="portfolio.html" class="nav-logo">← Wróć do portfolio</a>
-    <span class="nav-counter" id="counter">01 / 03</span>
+    <a href="portfolio.html" class="nav-logo">CREATIVE AI-DRIVEN PM</a>
+    <span class="nav-counter" id="counter">01 / 02</span>
 </nav>
 
 <div class="scene">
@@ -88,32 +93,25 @@
 <script src="data.js"></script>
 <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const projectId = parseInt(urlParams.get('id')) || 0;
-    const project = projectData.find(p => p.id === projectId) || projectData[0];
-
-    document.documentElement.style.setProperty('--primary', project.themeColors.primary);
-    document.documentElement.style.setProperty('--secondary', project.themeColors.secondary);
+    const startId = parseInt(urlParams.get('id')) || 0;
 
     const cylinder = document.getElementById('cylinder');
     
     let html = '';
-    project.panels.forEach((panel, i) => {
-        let extraHtml = '';
-        if (i === 0 && project.chips) {
-            extraHtml = `<div class="stack-wrap">` + 
-                project.chips.map(c => `<span class="chip" style="border-color:rgba(${c.rgb},0.3);color:${c.color}">${c.text}</span>`).join('') +
-                `</div>`;
-        }
-
+    projectData.forEach((project, i) => {
         html += `
         <div class="panel" data-index="${i}">
             <div class="panel-bg-deep"></div>
             <div class="panel-bg"></div>
             <div class="panel-content">
-                <div class="panel-num" style="color:var(--primary)"><span class="panel-num-line" style="background:var(--primary)"></span>${project.title}</div>
-                <h2 class="panel-title">${panel.subtitle}</h2>
-                <div class="panel-body">${panel.content}</div>
-                ${extraHtml}
+                <div class="panel-num" style="color:${project.themeColor}"><span class="panel-num-line" style="background:${project.themeColor}"></span>PROJECT CHARTER</div>
+                <h2 class="panel-title">${project.title}</h2>
+                <div id="detail-content">
+                    ${project.html}
+                </div>
+                <div class="stack-wrap">
+                    ${project.chips}
+                </div>
             </div>
         </div>`;
     });
@@ -124,21 +122,24 @@
     const N = panels.length;
     const theta = 360 / N; 
 
-    let currentAngle = 0;
+    // Initial angle based on URL id
+    let currentAngle = -startId * theta;
     let velocity = 0;
     let isDragging = false;
     let isAutoRotating = false;
-    let autoRotateTarget = 0;
+    let autoRotateTarget = currentAngle;
     let radius = 0;
 
     function initGeometry() {
-        const h = cylinder.offsetHeight;
+        const h = panels[0].offsetHeight;
         const gap = window.innerWidth < 768 ? 60 : 150; 
         radius = Math.round((h / 2) / Math.tan(Math.PI / N)) + gap;
 
         panels.forEach((panel, i) => {
             panel.style.transform = `rotateX(${i * theta}deg) translateZ(${radius}px)`;
         });
+        
+        cylinder.style.transform = `translateZ(${-radius}px) rotateX(${-currentAngle}deg)`;
     }
 
     function loop() {
@@ -215,7 +216,7 @@
         if (!isDragging) return;
         const dy = y - ty;
         ty = y;
-        const deltaAngle = dy * 0.25;
+        const deltaAngle = dy * 0.15;
         currentAngle += deltaAngle;
         velocity = deltaAngle;
     }
