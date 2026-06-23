@@ -95,10 +95,19 @@
     const urlParams = new URLSearchParams(window.location.search);
     const startId = parseInt(urlParams.get('id')) || 0;
 
+    const baseProjects = projectData; 
+    // Twoje wybitne rozwiązanie: duplikujemy ekrany dla stabilnej geometrii!
+    const multiplier = Math.max(1, Math.ceil(8 / baseProjects.length));
+    const projects = [];
+    for (let i = 0; i < multiplier; i++) {
+        projects.push(...baseProjects);
+    }
+    const startIndex = projects.findIndex(p => p.id === startId) || 0;
+
     const cylinder = document.getElementById('cylinder');
     
     let html = '';
-    projectData.forEach((project, i) => {
+    projects.forEach((project, i) => {
         html += `
         <div class="panel" data-index="${i}">
             <div class="panel-bg-deep"></div>
@@ -120,13 +129,10 @@
     const panels = Array.from(document.querySelectorAll('.panel'));
     const counter = document.getElementById('counter');
     const N = panels.length;
-    
-    // Wymuszamy duży cylinder (min 7 slotów), by ekrany gładko sunęły w pionie zamiast zachowywać się jak moneta
-    const virtualN = Math.max(N, 7);
-    const theta = 360 / virtualN; 
+    const theta = 360 / N; 
 
     // Initial angle based on URL id
-    let currentAngle = -startId * theta;
+    let currentAngle = -startIndex * theta;
     let velocity = 0;
     let isDragging = false;
     let isAutoRotating = false;
@@ -136,13 +142,14 @@
     function initGeometry() {
         const h = panels[0].offsetHeight;
         const gap = window.innerWidth < 768 ? 60 : 150; 
-        radius = Math.round((h / 2) / Math.tan(Math.PI / virtualN)) + gap;
+        radius = Math.round((h / 2) / Math.tan(Math.PI / N)) + gap;
 
         panels.forEach((panel, i) => {
             panel.style.transform = `rotateX(${i * theta}deg) translateZ(${radius}px)`;
         });
         
-        cylinder.style.transform = `translateZ(${-radius}px) rotateX(${-currentAngle}deg)`;
+        // ZLIKWIDOWANY BŁĄD Z -currentAngle
+        cylinder.style.transform = `translateZ(${-radius}px) rotateX(${currentAngle}deg)`;
     }
 
     function loop() {
@@ -157,21 +164,10 @@
             }
         } else if (!isDragging) {
             velocity *= 0.95; 
-            
-            // Limit the snap points to existing panels only (0 to N-1)
-            let snapIndex = Math.round(currentAngle / theta);
-            if (snapIndex > 0) snapIndex = 0;
-            if (snapIndex < -(N - 1)) snapIndex = -(N - 1);
-            
-            const snapPoint = snapIndex * theta;
-            const distance = currentAngle - snapPoint;
-            
-            // Strong pull back if scrolling out of bounds
-            if (currentAngle > 0 || currentAngle < -(N - 1) * theta) {
-                velocity -= distance * 0.1;
-                velocity *= 0.8;
-            } else if (Math.abs(velocity) < 2) { 
-                if (Math.abs(distance) < (theta * 0.4)) {
+            if (Math.abs(velocity) < 2) { 
+                const snapPoint = Math.round(currentAngle / theta) * theta;
+                const distance = currentAngle - snapPoint;
+                if (Math.abs(distance) < (theta * 0.25)) {
                     velocity -= distance * 0.15; 
                     velocity *= 0.5; 
                 }
@@ -179,25 +175,22 @@
         }
 
         currentAngle += velocity;
-        cylinder.style.transform = `translateZ(${-radius}px) rotateX(${-currentAngle}deg)`;
+        cylinder.style.transform = `translateZ(${-radius}px) rotateX(${currentAngle}deg)`;
 
         const nearestIndex = Math.round(-currentAngle / theta);
-        let displayIndex = -nearestIndex;
-        if (displayIndex < 0) displayIndex = 0;
-        if (displayIndex > N - 1) displayIndex = N - 1;
+        const realIndex = ((nearestIndex % N) + N) % N;
+        const actualProject = projects[realIndex];
+        const displayIndex = baseProjects.findIndex(p => p.id === actualProject.id);
         
-        counter.textContent = String(displayIndex + 1).padStart(2, '0') + ' / ' + String(N).padStart(2, '0');
+        counter.textContent = String(displayIndex + 1).padStart(2, '0') + ' / ' + String(baseProjects.length).padStart(2, '0');
 
         requestAnimationFrame(loop);
     }
 
     function rotateRelative(dir) {
         let currentIndex = Math.round(-currentAngle / theta);
-        let nextIndex = -currentIndex + dir;
-        if (nextIndex < 0) nextIndex = 0;
-        if (nextIndex > N - 1) nextIndex = N - 1;
         isAutoRotating = true;
-        autoRotateTarget = -nextIndex * theta;
+        autoRotateTarget = -(currentIndex + dir) * theta;
     }
 
     function next() { rotateRelative(1); }
