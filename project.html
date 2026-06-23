@@ -132,7 +132,7 @@
     const theta = 360 / N; 
 
     // Initial angle based on URL id
-    let currentAngle = -startIndex * theta;
+    let currentAngle = startIndex * theta;
     let velocity = 0;
     let isDragging = false;
     let isAutoRotating = false;
@@ -145,7 +145,7 @@
         radius = Math.round((h / 2) / Math.tan(Math.PI / N)) + gap;
 
         panels.forEach((panel, i) => {
-            panel.style.transform = `rotateX(${i * theta}deg) translateZ(${radius}px)`;
+            panel.style.transform = `rotateX(${-i * theta}deg) translateZ(${radius}px)`;
         });
         
         // ZLIKWIDOWANY BŁĄD Z -currentAngle
@@ -177,7 +177,7 @@
         currentAngle += velocity;
         cylinder.style.transform = `translateZ(${-radius}px) rotateX(${currentAngle}deg)`;
 
-        const nearestIndex = Math.round(-currentAngle / theta);
+        const nearestIndex = Math.round(currentAngle / theta);
         const realIndex = ((nearestIndex % N) + N) % N;
         const actualProject = projects[realIndex];
         const displayIndex = baseProjects.findIndex(p => p.id === actualProject.id);
@@ -188,9 +188,9 @@
     }
 
     function rotateRelative(dir) {
-        let currentIndex = Math.round(-currentAngle / theta);
+        let currentIndex = Math.round(currentAngle / theta);
         isAutoRotating = true;
-        autoRotateTarget = -(currentIndex + dir) * theta;
+        autoRotateTarget = (currentIndex + dir) * theta;
     }
 
     function next() { rotateRelative(1); }
@@ -213,8 +213,8 @@
                 isDragging = false; 
             }, 60);
 
-            currentAngle -= e.deltaY * 0.3; 
-            velocity = -e.deltaY * 0.2;     
+            currentAngle += e.deltaY * 0.3; 
+            velocity = e.deltaY * 0.2;     
         }
     }, { passive: false });
 
@@ -229,7 +229,7 @@
         if (!isDragging) return;
         const dy = y - ty;
         ty = y;
-        const deltaAngle = dy * 0.15;
+        const deltaAngle = -dy * 0.15;
         currentAngle += deltaAngle;
         velocity = deltaAngle;
     }
