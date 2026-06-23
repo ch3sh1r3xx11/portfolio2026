@@ -43,30 +43,108 @@
             letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; color: var(--white); text-decoration:none; transition: color 0.2s; }
         .nav-logo:hover { color: var(--magenta); }
         .nav-counter { font-family: var(--font-mono); font-size:0.75rem; font-weight:700;
-            color: var(--white-dim); letter-spacing:0.1em; }
+            color: var(--magenta); letter-spacing:0.1em; }
 
-        .scene { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; perspective: 1500px; }
-        
-        .cylinder { width: 100%; height: 100%; position: absolute; transform-style: preserve-3d; }
-        
-        .panel { 
-            position: absolute; 
-            width: 60vw; height: 65vh; 
-            left: 50%; top: 50%; 
-            margin-left: -30vw; margin-top: -32.5vh; 
-            transform-style: preserve-3d; 
-        }
-        @media (max-width: 768px) { 
-            .panel { width: 85vw; height: 70vh; margin-left: -42.5vw; margin-top: -35vh; }
-            nav { padding:0.7rem 1.25rem; }
-            .panel-content { padding: 3rem 1.5rem; }
+        /* ── 3D SCENE ── */
+        .scene {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            perspective: 1500px;
         }
 
-        .panel-bg, .panel-content, .panel-bg-deep { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+        /* Cylinder sized identically to portfolio.html */
+        .cylinder {
+            width: 85vw;
+            height: 80vh;
+            position: relative;
+            transform-style: preserve-3d;
+        }
+        @media (min-width: 768px) {
+            .cylinder { width: 70vw; }
+        }
 
-        .panel-bg-deep { position: absolute; inset: clamp(24px, 5vw, 48px); border-radius: 1.5rem; transform: translateZ(-70px); border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 0 60px rgba(0,0,0,0.5); background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); pointer-events: none; }
-        .panel-bg { position: absolute; inset: clamp(12px, 3vw, 24px); border-radius: 1.5rem; transform: translateZ(-25px); border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 0 100px rgba(0,0,0,0.8); overflow: hidden; background: rgba(15,20,25,0.8); }
-        .panel-content { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; justify-content: center; padding: 5rem clamp(2rem, 8vw, 8rem); transform: translateZ(20px); background: rgba(12, 12, 14, 0.45); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.12); border-radius: 2rem; box-shadow: inset 0 0 30px rgba(255,255,255,0.02), 0 40px 100px rgba(0,0,0,0.8); }
+        /* Panel fills cylinder — same as portfolio.html */
+        .panel {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+        }
+
+        .panel-bg, .panel-content, .panel-bg-deep {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        /* DEEP BACK FRAME (3rd layer) — identical to portfolio */
+        .panel-bg-deep {
+            position: absolute;
+            inset: clamp(24px, 5vw, 48px);
+            border-radius: 1.5rem;
+            transform: translateZ(-70px);
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 0 60px rgba(0,0,0,0.5);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            pointer-events: none;
+        }
+
+        /* BACK FRAME — identical to portfolio */
+        .panel-bg {
+            position: absolute;
+            inset: clamp(12px, 3vw, 24px);
+            border-radius: 1.5rem;
+            transform: translateZ(-25px);
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 0 100px rgba(0,0,0,0.8);
+            overflow: hidden;
+            background: rgba(15,20,25,0.8);
+        }
+
+        /* High-tech grid inside background — identical to portfolio */
+        .panel-bg::after {
+            content: '';
+            position: absolute;
+            inset: -20%;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            transform: rotateX(20deg) scale(1.2);
+            pointer-events: none;
+        }
+
+        /* Panel background colors */
+        .panel[data-index="0"] .panel-bg { background: radial-gradient(circle at 80% 20%, rgba(37,163,173,0.4), transparent 60%), radial-gradient(circle at 20% 80%, rgba(33,136,157,0.3), transparent 60%), rgba(15,20,25,0.6); }
+        .panel[data-index="1"] .panel-bg { background: radial-gradient(circle at 50% 50%, rgba(169,99,139,0.4), transparent 70%), radial-gradient(circle at 10% 90%, rgba(33,136,157,0.3), transparent 60%), rgba(15,20,25,0.6); }
+        .panel[data-index="2"] .panel-bg { background: radial-gradient(circle at 50% 50%, rgba(169,99,139,0.3), transparent 70%), radial-gradient(circle at 10% 10%, rgba(37,163,173,0.3), transparent 50%), rgba(15,20,25,0.6); }
+        .panel[data-index="3"] .panel-bg { background: radial-gradient(circle at 80% 80%, rgba(33,136,157,0.4), transparent 60%), radial-gradient(circle at 20% 20%, rgba(169,99,139,0.3), transparent 60%), rgba(15,20,25,0.6); }
+        .panel[data-index="4"] .panel-bg { background: radial-gradient(circle at 10% 80%, rgba(37,163,173,0.4), transparent 60%), radial-gradient(circle at 90% 20%, rgba(169,99,139,0.3), transparent 60%), rgba(15,20,25,0.6); }
+        .panel[data-index="5"] .panel-bg { background: radial-gradient(circle at 50% 20%, rgba(33,136,157,0.4), transparent 70%), radial-gradient(circle at 50% 80%, rgba(37,163,173,0.3), transparent 50%), rgba(15,20,25,0.6); }
+        .panel[data-index="6"] .panel-bg { background: radial-gradient(circle at 90% 90%, rgba(169,99,139,0.4), transparent 60%), radial-gradient(circle at 10% 10%, rgba(33,136,157,0.3), transparent 60%), rgba(15,20,25,0.6); }
+        .panel[data-index="7"] .panel-bg { background: radial-gradient(circle at 80% 20%, rgba(37,163,173,0.4), transparent 60%), radial-gradient(circle at 20% 80%, rgba(33,136,157,0.3), transparent 60%), rgba(15,20,25,0.6); }
+
+        /* ── FRONT FRAME (Content / Glassmorphism) — identical to portfolio ── */
+        .panel-content {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 5rem clamp(2rem, 8vw, 8rem);
+            
+            transform: translateZ(20px);
+            background: rgba(12, 12, 14, 0.45);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 2rem;
+            box-shadow: inset 0 0 30px rgba(255,255,255,0.02), 0 40px 100px rgba(0,0,0,0.8);
+        }
 
         .panel-num { font-family: var(--font-mono); font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.6rem; }
         .panel-num-line { width:20px; height:1px; display:block; }
@@ -75,6 +153,10 @@
         .stack-wrap { display:flex; flex-wrap:wrap; gap:0.75rem; margin-top:2.5rem; }
         .chip { display:inline-flex; align-items:center; justify-content:center; padding:0.6rem 1.2rem; border:1px solid rgba(255,255,255,0.2); border-radius:4px; font-size:0.9rem; color:var(--white-dim); font-family: monospace; text-transform: uppercase; letter-spacing: 0.05em; }
 
+        @media (max-width: 640px) {
+            nav { padding:0.7rem 1.25rem; }
+            .panel-content { padding: 3rem 1.5rem; }
+        }
     </style>
 </head>
 <body>
@@ -96,7 +178,7 @@
     const startId = parseInt(urlParams.get('id')) || 0;
 
     const baseProjects = projectData; 
-    // Twoje wybitne rozwiązanie: duplikujemy ekrany dla stabilnej geometrii!
+    // Duplikujemy ekrany naprzemiennie, żeby cylinder miał pełne 8 slotów
     const multiplier = Math.max(1, Math.ceil(8 / baseProjects.length));
     const projects = [];
     for (let i = 0; i < multiplier; i++) {
@@ -115,7 +197,7 @@
             <div class="panel-content">
                 <div class="panel-num" style="color:${project.themeColor}"><span class="panel-num-line" style="background:${project.themeColor}"></span>PROJECT CHARTER</div>
                 <h2 class="panel-title">${project.title}</h2>
-                <div id="detail-content">
+                <div>
                     ${project.html}
                 </div>
                 <div class="stack-wrap">
@@ -131,45 +213,49 @@
     const N = panels.length;
     const theta = 360 / N; 
 
-    // Initial angle based on URL id
-    let currentAngle = startIndex * theta;
+    let currentAngle = 0;
     let velocity = 0;
     let isDragging = false;
     let isAutoRotating = false;
-    let autoRotateTarget = currentAngle;
+    let autoRotateTarget = 0;
     let radius = 0;
 
+    // ── Calculate prism geometry — radius from HEIGHT (vertical axis) ──
     function initGeometry() {
-        const h = panels[0].offsetHeight;
-        const gap = window.innerWidth < 768 ? 60 : 150; 
+        const h = cylinder.offsetHeight;
+        const gap = window.innerWidth < 768 ? 60 : 150;
         radius = Math.round((h / 2) / Math.tan(Math.PI / N)) + gap;
 
         panels.forEach((panel, i) => {
             panel.style.transform = `rotateX(${-i * theta}deg) translateZ(${radius}px)`;
         });
-        
-        // ZLIKWIDOWANY BŁĄD Z -currentAngle
+
+        // Set initial position to startIndex
+        currentAngle = startIndex * theta;
         cylinder.style.transform = `translateZ(${-radius}px) rotateX(${currentAngle}deg)`;
     }
 
+    // Physics Loop — identical logic to portfolio.html
     function loop() {
         if (isAutoRotating) {
             const distance = currentAngle - autoRotateTarget;
-            velocity -= distance * 0.1; 
-            velocity *= 0.75; 
+            velocity -= distance * 0.1;
+            velocity *= 0.75;
             if (Math.abs(distance) < 0.1 && Math.abs(velocity) < 0.1) {
                 currentAngle = autoRotateTarget;
                 isAutoRotating = false;
                 velocity = 0;
             }
         } else if (!isDragging) {
-            velocity *= 0.95; 
-            if (Math.abs(velocity) < 2) { 
+            velocity *= 0.95;
+
+            if (Math.abs(velocity) < 2) {
                 const snapPoint = Math.round(currentAngle / theta) * theta;
                 const distance = currentAngle - snapPoint;
+                
                 if (Math.abs(distance) < (theta * 0.25)) {
-                    velocity -= distance * 0.15; 
-                    velocity *= 0.5; 
+                    velocity -= distance * 0.15;
+                    velocity *= 0.5;
                 }
             }
         }
@@ -177,6 +263,7 @@
         currentAngle += velocity;
         cylinder.style.transform = `translateZ(${-radius}px) rotateX(${currentAngle}deg)`;
 
+        // Update counter — map back to real project index
         const nearestIndex = Math.round(currentAngle / theta);
         const realIndex = ((nearestIndex % N) + N) % N;
         const actualProject = projects[realIndex];
@@ -196,28 +283,31 @@
     function next() { rotateRelative(1); }
     function prev() { rotateRelative(-1); }
 
+    // ── Keyboard ──
     document.addEventListener('keydown', e => {
         if      (e.key === 'ArrowDown' || e.key === 'ArrowRight') next();
         else if (e.key === 'ArrowUp'   || e.key === 'ArrowLeft')  prev();
     });
 
+    // ── Scroll wheel (vertical = deltaY) ──
     let wheelTimeout;
     document.addEventListener('wheel', e => {
         if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
             e.preventDefault();
             isAutoRotating = false;
-            isDragging = true; 
+            isDragging = true;
             
             clearTimeout(wheelTimeout);
             wheelTimeout = setTimeout(() => {
-                isDragging = false; 
+                isDragging = false;
             }, 60);
 
-            currentAngle += e.deltaY * 0.3; 
-            velocity = e.deltaY * 0.2;     
+            currentAngle += e.deltaY * 0.3;
+            velocity = e.deltaY * 0.2;
         }
     }, { passive: false });
 
+    // ── Touch / Drag (vertical = clientY) ──
     let ty = 0;
     function startDrag(y) {
         isDragging = true;
