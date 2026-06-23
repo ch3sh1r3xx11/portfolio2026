@@ -115,9 +115,9 @@
         /* DEEP BACK FRAME (3rd layer) */
         .panel-bg-deep {
             position: absolute;
-            inset: clamp(24px, 5vw, 48px);
+            inset: calc(-1 * clamp(16px, 4vw, 32px));
             border-radius: 1.5rem;
-            transform: translateZ(-90px);
+            transform: translateZ(-40px);
             border: 1px solid rgba(255,255,255,0.3); /* Shiny glass edge */
             box-shadow: 0 0 60px rgba(0,0,0,0.5);
             background: rgba(255, 255, 255, 0.03); /* Transparent */
@@ -128,9 +128,9 @@
         /* BACK FRAME (Wallpaper / Holographic effect) */
         .panel-bg {
             position: absolute;
-            inset: clamp(12px, 3vw, 24px); /* Smaller than front panel */
+            inset: calc(-1 * clamp(8px, 2vw, 16px));
             border-radius: 1.5rem;
-            transform: translateZ(-30px);
+            transform: translateZ(-20px);
             border: 1px solid rgba(255,255,255,0.06);
             box-shadow: 0 0 100px rgba(0,0,0,0.8);
             overflow: hidden;
@@ -169,7 +169,7 @@
             padding: 5rem clamp(2rem, 8vw, 8rem);
             
             /* Glass pane floating forward */
-            transform: translateZ(30px);
+            transform: translateZ(0px);
             background: rgba(12, 12, 14, 0.45);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -392,11 +392,10 @@
             <div class="panel-bg"></div>
             <div class="panel-content">
                 <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>Evidence</div>
-                <h2 class="panel-title">Buduję<br>na żywo.</h2>
+                <h2 class="panel-title">Projekty.</h2>
                 <div class="cert-list">
-                    <div class="cert-row" style="cursor:pointer" onclick="openProject(0)"><div class="cert-left"><span class="cert-name" style="color:var(--magenta)">System Operacyjny 2026 ↗</span><span class="cert-org" style="color:var(--white-dim)">Aplikacja HTML (localStorage, Offline-first) zbudowana z AI.</span></div></div>
-                    <div class="cert-row" style="cursor:pointer" onclick="openProject(1)"><div class="cert-left"><span class="cert-name" style="color:var(--teal)">PM Learning Roadmapa ↗</span><span class="cert-org" style="color:var(--white-dim)">WBS, mapowanie zasobów AI, dekompozycja celów na Q1-Q4.</span></div></div>
-                    <div class="cert-row" style="cursor:pointer" onclick="openProject(2)"><div class="cert-left"><span class="cert-name" style="color:var(--purple)">Przeprowadzka Wrocław ↗</span><span class="cert-org" style="color:var(--white-dim)">WIP: Risk register, budżet 15k PLN, kaucja na Q4.</span></div></div>
+                    <div class="cert-row" style="cursor:pointer" onclick="openProject(0)"><div class="cert-left"><span class="cert-name" style="color:var(--teal)">PM Learning Roadmapa ↗</span><span class="cert-org" style="color:var(--white-dim)">WBS, mapowanie zasobów AI, dekompozycja celów na Q1-Q4.</span></div></div>
+                    <div class="cert-row" style="cursor:pointer" onclick="openProject(1)"><div class="cert-left"><span class="cert-name" style="color:var(--magenta)">System Operacyjny 2026 ↗</span><span class="cert-org" style="color:var(--white-dim)">Aplikacja HTML (localStorage, Offline-first) zbudowana z AI.</span></div></div>
                 </div>
                 <div class="stack-wrap">
                     <span class="chip" style="border-color:rgba(232,25,122,0.3);color:var(--magenta)">AI Dev</span>
@@ -526,16 +525,6 @@
 <script>
     const projectData = [
         {
-            title: "System Operacyjny 2026",
-            html: `<p style="color: var(--white-dim); line-height: 1.8; margin-top: 1.5rem; font-family: monospace;">
-                <strong>Cel:</strong> Budowa interfejsu (HTML/CSS/JS) łączącego notatki, projekty i zasoby w jedną aplikację offline-first działającą w LocalStorage.</p>
-                <p style="color: var(--white-dim); line-height: 1.8; margin-top: 1rem; font-family: monospace;">
-                <strong>Rola AI:</strong> Narzędzia LLM wygenerowały cały fundament kodu z moich promptów architektonicznych, co pozwoliło mi pominąć naukę syntaxu i skupić się na logice PM.</p>
-                <p style="color: var(--white-dim); line-height: 1.8; margin-top: 1rem; font-family: monospace;">
-                <strong>Status:</strong> Zakończone, działające lokalnie.</p>`,
-            chips: `<span class="chip" style="border-color:rgba(232,25,122,0.3);color:var(--magenta)">AI Dev</span><span class="chip" style="border-color:rgba(0,201,200,0.3);color:var(--teal)">HTML/JS</span>`
-        },
-        {
             title: "PM Learning Roadmapa",
             html: `<p style="color: var(--white-dim); line-height: 1.8; margin-top: 1.5rem; font-family: monospace;">
                 <strong>Cel:</strong> Stworzenie kompleksowego planu rozwoju na rok 2026 (Q1-Q4) pod kątem znalezienia zatrudnienia w IT jako PM / Project Coordinator.</p>
@@ -546,14 +535,14 @@
             chips: `<span class="chip" style="border-color:rgba(232,25,122,0.3);color:var(--magenta)">WBS</span><span class="chip" style="border-color:rgba(0,201,200,0.3);color:var(--teal)">Roadmapping</span>`
         },
         {
-            title: "Przeprowadzka Wrocław",
+            title: "System Operacyjny 2026",
             html: `<p style="color: var(--white-dim); line-height: 1.8; margin-top: 1.5rem; font-family: monospace;">
-                <strong>Cel:</strong> Zarządzanie osobistym projektem relokacji jak klasycznym projektem biznesowym, z określonym budżetem i rejestrem ryzyk.</p>
+                <strong>Cel:</strong> Budowa interfejsu (HTML/CSS/JS) łączącego notatki, projekty i zasoby w jedną aplikację offline-first działającą w LocalStorage.</p>
                 <p style="color: var(--white-dim); line-height: 1.8; margin-top: 1rem; font-family: monospace;">
-                <strong>Metryki:</strong> Budżet całkowity 15k PLN, odłożenie kaucji do Q4, logistyka, umowa najmu, research dzielnic we Wrocławiu przez AI.</p>
+                <strong>Rola AI:</strong> Narzędzia LLM wygenerowały cały fundament kodu z moich promptów architektonicznych, co pozwoliło mi pominąć naukę syntaxu i skupić się na logice PM.</p>
                 <p style="color: var(--white-dim); line-height: 1.8; margin-top: 1rem; font-family: monospace;">
-                <strong>Status:</strong> Faza planowania i budżetowania.</p>`,
-            chips: `<span class="chip" style="border-color:rgba(232,25,122,0.3);color:var(--magenta)">Risk Register</span><span class="chip" style="border-color:rgba(0,201,200,0.3);color:var(--teal)">Budgeting</span>`
+                <strong>Status:</strong> Zakończone, działające lokalnie.</p>`,
+            chips: `<span class="chip" style="border-color:rgba(232,25,122,0.3);color:var(--magenta)">AI Dev</span><span class="chip" style="border-color:rgba(0,201,200,0.3);color:var(--teal)">HTML/JS</span>`
         }
     ];
 
@@ -585,7 +574,7 @@
     // ── Calculate prism geometry and position panels ──
     function initGeometry() {
         const w = cylinder.offsetWidth;
-        const gap = window.innerWidth < 768 ? 30 : 75; // Zmniejszony odstęp o połowę
+        const gap = window.innerWidth < 768 ? 160 : 300;
         radius = Math.round((w / 2) / Math.tan(Math.PI / N)) + gap;
 
         panels.forEach((panel, i) => {
