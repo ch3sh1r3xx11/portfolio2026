@@ -115,7 +115,7 @@
         /* DEEP BACK FRAME (3rd layer) */
         .panel-bg-deep {
             position: absolute;
-            inset: calc(-1 * clamp(16px, 4vw, 32px));
+            inset: clamp(24px, 5vw, 48px);
             border-radius: 1.5rem;
             transform: translateZ(-40px);
             border: 1px solid rgba(255,255,255,0.3); /* Shiny glass edge */
@@ -128,7 +128,7 @@
         /* BACK FRAME (Wallpaper / Holographic effect) */
         .panel-bg {
             position: absolute;
-            inset: calc(-1 * clamp(8px, 2vw, 16px));
+            inset: clamp(12px, 3vw, 24px); /* Smaller than front panel */
             border-radius: 1.5rem;
             transform: translateZ(-20px);
             border: 1px solid rgba(255,255,255,0.06);
