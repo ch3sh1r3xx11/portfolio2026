@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>AI-Driven PM | Portfolio</title>
+    <meta name="description" content="Creative AI Driven PM. Zamieniam chaos w systemy egzekucji. Build in public.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/packages/shared-ui/css/design-tokens.css">
+    <style>
+        :root {
+            --magenta: #e8197a;
+            --teal: #00c9c8;
+            --purple: #9b3de8;
+            --bg: #0c0c0e;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            background: var(--bg);
+            color: #fff;
+            font-family: var(--font-mono);
+            overflow: hidden;
+            height: 100%;
+            width: 100%;
+        }
+
+        /* ── BACKGROUND ── exact copy from working spiral.html */
+        .bg-layer {
+            position: fixed;
+            inset: -20px;
+            background-image: url('bg.jpg');
+            background-size: cover;
+            background-position: center;
+            filter: blur(10px) brightness(0.4);
+            z-index: 0;
+        }
+
+        /* ── SCROLLER ── */
+        .scroller-container {
+            position: absolute;
+            inset: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scroll-snap-type: y mandatory;
+            z-index: 10;
+            -webkit-overflow-scrolling: touch;
+        }
+        .scroll-section {
+            width: 100%;
+            height: 100vh;
+            scroll-snap-align: start;
+        }
+
+        /* ── 3D SCENE ── */
+        .scene {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1200px;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .spiral-container {
+            position: absolute;
+            transform-style: preserve-3d;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ── PANEL ── single div, exactly like spiral demo */
+        .panel {
+            position: absolute;
+            width: 88vw;
+            height: 78vh;
+            max-width: 480px;
+            max-height: 750px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(180deg, rgba(12,12,14,0.3) 0%, rgba(12,12,14,0.9) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            pointer-events: auto;
+            transition: opacity 0.4s;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* ── NAV OVERLAY ── */
+        .nav-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            pointer-events: none;
+        }
+        .nav-logo {
+            pointer-events: auto;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+        .counter {
+            font-size: 0.8rem;
+            color: var(--magenta);
+            letter-spacing: 0.1em;
+        }
+
+        /* ── PANEL TYPOGRAPHY ── */
+        .panel-num {
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            margin-bottom: 0.5rem;
+            color: var(--teal);
+            text-transform: uppercase;
+        }
+        .panel-title {
+            font-size: clamp(2.5rem, 8vw, 3.5rem);
+            line-height: 0.9;
+            margin: 0 0 1rem 0;
+            font-weight: 900;
+        }
+        .panel-desc {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.7);
+            line-height: 1.6;
+        }
+
+        /* ── CONTENT COMPONENTS ── */
+        .cert-list { display:flex; flex-direction:column; margin-top:0.5rem; }
+        .cert-row { display:flex; justify-content:space-between; align-items:center;
+            padding:0.55rem 0; border-bottom:1px solid rgba(255,255,255,0.06); gap:0.5rem; }
+        .cert-row:first-child { border-top:1px solid rgba(255,255,255,0.06); }
+        .cert-name { font-size:0.75rem; font-weight:700; }
+        .cert-org { font-size:0.5rem; letter-spacing:0.08em;
+            color:rgba(255,255,255,0.5); text-transform:uppercase; }
+        .cert-left { display:flex; flex-direction:column; gap:0.1rem; }
+        .cert-badge { font-size:0.5rem; letter-spacing:0.12em;
+            text-transform:uppercase; padding:0.15rem 0.4rem; border-radius:2px; white-space:nowrap; }
+        .badge-done { background:rgba(0,201,200,0.12); color:var(--teal); border:1px solid rgba(0,201,200,0.25); }
+        .badge-wip  { background:rgba(232,25,122,0.1); color:var(--magenta); border:1px solid rgba(232,25,122,0.25); }
+
+        .stack-wrap { display:flex; flex-wrap:wrap; gap:0.4rem; margin-top:0.75rem; }
+        .chip { display:inline-flex; align-items:center; padding:0.35rem 0.7rem;
+            border:1px solid rgba(255,255,255,0.15); border-radius:4px; font-size:0.6rem;
+            color:rgba(255,255,255,0.6); text-transform: uppercase;
+            letter-spacing: 0.05em; text-decoration: none; }
+
+        .manifest-quote { font-size:0.75rem; font-style:italic; line-height:1.6;
+            color:#fff; border-left:2px solid var(--magenta); padding-left:0.8rem; margin:0.5rem 0; }
+
+        .hero-ctas { display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.75rem; }
+        .btn { font-size:0.6rem; font-weight:700;
+            letter-spacing:0.08em; text-transform:uppercase; padding:0.55rem 1rem;
+            border-radius:2px; text-decoration:none; display:inline-flex;
+            align-items:center; transition:all 0.2s; }
+        .btn-fill { background:#fff; color:#000; border:1px solid #fff; }
+        .btn-ghost { background:transparent; border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.7); }
+
+        .values-mini { display:flex; flex-direction:column; gap:0.4rem; margin-top:0.5rem; }
+        .val-item { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05);
+            border-radius:3px; padding:0.4rem 0.5rem; }
+        .val-title { font-size:0.7rem; font-weight:700; margin-bottom:0.1rem; }
+        .val-desc { font-size:0.6rem; line-height:1.5; color:rgba(255,255,255,0.5); }
+
+        .hero-subtitle { font-size:0.8rem; line-height:1.6; color:rgba(255,255,255,0.6); max-width:400px; }
+
+        @media (max-width: 640px) {
+            .nav-overlay { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-layer"></div>
+
+    <div class="nav-overlay">
+        <div class="nav-logo" onclick="goTo(0)">creative ai driven pm</div>
+        <div class="counter" id="counter">01 / 07</div>
+    </div>
+
+    <div class="scroller-container" id="scroller"></div>
+
+    <div class="scene">
+        <div class="spiral-container" id="container">
+
+            <!-- 0: HERO -->
+            <div class="panel">
+                <div class="panel-num" style="color:var(--magenta)">Creative AI-Driven PM</div>
+                <h1 class="panel-title">permissionless leverage</h1>
+                <p class="hero-subtitle">To moja wlasna nisza — skoro nie mam doswiadczenia, wiedzy ani umiejetnosci jeszcze, to korzystam z AI jako dzwigni.</p>
+                <div class="stack-wrap">
+                    <a href="#" onclick="goTo(1);return false;" class="chip" style="border-color:rgba(232,25,122,0.4);color:var(--magenta)">#PROJEKTY</a>
+                    <a href="#" onclick="goTo(3);return false;" class="chip" style="border-color:rgba(0,201,200,0.4);color:var(--teal)">#SKILLS</a>
+                </div>
+            </div>
+
+            <!-- 1: PROJEKTY -->
+            <div class="panel">
+                <div class="panel-num" style="color:var(--magenta)">Evidence</div>
+                <h2 class="panel-title">projekty</h2>
+                <div class="cert-list">
+                    <div class="cert-row" style="cursor:pointer" onclick="window.location.href='project.html?id=0'"><div class="cert-left"><span class="cert-name" style="color:var(--teal)">PM Learning Roadmapa ↗</span><span class="cert-org">WBS, mapowanie zasobow AI, dekompozycja celow na Q1-Q4.</span></div></div>
+                    <div class="cert-row" style="cursor:pointer" onclick="window.location.href='project.html?id=1'"><div class="cert-left"><span class="cert-name" style="color:var(--magenta)">System Operacyjny 2026 ↗</span><span class="cert-org">Aplikacja HTML (localStorage, Offline-first) zbudowana z AI.</span></div></div>
+                </div>
+                <div class="stack-wrap">
+                    <span class="chip" style="border-color:rgba(232,25,122,0.3);color:var(--magenta)">AI Dev</span>
+                    <span class="chip" style="border-color:rgba(0,201,200,0.3);color:var(--teal)">PM Scope</span>
+                    <span class="chip">Risk Register</span>
+                </div>
+            </div>
+
+            <!-- 2: WIEDZA -->
+            <div class="panel">
+                <div class="panel-num" style="color:var(--teal)">Certyfikaty &amp; Stack</div>
+                <h2 class="panel-title">wiedza</h2>
+                <div class="cert-list">
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">McKinsey Forward</span><span class="cert-org">McKinsey &amp; Company</span></div><span class="cert-badge badge-done">Ukonczony</span></div>
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">PM Kickoff</span><span class="cert-org">PMI</span></div><span class="cert-badge badge-done">Ukonczony</span></div>
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">Gen AI for PM</span><span class="cert-org">PMI</span></div><span class="cert-badge badge-done">Ukonczony</span></div>
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">Google PM Certificate</span><span class="cert-org">Google / Coursera</span></div><span class="cert-badge badge-wip">W trakcie</span></div>
+                </div>
+                <div class="stack-wrap">
+                    <span class="chip" style="border-color:rgba(0,201,200,0.3);color:var(--teal)">Perplexity Pro</span>
+                    <span class="chip" style="border-color:rgba(232,25,122,0.3);color:var(--magenta)">Antigravity IDE</span>
+                    <span class="chip" style="border-color:rgba(155,61,232,0.3);color:var(--purple)">Google Pro</span>
+                    <span class="chip">Claude</span>
+                </div>
+            </div>
+
+            <!-- 3: SKILLS -->
+            <div class="panel">
+                <div class="panel-num" style="color:var(--purple)">Mapa Kompetencji</div>
+                <h2 class="panel-title">skills</h2>
+                <div class="values-mini">
+                    <div class="val-item"><div class="val-title" style="color:var(--teal)">PM &amp; Systems</div><div class="val-desc">Inicjacja projektu, scope, ryzyko, iteracja, systemy egzekucji, charter, kanban.</div></div>
+                    <div class="val-item"><div class="val-title" style="color:var(--magenta)">Tech &amp; AI</div><div class="val-desc">AI literacy, prompting, pipeline'y, NotebookLM, Gemini, PPLX, podstawy HTML/CSS/JS do prototypow.</div></div>
+                    <div class="val-item"><div class="val-title" style="color:var(--purple)">Human Skills</div><div class="val-desc">Resilience, analityczne myslenie, influence bez stanowiska, komunikacja pisemna, zdrowie mentalne jako asset.</div></div>
+                </div>
+            </div>
+
+            <!-- 4: WORKFLOW -->
+            <div class="panel">
+                <div class="panel-num" style="color:var(--magenta)">Proces</div>
+                <h2 class="panel-title">workflow i system</h2>
+                <div class="cert-list">
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">System</span><span class="cert-org">Moodscape → Projekt → Plan → Resources</span></div></div>
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">Tools</span><span class="cert-org">PPLX / Gemini / Claude / NotebookLM / Antigravity / iNotes</span></div></div>
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name">Zasada</span><span class="cert-org">Ship first, iterate publicznie, AI jako leverage nie jako kostium.</span></div></div>
+                </div>
+                <div class="stack-wrap">
+                    <span class="chip" style="border-color:rgba(0,201,200,0.3);color:var(--teal)">Jak pracuje</span>
+                </div>
+            </div>
+
+            <!-- 5: MISJA -->
+            <div class="panel">
+                <div class="panel-num" style="color:var(--teal)">Misja</div>
+                <h2 class="panel-title">kolejny krok</h2>
+                <div class="manifest-quote">"Szukam pierwszej roli: junior PM / project coordinator / operations"</div>
+                <p class="panel-desc">Buduje systemy, contentem i narzedziami AI. Na zywo. Nie korporacyjnie, autentycznie. Masz projekt? Pogadajmy.</p>
+                <div class="hero-ctas">
+                    <a href="https://linkedin.com" target="_blank" rel="noopener" class="btn btn-fill">LinkedIn ↗</a>
+                    <a href="mailto:polomski10@gmail.com" class="btn btn-ghost">Email ↗</a>
+                    <a href="#" class="btn btn-ghost">CV ↗</a>
+                </div>
+            </div>
+
+            <!-- 6: KONTAKT -->
+            <div class="panel">
+                <div class="panel-num" style="color:var(--magenta)">Kontakt</div>
+                <h2 class="panel-title">sledz moja piaskownice</h2>
+                <p class="panel-desc">Publikuje "surowy" proces, bez brand-polishu. Buduje portfel cyfrowych produktow. Jesli chcesz to obserwowac — zapraszam.</p>
+                <div class="hero-ctas">
+                    <a href="https://instagram.com" target="_blank" rel="noopener" class="btn btn-fill">Instagram → @creative_ai_driven_pm</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        var container = document.getElementById('container');
+        var scroller = document.getElementById('scroller');
+        var counterEl = document.getElementById('counter');
+        var panels = Array.from(container.querySelectorAll('.panel'));
+        var N = panels.length;
+
+        // Generate invisible snap sections
+        for (var i = 0; i < N; i++) {
+            var section = document.createElement('div');
+            section.className = 'scroll-section';
+            scroller.appendChild(section);
+        }
+
+        // Tunnel physics — EXACT copy from working spiral.html
+        var Z_GAP = 550;
+        var Y_GAP = 80;
+        var X_GAP = -30;
+        var ROT_X = 10;
+        var ROT_Z = -5;
+        var SCALE_RATIO = 0.85;
+
+        function render() {
+            var scrollPos = scroller.scrollTop / window.innerHeight;
+            var activeIndex = Math.round(scrollPos);
+            var num = Math.min(N, Math.max(1, activeIndex + 1));
+            counterEl.textContent = (num < 10 ? '0' : '') + num + ' / 0' + N;
+
+            for (var i = 0; i < N; i++) {
+                var p = panels[i];
+                var pos = i - scrollPos;
+                var scale, z, x, y, opacity, rotX, rotZ;
+
+                if (pos < -0.6) {
+                    opacity = 0;
+                    scale = 1.2;
+                    z = 200;
+                    y = -window.innerHeight;
+                    x = 0;
+                    rotX = 0;
+                    rotZ = 0;
+                } else {
+                    opacity = pos < 0 ? 1 - Math.abs(pos) * 1.5 : (pos > 3 ? 0 : 1 - (pos - 2) * 0.5);
+                    scale = Math.pow(SCALE_RATIO, Math.max(0, pos));
+                    z = -pos * Z_GAP;
+                    y = Math.pow(Math.max(0, pos), 1.2) * Y_GAP;
+                    x = pos * X_GAP;
+                    rotX = pos * ROT_X;
+                    rotZ = pos * ROT_Z;
+                }
+
+                p.style.transform = 'translate(-50%, -50%) translate3d(' + x + 'px, ' + y + 'px, ' + z + 'px) scale(' + scale + ') rotateX(' + rotX + 'deg) rotateZ(' + rotZ + 'deg)';
+                p.style.opacity = Math.max(0, opacity);
+                p.style.zIndex = Math.round(100 - pos * 10);
+            }
+        }
+
+        var ticking = false;
+        scroller.addEventListener('scroll', function() {
+            if (!ticking) {
+                window.requestAnimationFrame(function() {
+                    render();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        });
+
+        function goTo(index) {
+            scroller.scrollTo({ top: index * window.innerHeight, behavior: 'smooth' });
+        }
+
+        render();
+    </script>
+</body>
+</html>

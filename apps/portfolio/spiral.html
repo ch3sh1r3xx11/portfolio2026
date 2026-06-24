@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spiral Demo - Mobile First</title>
+    <style>
+        :root {
+            --magenta: #e8197a;
+            --teal: #00c9c8;
+            --bg: #0c0c0e;
+            --font-main: "Outfit", sans-serif;
+            --font-mono: "Fira Code", monospace;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: #fff;
+            font-family: var(--font-main);
+            overflow: hidden; /* Wyłączamy główny scroll, użyjemy scroller-container */
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Warstwa z animowanym tłem, skopiowana z głównego projektu */
+        .bg-layer {
+            position: fixed;
+            inset: -20px;
+            background-image: url('bg.jpg');
+            background-size: cover;
+            background-position: center;
+            filter: blur(10px) brightness(0.4);
+            z-index: 0;
+        }
+
+        /* Scroller używający natywnego scroll-snap */
+        .scroller-container {
+            position: absolute;
+            inset: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scroll-snap-type: y mandatory;
+            z-index: 10;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Niewidzialne sekcje sterujące fizyką scrolla */
+        .scroll-section {
+            width: 100%;
+            height: 100vh;
+            scroll-snap-align: start;
+        }
+
+        /* Kontener 3D */
+        .scene {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1200px;
+            pointer-events: none; /* Pozwalamy klikać przez scenę do scrollera, jeśli trzeba. Ale karty muszą być klikalne! */
+            z-index: 5;
+        }
+
+        .spiral-container {
+            position: absolute;
+            transform-style: preserve-3d;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Karty wypełniające ekran mobilny */
+        .panel {
+            position: absolute;
+            width: 88vw;
+            height: 78vh;
+            max-width: 480px;
+            max-height: 750px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%); /* Centrowanie na stałe, modyfikujemy potem z3d */
+            background: linear-gradient(180deg, rgba(12,12,14,0.3) 0%, rgba(12,12,14,0.9) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            pointer-events: auto; /* Karta jest klikalna */
+            transition: opacity 0.4s;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .panel-num {
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+            color: var(--teal);
+        }
+
+        .panel-title {
+            font-size: 3rem;
+            line-height: 0.9;
+            margin: 0 0 1rem 0;
+            font-weight: 900;
+        }
+
+        .panel-desc {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.7);
+            line-height: 1.6;
+        }
+
+        .nav-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .btn-back {
+            pointer-events: auto;
+            color: #fff;
+            text-decoration: none;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            background: rgba(255,255,255,0.1);
+            padding: 10px 15px;
+            border-radius: 4px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .counter {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--magenta);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-layer"></div>
+
+    <div class="nav-overlay">
+        <a href="index.html" class="btn-back">← Wróć do V0.3</a>
+        <div class="counter" id="counter">01 / 07</div>
+    </div>
+
+    <!-- Scroller, który wymusza magnetyczne przyciąganie (Native Scroll Snap) -->
+    <div class="scroller-container" id="scroller">
+        <!-- Generowane sekcje -->
+    </div>
+
+    <div class="scene">
+        <div class="spiral-container" id="container">
+            <!-- Panele 3D -->
+        </div>
+    </div>
+
+    <script>
+        const data = [
+            { id: 0, num: "01", title: "permissionless leverage", desc: "Zbudowane dla mobilności. Używamy natywnego snap-scrolla, by płynnie przechodzić między stanami." },
+            { id: 1, num: "02", title: "projekty", desc: "Karty są wielkie i czytelne. Wypełniają ekran, dając wrażenie dedykowanej aplikacji." },
+            { id: 2, num: "03", title: "wiedza", desc: "Zwróć uwagę na fizykę uciekania w głąb. Karty uciekają do tyłu i lekko w dół, tworząc asymetryczny tunel." },
+            { id: 3, num: "04", title: "workflow", desc: "Nawigacja kciukiem staje się ekstremalnie intuicyjna. Nie tracimy nic z przestrzeni." },
+            { id: 4, num: "05", title: "misja", desc: "Więcej treści? Po kliknięciu karta może się powiększyć i udostępnić klasyczny artykuł." },
+            { id: 5, num: "06", title: "kontakt", desc: "To tylko prototyp układu 3D, ale udowadnia jak gładko działa to na telefonie." },
+            { id: 6, num: "07", title: "resume", desc: "Koniec spirali." }
+        ];
+
+        const container = document.getElementById("container");
+        const scroller = document.getElementById("scroller");
+        const counterEl = document.getElementById("counter");
+        const panels = [];
+
+        // Generowanie fizycznych paneli 3D oraz niewidzialnych sekcji dla scrolla
+        data.forEach((item, i) => {
+            // Niewidzialna sekcja do snap-scrolla
+            const section = document.createElement("div");
+            section.className = "scroll-section";
+            scroller.appendChild(section);
+
+            // Karta 3D
+            const div = document.createElement("div");
+            div.className = "panel";
+            div.innerHTML = `
+                <div class="panel-num">${item.num}</div>
+                <h2 class="panel-title">${item.title}</h2>
+                <div class="panel-desc">${item.desc}</div>
+            `;
+            container.appendChild(div);
+            panels.push(div);
+        });
+
+        // Matematyka Tunelu
+        const Z_GAP = 550;   // Dystans wgłąb
+        const Y_GAP = 80;    // Dystans w dół
+        const X_GAP = -30;   // Minimalne odchylenie w lewo
+        const ROT_X = 10;    // Karty odchylone lekko do tyłu (patrzą "w górę")
+        const ROT_Z = -5;    // Lekki przechył boczny dla asymetrii
+        const SCALE_RATIO = 0.85; 
+
+        function render() {
+            // Pozycja scrolla w "jednostkach" kart (np. 1.5 to w połowie między kartą 1 a 2)
+            const scrollPos = scroller.scrollTop / window.innerHeight;
+            
+            // Aktualizacja licznika
+            const activeIndex = Math.round(scrollPos);
+            counterEl.textContent = `0${Math.min(data.length, Math.max(1, activeIndex + 1))} / 07`;
+
+            panels.forEach((p, i) => {
+                // Relatywna pozycja względem scrolla
+                const pos = i - scrollPos;
+                
+                let scale, z, x, y, opacity, rotX, rotZ;
+
+                if (pos < -0.6) {
+                    // Karta za nami (przeskrolowana) - odlatuje w górę i znika
+                    opacity = 0;
+                    scale = 1.2;
+                    z = 200;
+                    y = -window.innerHeight;
+                    x = 0;
+                    rotX = 0;
+                    rotZ = 0;
+                } else {
+                    // Karta przed nami lub zjeżdżająca
+                    opacity = pos < 0 ? 1 - Math.abs(pos) * 1.5 : (pos > 3 ? 0 : 1 - (pos - 2) * 0.5); 
+                    
+                    // Skalowanie logarytmiczne
+                    scale = Math.pow(SCALE_RATIO, Math.max(0, pos));
+                    
+                    z = -pos * Z_GAP;
+                    
+                    // Nieliniowe przesunięcie (im głębiej, tym mocniej skręca w dół)
+                    y = Math.pow(Math.max(0, pos), 1.2) * Y_GAP;
+                    
+                    x = pos * X_GAP;
+                    
+                    rotX = pos * ROT_X;
+                    rotZ = pos * ROT_Z;
+                }
+
+                p.style.transform = `translate(-50%, -50%) translate3d(${x}px, ${y}px, ${z}px) scale(${scale}) rotateX(${rotX}deg) rotateZ(${rotZ}deg)`;
+                p.style.opacity = Math.max(0, opacity);
+                
+                // Im głębiej, tym mniejszy z-index
+                p.style.zIndex = Math.round(100 - pos * 10);
+            });
+        }
+
+        // Podpinamy requestAnimationFrame dla super płynności zamiast event listenera bezpośrednio
+        let isScrolling = false;
+        scroller.addEventListener("scroll", () => {
+            if (!isScrolling) {
+                window.requestAnimationFrame(() => {
+                    render();
+                    isScrolling = false;
+                });
+                isScrolling = true;
+            }
+        });
+
+        // Inicjalizacja
+        render();
+    </script>
+</body>
+</html>
