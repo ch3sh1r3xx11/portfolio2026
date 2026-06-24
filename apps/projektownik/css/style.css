@@ -182,6 +182,24 @@ body, html {
     padding: 0;
 }
 
+/* --- FORMATOWANIE WKLEJONYCH TABEL (np. z Notiona/Perplexity) --- */
+.card-body table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(255, 255, 255, 0.03) !important;
+    color: var(--text-light) !important;
+    font-size: 0.8rem;
+    margin-top: 10px;
+    border-radius: 6px;
+    overflow: hidden;
+}
+.card-body th, .card-body td {
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 8px !important;
+    background: transparent !important;
+    color: var(--text-light) !important;
+}
+
 .card:active {
     cursor: grabbing;
 }
