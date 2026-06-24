@@ -486,8 +486,11 @@ if(addTextBtn) {
 
 let activeCard = null;
 let cardStartX, cardStartY;
-let cardInitialX = 0, cardInitialY = 0;
-let hasCardMoved = false;
+let cardInitialX = 0;
+let cardInitialY = 0;
+let isResizingCard = false;
+window.cardInitialW = 0;
+window.cardInitialH = 0;
 
 function createCardElement(id, data) {
     if (document.getElementById(id)) return;
@@ -512,8 +515,6 @@ function createCardElement(id, data) {
         makeDraggable(card, id);
     } else if (data.type === 'textblock') {
         card.classList.add('text-card');
-        card.style.width = data.width ? `${data.width}px` : '250px';
-        if (data.height) card.style.height = `${data.height}px`;
         card.style.resize = 'both';
         card.style.overflow = 'hidden';
         
@@ -522,18 +523,10 @@ function createCardElement(id, data) {
             <div class="card-body">${data.content || 'Wpisz tekst...'}</div>
         `;
         canvas.appendChild(card);
+        if(data.width) card.style.width = `${data.width}px`;
+        if(data.height) card.style.height = `${data.height}px`;
         makeDraggable(card, id);
         makeEditable(card, id);
-        
-        const ro = new ResizeObserver(() => {
-            const currentW = card.offsetWidth;
-            const ratio = currentW / 250;
-            const bodyEl = card.querySelector('.card-body');
-            if(bodyEl) {
-                bodyEl.style.fontSize = `${0.9 * ratio}rem`;
-            }
-        });
-        ro.observe(card);
     } else {
         // Zwykła notatka
         card.style.width = '250px';
@@ -603,6 +596,9 @@ function updateCardElement(id, data) {
     card.style.left = `${data.x}px`;
     card.style.top = `${data.y}px`;
     
+    if (data.width) card.style.width = `${data.width}px`;
+    if (data.height) card.style.height = `${data.height}px`;
+    
     if (data.type === 'text') {
         const header = card.querySelector('.card-header');
         const body = card.querySelector('.card-body');
@@ -622,12 +618,20 @@ function makeDraggable(element, id) {
         if(e.target.contentEditable === "true" && document.activeElement === e.target) return; 
         if(e.target.closest('.delete-btn')) return;
         
-        if (window.getComputedStyle(element).resize !== 'none') {
-            const rect = element.getBoundingClientRect();
-            if (e.clientX > rect.right - 25 && e.clientY > rect.bottom - 25) return; 
-        }
+        const rect = element.getBoundingClientRect();
+        const isResizeClick = window.getComputedStyle(element).resize !== 'none' && 
+                              e.clientX > rect.right - 25 && e.clientY > rect.bottom - 25;
         
         activeCard = element;
+        
+        if (isResizeClick) {
+            isResizingCard = true;
+            cardInitialW = element.offsetWidth;
+            cardInitialH = element.offsetHeight;
+            return; 
+        }
+        
+        isResizingCard = false;
         hasCardMoved = false;
         cardInitialX = parseFloat(element.style.left) || 0;
         cardInitialY = parseFloat(element.style.top) || 0;
@@ -796,7 +800,15 @@ window.addEventListener('touchmove', (e) => {
 
 const handleCardDragEnd = async () => {
     if(activeCard) {
-        if (hasCardMoved) {
+        if (isResizingCard) {
+            const currentW = activeCard.offsetWidth;
+            const currentH = activeCard.offsetHeight;
+            if (window.cardInitialW !== currentW || window.cardInitialH !== currentH) {
+                const cmd = new ResizeCommand(activeCard.id, window.cardInitialW, window.cardInitialH, currentW, currentH);
+                historyManager.execute(cmd);
+            }
+            isResizingCard = false;
+        } else if (hasCardMoved) {
             const currentX = parseFloat(activeCard.style.left);
             const currentY = parseFloat(activeCard.style.top);
             if (cardInitialX !== currentX || cardInitialY !== currentY) {

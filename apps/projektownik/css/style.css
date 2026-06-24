@@ -171,6 +171,9 @@ body, html {
     backdrop-filter: blur(10px);
     cursor: grab;
     pointer-events: auto;
+    resize: both;
+    overflow: hidden;
+    min-width: 200px;
 }
 
 .card.text-card {
