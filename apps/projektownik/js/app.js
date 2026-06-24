@@ -619,9 +619,10 @@ function makeDraggable(element, id) {
     element.addEventListener('mousedown', (e) => {
         if(e.target.contentEditable === "true" && document.activeElement === e.target) return; 
         if(e.target.closest('.delete-btn')) return;
-        
         activeCard = element;
         hasCardMoved = false;
+        window.cardInitialW = element.offsetWidth;
+        window.cardInitialH = element.offsetHeight;
         cardInitialX = parseFloat(element.style.left) || 0;
         cardInitialY = parseFloat(element.style.top) || 0;
         cardStartX = e.clientX / scale - cardInitialX;
@@ -723,29 +724,6 @@ function makeDraggable(element, id) {
             lastCardTap = now;
         }
     });
-
-    // NIEZAWODNE WYKRYWANIE ZMIANY ROZMIARU KARTY (RESIZE)
-    let resizeTimeout;
-    let initialW = element.offsetWidth;
-    let initialH = element.offsetHeight;
-    
-    const ro = new ResizeObserver(() => {
-        const currentW = element.offsetWidth;
-        const currentH = element.offsetHeight;
-        
-        if (currentW !== initialW || currentH !== initialH) {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                if (auth.currentUser && (currentW !== initialW || currentH !== initialH)) {
-                    const cmd = new ResizeCommand(id, initialW, initialH, currentW, currentH);
-                    historyManager.execute(cmd);
-                    initialW = currentW;
-                    initialH = currentH;
-                }
-            }, 500); // 500ms po puszczeniu myszki/zakończeniu resize
-        }
-    });
-    ro.observe(element);
 }
 
 function makeEditable(element, id) {
@@ -832,6 +810,16 @@ window.addEventListener('touchmove', (e) => {
 
 const handleCardDragEnd = async () => {
     if(activeCard) {
+        const currentW = activeCard.offsetWidth;
+        const currentH = activeCard.offsetHeight;
+        
+        // Zapisz zmianę rozmiaru
+        if (window.cardInitialW && (window.cardInitialW !== currentW || window.cardInitialH !== currentH)) {
+            const cmd = new ResizeCommand(activeCard.id, window.cardInitialW, window.cardInitialH, currentW, currentH);
+            historyManager.execute(cmd);
+        }
+        
+        // Zapisz pozycję
         if (hasCardMoved) {
             const currentX = parseFloat(activeCard.style.left);
             const currentY = parseFloat(activeCard.style.top);
