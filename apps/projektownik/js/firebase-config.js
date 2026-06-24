@@ -5,7 +5,7 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstati
 
 const firebaseConfig = {
   apiKey: "AIzaSyAtRYw7mPEIJkfaRyoPJZYQJDza0rA5FWM",
-  authDomain: "portfolio2026-gamma-nine.vercel.app",
+  authDomain: "projektownik2026.firebaseapp.com",
   projectId: "projektownik2026",
   storageBucket: "projektownik2026.firebasestorage.app",
   messagingSenderId: "752941908477",
