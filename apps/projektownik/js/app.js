@@ -113,6 +113,9 @@ viewport.addEventListener('wheel', (e) => {
 let initialPinchDistance = null;
 let initialScale = 1;
 let lastViewportTap = 0;
+let hasPanned = false;
+let panTouchStartX = 0;
+let panTouchStartY = 0;
 
 viewport.addEventListener('touchstart', (e) => {
     canvas.classList.remove('smooth-pan');
@@ -121,10 +124,14 @@ viewport.addEventListener('touchstart', (e) => {
 
     if (e.touches.length === 1) {
         isDraggingBoard = true;
+        hasPanned = false;
+        panTouchStartX = e.touches[0].clientX;
+        panTouchStartY = e.touches[0].clientY;
         startX = e.touches[0].clientX - translateX;
         startY = e.touches[0].clientY - translateY;
     } else if (e.touches.length === 2) {
         isDraggingBoard = false;
+        hasPanned = true; // Zoom to też operacja na planszy
         initialPinchDistance = Math.hypot(
             e.touches[0].clientX - e.touches[1].clientX,
             e.touches[0].clientY - e.touches[1].clientY
@@ -139,6 +146,11 @@ viewport.addEventListener('touchmove', (e) => {
     if (e.touches.length > 1) e.preventDefault(); // Blokuj domyślny scroll przy zoomie
 
     if (e.touches.length === 1 && isDraggingBoard) {
+        // Jeśli przesunięcie jest większe niż 10px, uznajemy to za celowy Pan (swipe), a nie kliknięcie
+        if (Math.abs(e.touches[0].clientX - panTouchStartX) > 10 || Math.abs(e.touches[0].clientY - panTouchStartY) > 10) {
+            hasPanned = true;
+        }
+        
         translateX = e.touches[0].clientX - startX;
         translateY = e.touches[0].clientY - startY;
         updateCanvas();
@@ -405,8 +417,8 @@ function makeDraggable(element, id) {
             element.style.transform = '';
             element.style.zIndex = '';
             isLongPress = false;
-        } else if (!hasCardMoved) {
-            // Było to zwykłe, krótkie tapnięcie
+        } else if (!hasCardMoved && !hasPanned) {
+            // Było to zwykłe, krótkie tapnięcie, a plansza nie była w tym czasie przesuwana
             // Zróbmy przybliżenie i wyśrodkowanie (zoom & center)
             const cardLeft = parseFloat(element.style.left);
             const cardTop = parseFloat(element.style.top);
