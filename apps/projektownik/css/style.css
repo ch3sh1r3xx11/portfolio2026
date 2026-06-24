@@ -73,8 +73,19 @@ body, html {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    pointer-events: none;
+}
+
+.top-left-actions {
+    display: flex;
+    gap: 10px;
     pointer-events: auto;
-    padding-top: 10px;
+}
+
+.top-right-actions {
+    display: flex;
+    gap: 15px;
+    pointer-events: auto;
 }
 
 .project-title {
@@ -83,11 +94,6 @@ body, html {
     font-size: 1.1rem;
     letter-spacing: 1px;
     text-shadow: 0 0 10px rgba(0,255,255,0.3);
-}
-
-.top-right-actions {
-    display: flex;
-    gap: 15px;
 }
 
 .icon-btn {
