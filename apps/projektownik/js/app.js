@@ -414,8 +414,22 @@ function createCardElement(id, data) {
     if (delBtn) {
         delBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
-            if(confirm("Na pewno usunąć?")) {
+            if (delBtn.dataset.confirming === "true") {
                 await deleteDoc(doc(db, "notes", id));
+            } else {
+                delBtn.dataset.confirming = "true";
+                const oldHTML = delBtn.innerHTML;
+                delBtn.innerHTML = "?";
+                delBtn.style.backgroundColor = "var(--magenta)";
+                delBtn.style.color = "white";
+                delBtn.style.borderColor = "var(--magenta)";
+                setTimeout(() => {
+                    delBtn.dataset.confirming = "false";
+                    delBtn.innerHTML = oldHTML;
+                    delBtn.style.backgroundColor = "";
+                    delBtn.style.color = "";
+                    delBtn.style.borderColor = "";
+                }, 3000);
             }
         });
     }
