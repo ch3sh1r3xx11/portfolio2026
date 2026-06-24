@@ -354,6 +354,7 @@ function createCardElement(id, data) {
         card.style.width = '250px';
         card.innerHTML = `
             <button class="delete-btn" title="Usuń">×</button>
+            <div class="logo" style="pointer-events: auto; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.2em; color: var(--teal); text-shadow: 0 0 10px rgba(0,201,200,0.5);">creative ai driven pm</div>
             <div class="card-header">${data.title || ''}</div>
             <div class="card-body">${data.content || ''}</div>
         `;
@@ -413,11 +414,16 @@ function makeDraggable(element, id) {
     });
 
     // --- LOGIKA DLA DOTYKU (Mobile - przytrzymanie) ---
+    let lastCardTap = 0;
+    
     element.addEventListener('touchstart', (e) => {
         if(e.target.classList.contains('delete-btn')) return;
         if(e.touches.length > 1) return;
         
         isLongPress = false;
+        
+        const initialTouchX = e.touches[0].clientX;
+        const initialTouchY = e.touches[0].clientY;
         
         // Uruchamiamy timer (np. 400ms)
         touchTimer = setTimeout(() => {
@@ -425,8 +431,8 @@ function makeDraggable(element, id) {
             activeCard = element;
             hasCardMoved = false;
             
-            cardStartX = e.touches[0].clientX / scale - parseFloat(element.style.left || 0);
-            cardStartY = e.touches[0].clientY / scale - parseFloat(element.style.top || 0);
+            cardStartX = initialTouchX / scale - parseFloat(element.style.left || 0);
+            cardStartY = initialTouchY / scale - parseFloat(element.style.top || 0);
             
             // Kiedy złapiemy kartę, wyłączamy przesuwanie całej planszy
             isDraggingBoard = false;
@@ -456,32 +462,53 @@ function makeDraggable(element, id) {
             element.style.zIndex = '';
             isLongPress = false;
         } else if (!hasCardMoved && !hasPanned) {
-            // Było to zwykłe, krótkie tapnięcie, a plansza nie była w tym czasie przesuwana
-            // Zróbmy przybliżenie i wyśrodkowanie (zoom & center)
-            const cardLeft = parseFloat(element.style.left);
-            const cardTop = parseFloat(element.style.top);
-            const cardWidth = element.offsetWidth;
-            const cardHeight = element.offsetHeight;
-            
-            // Chcemy powiększyć notatkę (np. scale = 1.5 dla wygody czytania/pisania)
-            const targetScale = 1.5;
-            
-            // Środkujemy wyżej (w 1/3 ekranu), żeby klawiatura systemowa na telefonie jej nie zasłoniła
-            const windowCenterX = window.innerWidth / 2;
-            const windowTargetY = window.innerHeight / 3;
-            
-            const newTranslateX = windowCenterX - (cardLeft + cardWidth / 2) * targetScale;
-            const newTranslateY = windowTargetY - (cardTop + cardHeight / 2) * targetScale;
-            
-            canvas.classList.add('smooth-pan');
-            translateX = newTranslateX;
-            translateY = newTranslateY;
-            scale = targetScale;
-            updateCanvas();
-            
-            setTimeout(() => {
-                canvas.classList.remove('smooth-pan');
-            }, 600);
+            const now = Date.now();
+            if (now - lastCardTap < 300) {
+                // To był podwójny klik na karcie!
+                const header = element.querySelector('.card-header');
+                const body = element.querySelector('.card-body');
+                // Jeśli tapnęliśmy w body, aktywujemy body, jak nie, to header
+                let target = e.target;
+                if (!target.classList.contains('card-body') && !target.classList.contains('card-header')) {
+                    target = body || header; // Domyślnie body
+                }
+                
+                if (target) {
+                    target.setAttribute('contenteditable', 'true');
+                    target.focus();
+                    const range = document.createRange();
+                    const sel = window.getSelection();
+                    range.selectNodeContents(target);
+                    range.collapse(false);
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                }
+            } else {
+                // Było to zwykłe, krótkie tapnięcie, a plansza nie była w tym czasie przesuwana
+                // Zróbmy przybliżenie i wyśrodkowanie (zoom & center)
+                const cardLeft = parseFloat(element.style.left);
+                const cardTop = parseFloat(element.style.top);
+                const cardWidth = element.offsetWidth;
+                const cardHeight = element.offsetHeight;
+                
+                const targetScale = 1.5;
+                const windowCenterX = window.innerWidth / 2;
+                const windowTargetY = window.innerHeight / 3;
+                
+                const newTranslateX = windowCenterX - (cardLeft + cardWidth / 2) * targetScale;
+                const newTranslateY = windowTargetY - (cardTop + cardHeight / 2) * targetScale;
+                
+                canvas.classList.add('smooth-pan');
+                translateX = newTranslateX;
+                translateY = newTranslateY;
+                scale = targetScale;
+                updateCanvas();
+                
+                setTimeout(() => {
+                    canvas.classList.remove('smooth-pan');
+                }, 600);
+            }
+            lastCardTap = now;
         }
     });
 }
