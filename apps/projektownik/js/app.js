@@ -475,6 +475,7 @@ if(addTextBtn) {
 
 let activeCard = null;
 let cardStartX, cardStartY;
+let cardInitialX = 0, cardInitialY = 0;
 let hasCardMoved = false;
 
 function createCardElement(id, data) {
@@ -605,8 +606,6 @@ function updateCardElement(id, data) {
 function makeDraggable(element, id) {
     let touchTimer = null;
     let isLongPress = false;
-    let initialX = 0;
-    let initialY = 0;
 
     element.addEventListener('mousedown', (e) => {
         if(e.target.contentEditable === "true" && document.activeElement === e.target) return; 
@@ -619,23 +618,11 @@ function makeDraggable(element, id) {
         
         activeCard = element;
         hasCardMoved = false;
-        initialX = parseFloat(element.style.left) || 0;
-        initialY = parseFloat(element.style.top) || 0;
-        cardStartX = e.clientX / scale - initialX;
-        cardStartY = e.clientY / scale - initialY;
+        cardInitialX = parseFloat(element.style.left) || 0;
+        cardInitialY = parseFloat(element.style.top) || 0;
+        cardStartX = e.clientX / scale - cardInitialX;
+        cardStartY = e.clientY / scale - cardInitialY;
         e.stopPropagation();
-    });
-
-    window.addEventListener('mouseup', async () => {
-        if (activeCard === element && hasCardMoved) {
-            const currentX = parseFloat(element.style.left);
-            const currentY = parseFloat(element.style.top);
-            if (initialX !== currentX || initialY !== currentY) {
-                const cmd = new MoveCommand(id, initialX, initialY, currentX, currentY);
-                historyManager.execute(cmd);
-            }
-        }
-        activeCard = null;
     });
 
     // --- LOGIKA DLA DOTYKU (Mobile - przytrzymanie) ---
@@ -655,10 +642,10 @@ function makeDraggable(element, id) {
             activeCard = element;
             hasCardMoved = false;
             
-            initialX = parseFloat(element.style.left) || 0;
-            initialY = parseFloat(element.style.top) || 0;
-            cardStartX = initialTouchX / scale - initialX;
-            cardStartY = initialTouchY / scale - initialY;
+            cardInitialX = parseFloat(element.style.left) || 0;
+            cardInitialY = parseFloat(element.style.top) || 0;
+            cardStartX = initialTouchX / scale - cardInitialX;
+            cardStartY = initialTouchY / scale - cardInitialY;
             
             isDraggingBoard = false;
             
@@ -683,15 +670,14 @@ function makeDraggable(element, id) {
             if (hasCardMoved) {
                 const currentX = parseFloat(element.style.left);
                 const currentY = parseFloat(element.style.top);
-                if (initialX !== currentX || initialY !== currentY) {
-                    const cmd = new MoveCommand(id, initialX, initialY, currentX, currentY);
+                if (cardInitialX !== currentX || cardInitialY !== currentY) {
+                    const cmd = new MoveCommand(id, cardInitialX, cardInitialY, currentX, currentY);
                     historyManager.execute(cmd);
                 }
             }
             element.style.boxShadow = '';
             element.style.transform = '';
             element.style.zIndex = '';
-            isLongPress = false;
             activeCard = null;
         } else if (!hasCardMoved && !hasPanned) {
             const now = Date.now();
@@ -799,6 +785,14 @@ window.addEventListener('touchmove', (e) => {
 
 const handleCardDragEnd = async () => {
     if(activeCard) {
+        if (hasCardMoved) {
+            const currentX = parseFloat(activeCard.style.left);
+            const currentY = parseFloat(activeCard.style.top);
+            if (cardInitialX !== currentX || cardInitialY !== currentY) {
+                const cmd = new MoveCommand(activeCard.id, cardInitialX, cardInitialY, currentX, currentY);
+                historyManager.execute(cmd);
+            }
+        }
         activeCard = null;
     }
 };
