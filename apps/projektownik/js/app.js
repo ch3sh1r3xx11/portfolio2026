@@ -351,6 +351,7 @@ class ResizeCommand {
     }
 }
 
+
 class AddCommand {
     constructor(id, data) {
         this.id = id;
