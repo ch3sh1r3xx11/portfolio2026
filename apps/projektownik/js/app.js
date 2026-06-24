@@ -112,11 +112,12 @@ viewport.addEventListener('wheel', (e) => {
 // --- TOUCH PAN & ZOOM (MOBILE) ---
 let initialPinchDistance = null;
 let initialScale = 1;
+let lastViewportTap = 0;
 
 viewport.addEventListener('touchstart', (e) => {
     canvas.classList.remove('smooth-pan');
     if (loginOverlay.style.display === 'flex') return;
-    if (e.target.closest('.card') || e.target.closest('#ui-layer')) return;
+    if (e.target.closest('#ui-layer')) return;
 
     if (e.touches.length === 1) {
         isDraggingBoard = true;
@@ -169,6 +170,21 @@ viewport.addEventListener('touchend', (e) => {
     }
     if (e.touches.length === 0) {
         isDraggingBoard = false;
+        
+        // Obsługa double tap na puste pole (zoom out)
+        if (!e.target.closest('.card') && !e.target.closest('#ui-layer')) {
+            const now = Date.now();
+            if (now - lastViewportTap < 300) {
+                // Double tap
+                canvas.classList.add('smooth-pan');
+                scale = 1;
+                // Wyśrodkuj na 5000,5000 lub po prostu zrób zoom out w obecnym punkcie
+                // Prosty zoom out do 1.0 wokół środka ekranu
+                updateCanvas();
+                setTimeout(() => canvas.classList.remove('smooth-pan'), 600);
+            }
+            lastViewportTap = now;
+        }
     }
 });
 
@@ -277,8 +293,8 @@ function createCardElement(id, data) {
         card.style.width = '250px';
         card.innerHTML = `
             <button class="delete-btn" title="Usuń">×</button>
-            <div class="card-header" contenteditable="true">${data.title || ''}</div>
-            <div class="card-body" contenteditable="true">${data.content || ''}</div>
+            <div class="card-header">${data.title || ''}</div>
+            <div class="card-body">${data.content || ''}</div>
         `;
         canvas.appendChild(card);
         makeDraggable(card, id);
@@ -413,15 +429,36 @@ function makeEditable(element, id) {
     const header = element.querySelector('.card-header');
     const body = element.querySelector('.card-body');
     
-    const saveContent = async () => {
+    const enableEdit = (e) => {
+        const el = e.target;
+        if(el.classList.contains('card-header') || el.classList.contains('card-body')) {
+            el.setAttribute('contenteditable', 'true');
+            el.focus();
+            
+            // Umieść kursor na końcu tekstu
+            const range = document.createRange();
+            const sel = window.getSelection();
+            range.selectNodeContents(el);
+            range.collapse(false);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+    };
+    
+    element.addEventListener('dblclick', enableEdit);
+    
+    const saveContent = async (e) => {
+        const el = e.target;
+        el.setAttribute('contenteditable', 'false'); // Zablokuj edycję po wyjściu z pola
+        
         await updateDoc(doc(db, "notes", id), {
             title: header.innerHTML,
             content: body.innerHTML
         });
     };
     
-    header.addEventListener('blur', saveContent);
-    body.addEventListener('blur', saveContent);
+    if (header) header.addEventListener('blur', saveContent);
+    if (body) body.addEventListener('blur', saveContent);
 }
 
 window.addEventListener('mousemove', (e) => {
