@@ -35,9 +35,14 @@
         
         <!-- TOP BAR -->
         <div class="top-bar">
-            <button class="icon-btn" id="back-btn" title="Wróć do Portfolio" onclick="window.location.href='/'">
-                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-            </button>
+            <div class="top-left-actions">
+                <button class="icon-btn" id="undo-btn" title="Cofnij (Ctrl+Z)">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3l-3 2.7"></path></svg>
+                </button>
+                <button class="icon-btn" id="redo-btn" title="Ponów (Ctrl+Y)">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"></path><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"></path></svg>
+                </button>
+            </div>
             
             <div class="logo" style="pointer-events: auto; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.2em; color: var(--teal); text-shadow: 0 0 10px rgba(0,201,200,0.5); text-transform: uppercase;">creative ai driven pm</div>
 
