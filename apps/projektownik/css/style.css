@@ -239,8 +239,13 @@ body, html {
 }
 
 .card.text-card .delete-btn {
-    top: -15px;
-    right: -15px;
+    top: 5px;
+    right: 5px;
+}
+
+.card.text-card:hover {
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.02);
 }
 
 /* LEWY TOOLBAR I KOTWICA */
