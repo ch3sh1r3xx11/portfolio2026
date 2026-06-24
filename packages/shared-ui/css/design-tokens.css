@@ -19,3 +19,15 @@
   --z-base: 1;
   --z-overlay: 1000;
 }
+
+/* Shared Background Layer */
+.bg-layer {
+    position: fixed;
+    inset: -20px;
+    background-image: url('/packages/shared-ui/assets/bg.jpg');
+    background-size: cover;
+    background-position: center;
+    filter: blur(10px) brightness(0.4);
+    z-index: 0;
+    pointer-events: none;
+}
