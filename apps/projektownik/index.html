@@ -41,18 +41,49 @@
         </div>
     </div>
 
-    <!-- UI Overlay (Narzędzia) -->
+    <!-- UI Overlay (Narzędzia - Flow Motion) -->
     <div id="ui-layer">
-        <div class="logo">creative ai driven pm - projektownik</div>
         
-        <div class="toolbar">
-            <button class="tool-btn" id="anchor-btn" title="Rzuć / Wróć do Kotwicy (Dwuklik by usunąć)">⚓ Kotwica</button>
-            <button class="tool-btn" id="add-note">+ Notatka</button>
-            <button class="tool-btn" id="add-image-btn">+ Zdjęcie</button>
+        <!-- TOP BAR -->
+        <div class="top-bar">
+            <button class="icon-btn" id="back-btn" title="Wróć do Portfolio" onclick="window.location.href='/'">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            
+            <div class="project-title">BIURKO</div>
+
+            <div class="top-right-actions">
+                <button class="icon-btn" id="refresh-btn" title="Odśwież (Przeładuj aplikację)">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                </button>
+                <button class="icon-btn" id="logout-btn" title="Wyloguj">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- BOTTOM PILL -->
+        <div class="bottom-pill">
+            <button class="pill-btn" id="anchor-btn" title="Rzuć / Wróć do Kotwicy">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"></circle><line x1="12" y1="22" x2="12" y2="8"></line><path d="M5 12H2a10 10 0 0 0 20 0h-3"></path></svg>
+            </button>
+            
+            <button class="pill-btn" id="add-note" title="Notatka">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            </button>
+            
+            <button class="pill-btn" id="add-image-btn" title="Zdjęcie">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+            </button>
             <input type="file" id="image-upload" accept="image/*" style="display: none;">
-            <button class="tool-btn" id="add-frame">+ Ramka</button>
-            <button class="tool-btn" id="add-kpi">+ Karta KPI</button>
-            <button class="tool-btn" id="logout-btn" title="Wyloguj się">🚪 Wyloguj</button>
+            
+            <button class="pill-btn" id="add-frame" title="Ramka">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+            </button>
+            
+            <button class="pill-btn" id="add-kpi" title="Karta KPI">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            </button>
         </div>
     </div>
 
