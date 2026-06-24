@@ -1,0 +1,21 @@
+:root {
+  /* Core Colors */
+  --bg-primary: #0a0a0c;
+  --bg-dots: radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+  --color-magenta: #ff007f;
+  --color-teal: #00f0ff;
+  --color-text-main: #f0f0f0;
+  --color-text-muted: #888;
+  
+  /* Glassmorphism */
+  --glass-bg: rgba(18, 18, 24, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glow-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+
+  /* Typography */
+  --font-main: 'Outfit', sans-serif;
+  
+  /* Z-indexes */
+  --z-base: 1;
+  --z-overlay: 1000;
+}
