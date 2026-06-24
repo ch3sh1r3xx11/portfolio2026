@@ -171,9 +171,11 @@ body, html {
     backdrop-filter: blur(10px);
     cursor: grab;
     pointer-events: auto;
-    resize: both;
+    resize: horizontal;
     overflow: hidden;
     min-width: 200px;
+    height: fit-content !important;
+    min-height: 100px;
     user-select: none;
     -webkit-user-select: none;
 }
@@ -232,7 +234,19 @@ body, html {
     outline: none;
 }
 
-/* PRZYCISK USUWANIA KARTY */
+.card-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+/* Ukrycie paska Vercela, który przeszkadza podczas pisania */
+#vercel-toolbar-wrapper, .vercel-toolbar {
+    display: none !important;
+}
+
+/* --- PRZYCISK DODAWANIA ZDJĘĆ --- */
 .delete-btn {
     position: absolute;
     top: 5px;
