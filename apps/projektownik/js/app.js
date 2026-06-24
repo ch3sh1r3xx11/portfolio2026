@@ -619,20 +619,7 @@ function makeDraggable(element, id) {
         if(e.target.contentEditable === "true" && document.activeElement === e.target) return; 
         if(e.target.closest('.delete-btn')) return;
         
-        const rect = element.getBoundingClientRect();
-        const isResizeClick = window.getComputedStyle(element).resize !== 'none' && 
-                              e.clientX > rect.right - 25 && e.clientY > rect.bottom - 25;
-        
         activeCard = element;
-        
-        if (isResizeClick) {
-            isResizingCard = true;
-            cardInitialW = element.offsetWidth;
-            cardInitialH = element.offsetHeight;
-            return; 
-        }
-        
-        isResizingCard = false;
         hasCardMoved = false;
         cardInitialX = parseFloat(element.style.left) || 0;
         cardInitialY = parseFloat(element.style.top) || 0;
@@ -735,6 +722,29 @@ function makeDraggable(element, id) {
             lastCardTap = now;
         }
     });
+
+    // NIEZAWODNE WYKRYWANIE ZMIANY ROZMIARU KARTY (RESIZE)
+    let resizeTimeout;
+    let initialW = element.offsetWidth;
+    let initialH = element.offsetHeight;
+    
+    const ro = new ResizeObserver(() => {
+        const currentW = element.offsetWidth;
+        const currentH = element.offsetHeight;
+        
+        if (currentW !== initialW || currentH !== initialH) {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (auth.currentUser && (currentW !== initialW || currentH !== initialH)) {
+                    const cmd = new ResizeCommand(id, initialW, initialH, currentW, currentH);
+                    historyManager.execute(cmd);
+                    initialW = currentW;
+                    initialH = currentH;
+                }
+            }, 500); // 500ms po puszczeniu myszki/zakończeniu resize
+        }
+    });
+    ro.observe(element);
 }
 
 function makeEditable(element, id) {
@@ -821,15 +831,7 @@ window.addEventListener('touchmove', (e) => {
 
 const handleCardDragEnd = async () => {
     if(activeCard) {
-        if (isResizingCard) {
-            const currentW = activeCard.offsetWidth;
-            const currentH = activeCard.offsetHeight;
-            if (window.cardInitialW !== currentW || window.cardInitialH !== currentH) {
-                const cmd = new ResizeCommand(activeCard.id, window.cardInitialW, window.cardInitialH, currentW, currentH);
-                historyManager.execute(cmd);
-            }
-            isResizingCard = false;
-        } else if (hasCardMoved) {
+        if (hasCardMoved) {
             const currentX = parseFloat(activeCard.style.left);
             const currentY = parseFloat(activeCard.style.top);
             if (cardInitialX !== currentX || cardInitialY !== currentY) {
