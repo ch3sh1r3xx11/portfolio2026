@@ -250,6 +250,138 @@ viewport.addEventListener('touchend', (e) => {
 });
 
 
+// --- HISTORY MANAGER (UNDO / REDO) ---
+class HistoryManager {
+    constructor() {
+        this.undoStack = [];
+        this.redoStack = [];
+    }
+
+    execute(command) {
+        command.execute();
+        this.undoStack.push(command);
+        this.redoStack = []; // Clear redo stack on new action
+        this.updateButtons();
+    }
+
+    undo() {
+        if (this.undoStack.length === 0) return;
+        const command = this.undoStack.pop();
+        command.undo();
+        this.redoStack.push(command);
+        this.updateButtons();
+    }
+
+    redo() {
+        if (this.redoStack.length === 0) return;
+        const command = this.redoStack.pop();
+        command.execute(); // Redo is essentially executing again
+        this.undoStack.push(command);
+        this.updateButtons();
+    }
+
+    updateButtons() {
+        const undoBtn = document.getElementById('undo-btn');
+        const redoBtn = document.getElementById('redo-btn');
+        if(undoBtn) undoBtn.style.opacity = this.undoStack.length > 0 ? '1' : '0.3';
+        if(redoBtn) redoBtn.style.opacity = this.redoStack.length > 0 ? '1' : '0.3';
+    }
+}
+const historyManager = new HistoryManager();
+
+document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        if (e.shiftKey) {
+            historyManager.redo();
+        } else {
+            historyManager.undo();
+        }
+        e.preventDefault();
+    } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+        historyManager.redo();
+        e.preventDefault();
+    }
+});
+
+document.getElementById('undo-btn')?.addEventListener('click', () => historyManager.undo());
+document.getElementById('redo-btn')?.addEventListener('click', () => historyManager.redo());
+historyManager.updateButtons();
+
+// --- COMMANDS ---
+class MoveCommand {
+    constructor(id, startX, startY, endX, endY) {
+        this.id = id;
+        this.startX = startX;
+        this.startY = startY;
+        this.endX = endX;
+        this.endY = endY;
+    }
+    async execute() {
+        try { await updateDoc(doc(db, "notes", this.id), { x: this.endX, y: this.endY }); } catch(e){}
+    }
+    async undo() {
+        try { await updateDoc(doc(db, "notes", this.id), { x: this.startX, y: this.startY }); } catch(e){}
+    }
+}
+
+class ResizeCommand {
+    constructor(id, startW, startH, endW, endH) {
+        this.id = id;
+        this.startW = startW;
+        this.startH = startH;
+        this.endW = endW;
+        this.endH = endH;
+    }
+    async execute() {
+        try { await updateDoc(doc(db, "notes", this.id), { width: this.endW, height: this.endH }); } catch(e){}
+    }
+    async undo() {
+        try { await updateDoc(doc(db, "notes", this.id), { width: this.startW, height: this.startH }); } catch(e){}
+    }
+}
+
+class AddCommand {
+    constructor(id, data) {
+        this.id = id;
+        this.data = data;
+    }
+    async execute() {
+        try { await setDoc(doc(db, "notes", this.id), this.data); } catch(e){}
+    }
+    async undo() {
+        // Soft Delete (lub hard delete dla uproszczenia przy nowym elemencie)
+        try { await deleteDoc(doc(db, "notes", this.id)); } catch(e){}
+    }
+}
+
+class DeleteCommand {
+    constructor(id, data) {
+        this.id = id;
+        this.data = data;
+    }
+    async execute() {
+        try { await deleteDoc(doc(db, "notes", this.id)); } catch(e){}
+    }
+    async undo() {
+        try { await setDoc(doc(db, "notes", this.id), this.data); } catch(e){}
+    }
+}
+
+class EditCommand {
+    constructor(id, oldData, newData) {
+        this.id = id;
+        this.oldData = oldData;
+        this.newData = newData;
+    }
+    async execute() {
+        try { await updateDoc(doc(db, "notes", this.id), this.newData); } catch(e){}
+    }
+    async undo() {
+        try { await updateDoc(doc(db, "notes", this.id), this.oldData); } catch(e){}
+    }
+}
+
+
 // --- KOTWICA (ANCHOR) ---
 const anchorBtn = document.getElementById('anchor-btn');
 let anchorPos = null;
@@ -301,13 +433,16 @@ addNoteBtn.addEventListener('click', async () => {
     const centerY = (window.innerHeight / 2 - translateY) / scale;
     
     try {
-        await addDoc(collection(db, "notes"), {
+        const docRef = doc(collection(db, "notes"));
+        const data = {
             type: 'text',
             x: centerX,
             y: centerY,
             title: "Nowa Notatka",
             content: "Zacznij pisać..."
-        });
+        };
+        const command = new AddCommand(docRef.id, data);
+        historyManager.execute(command);
     } catch (e) {
         console.error("Błąd zapisu do Firebase:", e);
     }
@@ -321,13 +456,16 @@ if(addTextBtn) {
         const centerY = (window.innerHeight / 2 - translateY) / scale;
         
         try {
-            await addDoc(collection(db, "notes"), {
+            const docRef = doc(collection(db, "notes"));
+            const data = {
                 type: 'textblock',
                 x: centerX,
                 y: centerY,
                 content: "Wpisz tekst...",
                 width: 250
-            });
+            };
+            const command = new AddCommand(docRef.id, data);
+            historyManager.execute(command);
         } catch (e) {
             console.error("Błąd zapisu do Firebase:", e);
         }
@@ -397,15 +535,23 @@ function createCardElement(id, data) {
         makeEditable(card, id);
     }
     
+    
+    let initialWidth = 0;
+    let initialHeight = 0;
+    
+    card.addEventListener('mousedown', () => {
+        initialWidth = parseFloat(window.getComputedStyle(card).width);
+        initialHeight = parseFloat(window.getComputedStyle(card).height);
+    });
+    
     card.addEventListener('mouseup', async () => {
         const currentW = parseFloat(window.getComputedStyle(card).width);
         const currentH = parseFloat(window.getComputedStyle(card).height);
         if (data.width !== currentW || data.height !== currentH) {
+            const cmd = new ResizeCommand(id, data.width || initialWidth, data.height || initialHeight, currentW, currentH);
+            historyManager.execute(cmd);
             data.width = currentW;
             data.height = currentH;
-            try {
-                await updateDoc(doc(db, "notes", id), { width: currentW, height: currentH });
-            } catch(err) {}
         }
     });
     
@@ -415,7 +561,8 @@ function createCardElement(id, data) {
         delBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             if (delBtn.dataset.confirming === "true") {
-                await deleteDoc(doc(db, "notes", id));
+                const cmd = new DeleteCommand(id, data);
+                historyManager.execute(cmd);
             } else {
                 delBtn.dataset.confirming = "true";
                 const oldHTML = delBtn.innerHTML;
@@ -458,11 +605,12 @@ function updateCardElement(id, data) {
 function makeDraggable(element, id) {
     let touchTimer = null;
     let isLongPress = false;
+    let initialX = 0;
+    let initialY = 0;
 
-    // --- LOGIKA DLA MYSZKI (PC - natychmiastowy drag) ---
     element.addEventListener('mousedown', (e) => {
         if(e.target.contentEditable === "true" && document.activeElement === e.target) return; 
-        if(e.target.classList.contains('delete-btn')) return;
+        if(e.target.closest('.delete-btn') || e.target.closest('.card-body')) return;
         
         if (window.getComputedStyle(element).resize !== 'none') {
             const rect = element.getBoundingClientRect();
@@ -471,9 +619,23 @@ function makeDraggable(element, id) {
         
         activeCard = element;
         hasCardMoved = false;
-        cardStartX = e.clientX / scale - parseFloat(element.style.left || 0);
-        cardStartY = e.clientY / scale - parseFloat(element.style.top || 0);
+        initialX = parseFloat(element.style.left) || 0;
+        initialY = parseFloat(element.style.top) || 0;
+        cardStartX = e.clientX / scale - initialX;
+        cardStartY = e.clientY / scale - initialY;
         e.stopPropagation();
+    });
+
+    window.addEventListener('mouseup', async () => {
+        if (activeCard === element && hasCardMoved) {
+            const currentX = parseFloat(element.style.left);
+            const currentY = parseFloat(element.style.top);
+            if (initialX !== currentX || initialY !== currentY) {
+                const cmd = new MoveCommand(id, initialX, initialY, currentX, currentY);
+                historyManager.execute(cmd);
+            }
+        }
+        activeCard = null;
     });
 
     // --- LOGIKA DLA DOTYKU (Mobile - przytrzymanie) ---
@@ -488,19 +650,18 @@ function makeDraggable(element, id) {
         const initialTouchX = e.touches[0].clientX;
         const initialTouchY = e.touches[0].clientY;
         
-        // Uruchamiamy timer (np. 400ms)
         touchTimer = setTimeout(() => {
             isLongPress = true;
             activeCard = element;
             hasCardMoved = false;
             
-            cardStartX = initialTouchX / scale - parseFloat(element.style.left || 0);
-            cardStartY = initialTouchY / scale - parseFloat(element.style.top || 0);
+            initialX = parseFloat(element.style.left) || 0;
+            initialY = parseFloat(element.style.top) || 0;
+            cardStartX = initialTouchX / scale - initialX;
+            cardStartY = initialTouchY / scale - initialY;
             
-            // Kiedy złapiemy kartę, wyłączamy przesuwanie całej planszy
             isDraggingBoard = false;
             
-            // Wizualny feedback że karta została "złapana"
             element.style.boxShadow = '0 0 25px var(--magenta)';
             element.style.transform = 'scale(1.02)';
             element.style.zIndex = '1000';
@@ -511,7 +672,6 @@ function makeDraggable(element, id) {
     }, { passive: true });
 
     element.addEventListener('touchmove', (e) => {
-        // Jeśli ruszysz palcem zanim minie czas, to znaczy że chcesz przewijać planszę
         if (!isLongPress) {
             clearTimeout(touchTimer);
         }
@@ -520,19 +680,27 @@ function makeDraggable(element, id) {
     element.addEventListener('touchend', (e) => {
         clearTimeout(touchTimer);
         if (isLongPress) {
+            if (hasCardMoved) {
+                const currentX = parseFloat(element.style.left);
+                const currentY = parseFloat(element.style.top);
+                if (initialX !== currentX || initialY !== currentY) {
+                    const cmd = new MoveCommand(id, initialX, initialY, currentX, currentY);
+                    historyManager.execute(cmd);
+                }
+            }
             element.style.boxShadow = '';
             element.style.transform = '';
             element.style.zIndex = '';
             isLongPress = false;
+            activeCard = null;
         } else if (!hasCardMoved && !hasPanned) {
             const now = Date.now();
             if (now - lastCardTap < 300) {
-                // To był podwójny klik na karcie!
                 const header = element.querySelector('.card-header');
                 const body = element.querySelector('.card-body');
                 let target = e.target;
                 if (!target.classList.contains('card-body') && !target.classList.contains('card-header')) {
-                    target = body || header; // Domyślnie body
+                    target = body || header;
                 }
                 
                 if (target) {
@@ -540,8 +708,6 @@ function makeDraggable(element, id) {
                     target.focus();
                 }
             } else {
-                // Było to zwykłe, krótkie tapnięcie, a plansza nie była w tym czasie przesuwana
-                // Zróbmy przybliżenie i wyśrodkowanie (zoom & center)
                 const cardLeft = parseFloat(element.style.left);
                 const cardTop = parseFloat(element.style.top);
                 const cardWidth = element.offsetWidth;
@@ -573,11 +739,15 @@ function makeEditable(element, id) {
     const header = element.querySelector('.card-header');
     const body = element.querySelector('.card-body');
     
+    let oldTitle = '';
+    let oldContent = '';
+    
     const enableEdit = (e) => {
         const el = e.target;
         if(el.classList.contains('card-header') || el.classList.contains('card-body')) {
             el.setAttribute('contenteditable', 'true');
-            // Pozwalamy przeglądarce samej ułożyć kursor tam, gdzie użytkownik kliknął!
+            oldTitle = header ? header.innerHTML : '';
+            oldContent = body ? body.innerHTML : '';
             el.focus();
         }
     };
@@ -586,14 +756,18 @@ function makeEditable(element, id) {
     
     const saveContent = async (e) => {
         const el = e.target;
-        el.setAttribute('contenteditable', 'false'); // Zablokuj edycję po wyjściu z pola
+        el.setAttribute('contenteditable', 'false');
         
-        let updateData = { content: body ? body.innerHTML : '' };
-        if(header) {
-            updateData.title = header.innerHTML;
+        let newData = { content: body ? body.innerHTML : '' };
+        if(header) newData.title = header.innerHTML;
+        
+        let oldData = { content: oldContent };
+        if(header) oldData.title = oldTitle;
+        
+        if (newData.content !== oldData.content || newData.title !== oldData.title) {
+            const cmd = new EditCommand(id, oldData, newData);
+            historyManager.execute(cmd);
         }
-        
-        await updateDoc(doc(db, "notes", id), updateData);
     };
     
     if (header) header.addEventListener('blur', saveContent);
@@ -614,7 +788,7 @@ window.addEventListener('mousemove', (e) => {
 window.addEventListener('touchmove', (e) => {
     if (!activeCard || e.touches.length > 1) return;
     hasCardMoved = true;
-    e.preventDefault(); // Zapobiega przewijaniu ekranu przy przeciąganiu notatki
+    e.preventDefault();
     
     const newX = e.touches[0].clientX / scale - cardStartX;
     const newY = e.touches[0].clientY / scale - cardStartY;
@@ -625,17 +799,6 @@ window.addEventListener('touchmove', (e) => {
 
 const handleCardDragEnd = async () => {
     if(activeCard) {
-        if (hasCardMoved) {
-            const id = activeCard.id;
-            const finalX = parseFloat(activeCard.style.left);
-            const finalY = parseFloat(activeCard.style.top);
-            
-            try {
-                await updateDoc(doc(db, "notes", id), { x: finalX, y: finalY });
-            } catch (e) {
-                console.error("Błąd zapisu pozycji:", e);
-            }
-        }
         activeCard = null;
     }
 };
@@ -684,7 +847,6 @@ if(addImageBtn && imageUploadInput) {
 window.addEventListener('paste', async (e) => {
     if (!auth.currentUser) return; // Tylko zalogowani
     
-    // Ignoruj wklejanie jeśli użytkownik właśnie pisze w notatce tekstowej
     if (e.target.contentEditable === "true") return;
 
     const items = (e.clipboardData || e.originalEvent.clipboardData).items;
