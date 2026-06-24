@@ -14,3 +14,6 @@ Te reguły są automatycznie ładowane do mojego (AI) kontekstu przy każdym uru
 2. **Czyste Repozytorium:** Zawsze robię komit wszystkich zmian (`git add .`, `git commit -m "opis"`) i wysyłam je na serwer (`git push`). Nie zostawiam kodu "w połowie drogi".
 3. **Podsumowanie Zadań:** Omawiam z Tobą postępy i (wersja 0.60+) dbam o to, aby odhaczyć ukończone etapy w głównym trackerze projektów na tablicy.
 4. **Brak Śmieci:** Upewniam się, że usunąłem wszystkie skrypty testowe i tymczasowe pliki ze środowiska pracy przed pożegnaniem.
+
+## 🧠 Rozwój i Nauka (Skille)
+1. **Proaktywne Proponowanie Skilli:** Użytkownik może nie wiedzieć, kiedy rozwiązanie nadaje się na Skilla. Kiedy wspólnie rozwiążemy trudny problem, stworzymy wybitnie dobry kawałek logiki albo unikalną integrację – moim obowiązkiem jest **zatrzymać się i zasugerować:** *"Hej, to wyszło nam świetnie. Czy chcesz, abym zapisał to jako dedykowany Skill na przyszłość?"*.
