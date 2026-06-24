@@ -315,36 +315,71 @@ function updateCardElement(id, data) {
 }
 
 function makeDraggable(element, id) {
-    const handleDragStart = (e) => {
-        if(e.target.contentEditable === "true") return; 
+    let touchTimer = null;
+    let isLongPress = false;
+
+    // --- LOGIKA DLA MYSZKI (PC - natychmiastowy drag) ---
+    element.addEventListener('mousedown', (e) => {
+        if(e.target.contentEditable === "true" && document.activeElement === e.target) return; 
         if(e.target.classList.contains('delete-btn')) return;
         
-        // Zabezpieczenie: jeśli to zdjęcie i kliknięto prawy dolny róg (resize), to ignoruj drag
         if (window.getComputedStyle(element).resize !== 'none') {
             const rect = element.getBoundingClientRect();
-            let clientX = e.clientX;
-            let clientY = e.clientY;
-            if(e.type === 'touchstart') {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            }
-            if (clientX > rect.right - 25 && clientY > rect.bottom - 25) {
-                return; 
-            }
+            if (e.clientX > rect.right - 25 && e.clientY > rect.bottom - 25) return; 
         }
         
         activeCard = element;
         hasCardMoved = false;
-        const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
-        const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
-        
-        cardStartX = clientX / scale - parseFloat(element.style.left || 0);
-        cardStartY = clientY / scale - parseFloat(element.style.top || 0);
+        cardStartX = e.clientX / scale - parseFloat(element.style.left || 0);
+        cardStartY = e.clientY / scale - parseFloat(element.style.top || 0);
         e.stopPropagation();
-    };
+    });
 
-    element.addEventListener('mousedown', handleDragStart);
-    element.addEventListener('touchstart', handleDragStart, { passive: false });
+    // --- LOGIKA DLA DOTYKU (Mobile - przytrzymanie) ---
+    element.addEventListener('touchstart', (e) => {
+        if(e.target.classList.contains('delete-btn')) return;
+        if(e.touches.length > 1) return;
+        
+        isLongPress = false;
+        
+        // Uruchamiamy timer (np. 400ms)
+        touchTimer = setTimeout(() => {
+            isLongPress = true;
+            activeCard = element;
+            hasCardMoved = false;
+            
+            cardStartX = e.touches[0].clientX / scale - parseFloat(element.style.left || 0);
+            cardStartY = e.touches[0].clientY / scale - parseFloat(element.style.top || 0);
+            
+            // Kiedy złapiemy kartę, wyłączamy przesuwanie całej planszy
+            isDraggingBoard = false;
+            
+            // Wizualny feedback że karta została "złapana"
+            element.style.boxShadow = '0 0 25px var(--magenta)';
+            element.style.transform = 'scale(1.02)';
+            element.style.zIndex = '1000';
+            
+            if (navigator.vibrate) navigator.vibrate(50);
+            
+        }, 400);
+    }, { passive: true });
+
+    element.addEventListener('touchmove', (e) => {
+        // Jeśli ruszysz palcem zanim minie czas, to znaczy że chcesz przewijać planszę
+        if (!isLongPress) {
+            clearTimeout(touchTimer);
+        }
+    }, { passive: true });
+
+    element.addEventListener('touchend', (e) => {
+        clearTimeout(touchTimer);
+        if (isLongPress) {
+            element.style.boxShadow = '';
+            element.style.transform = '';
+            element.style.zIndex = '';
+            isLongPress = false;
+        }
+    });
 }
 
 function makeEditable(element, id) {
