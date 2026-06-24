@@ -475,12 +475,6 @@ function makeDraggable(element, id) {
                 if (target) {
                     target.setAttribute('contenteditable', 'true');
                     target.focus();
-                    const range = document.createRange();
-                    const sel = window.getSelection();
-                    range.selectNodeContents(target);
-                    range.collapse(false);
-                    sel.removeAllRanges();
-                    sel.addRange(range);
                 }
             } else {
                 // Było to zwykłe, krótkie tapnięcie, a plansza nie była w tym czasie przesuwana
@@ -520,15 +514,8 @@ function makeEditable(element, id) {
         const el = e.target;
         if(el.classList.contains('card-header') || el.classList.contains('card-body')) {
             el.setAttribute('contenteditable', 'true');
+            // Pozwalamy przeglądarce samej ułożyć kursor tam, gdzie użytkownik kliknął!
             el.focus();
-            
-            // Umieść kursor na końcu tekstu
-            const range = document.createRange();
-            const sel = window.getSelection();
-            range.selectNodeContents(el);
-            range.collapse(false);
-            sel.removeAllRanges();
-            sel.addRange(range);
         }
     };
     
