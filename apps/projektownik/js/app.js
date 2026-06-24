@@ -354,7 +354,6 @@ function createCardElement(id, data) {
         card.style.width = '250px';
         card.innerHTML = `
             <button class="delete-btn" title="Usuń">×</button>
-            <div class="logo" style="pointer-events: auto; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.2em; color: var(--teal); text-shadow: 0 0 10px rgba(0,201,200,0.5);">creative ai driven pm</div>
             <div class="card-header">${data.title || ''}</div>
             <div class="card-body">${data.content || ''}</div>
         `;
