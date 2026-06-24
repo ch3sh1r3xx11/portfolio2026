@@ -292,6 +292,7 @@ anchorBtn.addEventListener('dblclick', () => {
 
 // --- TWORZENIE I DRAGOWANIE KART (FIREBASE) ---
 const addNoteBtn = document.getElementById('add-note');
+const addTextBtn = document.getElementById('add-text-btn');
 
 addNoteBtn.addEventListener('click', async () => {
     if (!auth.currentUser) return; // Zabezpieczenie przed niezalogowanymi
@@ -311,6 +312,27 @@ addNoteBtn.addEventListener('click', async () => {
         console.error("Błąd zapisu do Firebase:", e);
     }
 });
+
+if(addTextBtn) {
+    addTextBtn.addEventListener('click', async () => {
+        if (!auth.currentUser) return; 
+        
+        const centerX = (window.innerWidth / 2 - translateX) / scale;
+        const centerY = (window.innerHeight / 2 - translateY) / scale;
+        
+        try {
+            await addDoc(collection(db, "notes"), {
+                type: 'textblock',
+                x: centerX,
+                y: centerY,
+                content: "Wpisz tekst...",
+                width: 250
+            });
+        } catch (e) {
+            console.error("Błąd zapisu do Firebase:", e);
+        }
+    });
+}
 
 
 let activeCard = null;
@@ -338,7 +360,7 @@ function createCardElement(id, data) {
         `;
         canvas.appendChild(card);
         makeDraggable(card, id);
-    } else {
+    } else if (data.type === 'textblock') {
         card.classList.add('text-card');
         card.style.width = data.width ? `${data.width}px` : '250px';
         if (data.height) card.style.height = `${data.height}px`;
@@ -347,7 +369,7 @@ function createCardElement(id, data) {
         
         card.innerHTML = `
             <button class="delete-btn" title="Usuń">×</button>
-            <div class="card-body">${data.content || 'Zacznij pisać...'}</div>
+            <div class="card-body">${data.content || 'Wpisz tekst...'}</div>
         `;
         canvas.appendChild(card);
         makeDraggable(card, id);
@@ -362,6 +384,17 @@ function createCardElement(id, data) {
             }
         });
         ro.observe(card);
+    } else {
+        // Zwykła notatka
+        card.style.width = '250px';
+        card.innerHTML = `
+            <button class="delete-btn" title="Usuń">×</button>
+            <div class="card-header">${data.title || ''}</div>
+            <div class="card-body">${data.content || ''}</div>
+        `;
+        canvas.appendChild(card);
+        makeDraggable(card, id);
+        makeEditable(card, id);
     }
     
     card.addEventListener('mouseup', async () => {
@@ -397,7 +430,12 @@ function updateCardElement(id, data) {
     card.style.left = `${data.x}px`;
     card.style.top = `${data.y}px`;
     
-    if (data.type !== 'image') {
+    if (data.type === 'text') {
+        const header = card.querySelector('.card-header');
+        const body = card.querySelector('.card-body');
+        if (header && document.activeElement !== header) header.innerHTML = data.title || '';
+        if (body && document.activeElement !== body) body.innerHTML = data.content || '';
+    } else if (data.type === 'textblock') {
         const body = card.querySelector('.card-body');
         if (body && document.activeElement !== body) body.innerHTML = data.content || '';
     }
@@ -476,10 +514,11 @@ function makeDraggable(element, id) {
             const now = Date.now();
             if (now - lastCardTap < 300) {
                 // To był podwójny klik na karcie!
+                const header = element.querySelector('.card-header');
                 const body = element.querySelector('.card-body');
                 let target = e.target;
-                if (!target.classList.contains('card-body')) {
-                    target = body; // Domyślnie body
+                if (!target.classList.contains('card-body') && !target.classList.contains('card-header')) {
+                    target = body || header; // Domyślnie body
                 }
                 
                 if (target) {
@@ -517,11 +556,12 @@ function makeDraggable(element, id) {
 }
 
 function makeEditable(element, id) {
+    const header = element.querySelector('.card-header');
     const body = element.querySelector('.card-body');
     
     const enableEdit = (e) => {
         const el = e.target;
-        if(el.classList.contains('card-body')) {
+        if(el.classList.contains('card-header') || el.classList.contains('card-body')) {
             el.setAttribute('contenteditable', 'true');
             // Pozwalamy przeglądarce samej ułożyć kursor tam, gdzie użytkownik kliknął!
             el.focus();
@@ -534,11 +574,15 @@ function makeEditable(element, id) {
         const el = e.target;
         el.setAttribute('contenteditable', 'false'); // Zablokuj edycję po wyjściu z pola
         
-        await updateDoc(doc(db, "notes", id), {
-            content: body.innerHTML
-        });
+        let updateData = { content: body ? body.innerHTML : '' };
+        if(header) {
+            updateData.title = header.innerHTML;
+        }
+        
+        await updateDoc(doc(db, "notes", id), updateData);
     };
     
+    if (header) header.addEventListener('blur', saveContent);
     if (body) body.addEventListener('blur', saveContent);
 }
 
