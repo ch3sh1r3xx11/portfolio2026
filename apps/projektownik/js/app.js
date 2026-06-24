@@ -5,8 +5,11 @@ const viewport = document.getElementById('viewport');
 const canvas = document.getElementById('canvas');
 
 // --- LOGOWANIE GOOGLE ---
-const loginOverlay = document.getElementById('login-overlay');
 const loginBtn = document.getElementById('login-btn');
+const logoutBtn = document.getElementById('logout-btn');
+const bottomTools = document.getElementById('bottom-tools');
+const undoBtn = document.getElementById('undo-btn');
+const redoBtn = document.getElementById('redo-btn');
 
 loginBtn.addEventListener('click', () => {
     signInWithPopup(auth, provider).then((res) => {
@@ -33,32 +36,38 @@ document.getElementById('refresh-btn').addEventListener('click', () => {
 
 let unsubscribeSnapshot = null;
 
+// Ładowanie notatek dla wszystkich (nawet gości)
+unsubscribeSnapshot = onSnapshot(collection(db, "notes"), (snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+            createCardElement(change.doc.id, change.doc.data());
+        }
+        if (change.type === "modified") {
+            updateCardElement(change.doc.id, change.doc.data());
+        }
+        if (change.type === "removed") {
+            const el = document.getElementById(change.doc.id);
+            if(el) el.remove();
+        }
+    });
+});
+
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        // Zalogowano z sukcesem
-        loginOverlay.style.display = 'none';
+        // Zalogowano
         console.log("Zalogowany jako:", user.email);
-        
-        // Rozpocznij nasłuchiwanie notatek dopiero po zalogowaniu
-        unsubscribeSnapshot = onSnapshot(collection(db, "notes"), (snapshot) => {
-            snapshot.docChanges().forEach((change) => {
-                if (change.type === "added") {
-                    createCardElement(change.doc.id, change.doc.data());
-                }
-                if (change.type === "modified") {
-                    updateCardElement(change.doc.id, change.doc.data());
-                }
-                if (change.type === "removed") {
-                    const el = document.getElementById(change.doc.id);
-                    if(el) el.remove();
-                }
-            });
-        });
+        loginBtn.style.display = 'none';
+        logoutBtn.style.display = 'block';
+        bottomTools.style.display = 'flex';
+        undoBtn.style.display = 'block';
+        redoBtn.style.display = 'block';
     } else {
-        // Nie zalogowano
-        loginOverlay.style.display = 'flex';
-        if (unsubscribeSnapshot) unsubscribeSnapshot(); // Przestań pobierać notatki
-        canvas.innerHTML = ''; // Wyczyść biurko z ewentualnych starych danych
+        // Nie zalogowano (Gość)
+        loginBtn.style.display = 'block';
+        logoutBtn.style.display = 'none';
+        bottomTools.style.display = 'none';
+        undoBtn.style.display = 'none';
+        redoBtn.style.display = 'none';
     }
 });
 
@@ -77,7 +86,7 @@ updateCanvas();
 
 viewport.addEventListener('mousedown', (e) => {
     canvas.classList.remove('smooth-pan');
-    if (e.target.closest('.card') || e.target.closest('#ui-layer') || e.target.closest('#login-overlay')) return;
+    if (e.target.closest('.card') || e.target.closest('#ui-layer')) return;
     
     isDraggingBoard = true;
     startX = e.clientX - translateX;
@@ -97,7 +106,7 @@ window.addEventListener('mouseup', () => {
 
 viewport.addEventListener('wheel', (e) => {
     // Zoom tylko jeśli login screen jest ukryty
-    if (loginOverlay.style.display === 'flex') return;
+    if (e.target.closest('.card') || e.target.closest('#ui-layer')) return;
     e.preventDefault(); 
     const zoomSensitivity = 0.0015;
     const delta = -e.deltaY * zoomSensitivity;
@@ -130,7 +139,7 @@ let initialScaleBeforeOneFingerZoom = 1;
 
 viewport.addEventListener('touchstart', (e) => {
     canvas.classList.remove('smooth-pan');
-    if (loginOverlay.style.display === 'flex') return;
+    if (e.target.closest('#ui-layer')) return;
     if (e.target.closest('#ui-layer')) return;
 
     if (e.touches.length === 1) {
@@ -163,7 +172,7 @@ viewport.addEventListener('touchstart', (e) => {
 }, { passive: false });
 
 viewport.addEventListener('touchmove', (e) => {
-    if (loginOverlay.style.display === 'flex') return;
+    if (e.target.closest('#ui-layer')) return;
     if (e.target.closest('#ui-layer')) return;
     if (e.touches.length > 1) e.preventDefault(); // Blokuj domyślny scroll przy zoomie
 
