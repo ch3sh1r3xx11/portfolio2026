@@ -490,6 +490,7 @@ let cardStartX, cardStartY;
 let cardInitialX = 0;
 let cardInitialY = 0;
 let isResizingCard = false;
+let hasCardMoved = false;
 window.cardInitialW = 0;
 window.cardInitialH = 0;
 
