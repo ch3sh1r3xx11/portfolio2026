@@ -137,9 +137,9 @@ body, html {
     position: absolute;
     top: 5px;
     right: 5px;
-    background: rgba(255, 0, 0, 0.7);
+    background: rgba(255, 255, 255, 0.1);
     color: white;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     width: 24px;
     height: 24px;
@@ -157,7 +157,7 @@ body, html {
     opacity: 1;
 }
 .delete-btn:hover {
-    background: red;
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .card-body {
