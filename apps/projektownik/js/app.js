@@ -744,12 +744,32 @@ function makeEditable(element, id) {
     let oldContent = '';
     
     const enableEdit = (e) => {
-        const el = e.target;
-        if(el.classList.contains('card-header') || el.classList.contains('card-body')) {
+        const el = e.target.closest('.card-header') || e.target.closest('.card-body');
+        if(el) {
             el.setAttribute('contenteditable', 'true');
             oldTitle = header ? header.innerHTML : '';
             oldContent = body ? body.innerHTML : '';
             el.focus();
+            
+            // Magiczne ustawienie kursora dokładnie w miejscu kliknięcia
+            if (document.caretRangeFromPoint) {
+                const range = document.caretRangeFromPoint(e.clientX, e.clientY);
+                if (range) {
+                    const sel = window.getSelection();
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                }
+            } else if (document.caretPositionFromPoint) {
+                const pos = document.caretPositionFromPoint(e.clientX, e.clientY);
+                if (pos) {
+                    const range = document.createRange();
+                    range.setStart(pos.offsetNode, pos.offset);
+                    range.collapse(true);
+                    const sel = window.getSelection();
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                }
+            }
         }
     };
     

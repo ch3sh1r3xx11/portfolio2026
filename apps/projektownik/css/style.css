@@ -202,6 +202,10 @@ body, html {
     background: transparent !important;
     color: var(--text-light) !important;
 }
+.card-body a {
+    color: inherit !important;
+    text-decoration: none !important;
+}
 
 .card:active {
     cursor: grabbing;
