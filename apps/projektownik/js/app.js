@@ -112,10 +112,13 @@ viewport.addEventListener('wheel', (e) => {
 // --- TOUCH PAN & ZOOM (MOBILE) ---
 let initialPinchDistance = null;
 let initialScale = 1;
-let lastViewportTap = 0;
+let lastViewportTapStart = 0;
 let hasPanned = false;
 let panTouchStartX = 0;
 let panTouchStartY = 0;
+let isOneFingerZoom = false;
+let oneFingerZoomStartY = 0;
+let initialScaleBeforeOneFingerZoom = 1;
 
 viewport.addEventListener('touchstart', (e) => {
     canvas.classList.remove('smooth-pan');
@@ -123,14 +126,25 @@ viewport.addEventListener('touchstart', (e) => {
     if (e.target.closest('#ui-layer')) return;
 
     if (e.touches.length === 1) {
-        isDraggingBoard = true;
+        const now = Date.now();
+        if (now - lastViewportTapStart < 300) {
+            isOneFingerZoom = true;
+            isDraggingBoard = false;
+            oneFingerZoomStartY = e.touches[0].clientY;
+            initialScaleBeforeOneFingerZoom = scale;
+        } else {
+            isOneFingerZoom = false;
+            isDraggingBoard = true;
+            startX = e.touches[0].clientX - translateX;
+            startY = e.touches[0].clientY - translateY;
+        }
         hasPanned = false;
         panTouchStartX = e.touches[0].clientX;
         panTouchStartY = e.touches[0].clientY;
-        startX = e.touches[0].clientX - translateX;
-        startY = e.touches[0].clientY - translateY;
+        lastViewportTapStart = now;
     } else if (e.touches.length === 2) {
         isDraggingBoard = false;
+        isOneFingerZoom = false;
         hasPanned = true; // Zoom to też operacja na planszy
         initialPinchDistance = Math.hypot(
             e.touches[0].clientX - e.touches[1].clientX,
@@ -145,15 +159,37 @@ viewport.addEventListener('touchmove', (e) => {
     if (e.target.closest('#ui-layer')) return;
     if (e.touches.length > 1) e.preventDefault(); // Blokuj domyślny scroll przy zoomie
 
-    if (e.touches.length === 1 && isDraggingBoard) {
-        // Jeśli przesunięcie jest większe niż 10px, uznajemy to za celowy Pan (swipe), a nie kliknięcie
-        if (Math.abs(e.touches[0].clientX - panTouchStartX) > 10 || Math.abs(e.touches[0].clientY - panTouchStartY) > 10) {
-            hasPanned = true;
+    if (e.touches.length === 1) {
+        if (isOneFingerZoom) {
+            if (Math.abs(e.touches[0].clientY - panTouchStartY) > 10) {
+                hasPanned = true;
+            }
+            const deltaY = e.touches[0].clientY - oneFingerZoomStartY;
+            // Przesunięcie w dół (+ delta) przybliża, w górę oddala
+            const zoomSensitivity = 0.005;
+            const zoomFactor = Math.exp(deltaY * zoomSensitivity);
+            let newScale = initialScaleBeforeOneFingerZoom * zoomFactor;
+            newScale = Math.max(0.1, Math.min(newScale, 5));
+            
+            const screenCenterX = window.innerWidth / 2;
+            const screenCenterY = window.innerHeight / 2;
+            const canvasCenterX = (screenCenterX - translateX) / scale;
+            const canvasCenterY = (screenCenterY - translateY) / scale;
+            
+            scale = newScale;
+            translateX = screenCenterX - canvasCenterX * scale;
+            translateY = screenCenterY - canvasCenterY * scale;
+            
+            updateCanvas();
+        } else if (isDraggingBoard) {
+            // Jeśli przesunięcie jest większe niż 10px, uznajemy to za celowy Pan (swipe)
+            if (Math.abs(e.touches[0].clientX - panTouchStartX) > 10 || Math.abs(e.touches[0].clientY - panTouchStartY) > 10) {
+                hasPanned = true;
+            }
+            translateX = e.touches[0].clientX - startX;
+            translateY = e.touches[0].clientY - startY;
+            updateCanvas();
         }
-        
-        translateX = e.touches[0].clientX - startX;
-        translateY = e.touches[0].clientY - startY;
-        updateCanvas();
     } else if (e.touches.length === 2 && initialPinchDistance) {
         const currentDistance = Math.hypot(
             e.touches[0].clientX - e.touches[1].clientX,
@@ -181,33 +217,27 @@ viewport.addEventListener('touchend', (e) => {
         initialPinchDistance = null;
     }
     if (e.touches.length === 0) {
-        isDraggingBoard = false;
-        
-        // Obsługa double tap na puste pole (zoom out)
-        if (!e.target.closest('.card') && !e.target.closest('#ui-layer')) {
-            const now = Date.now();
-            if (now - lastViewportTap < 300) {
-                // Double tap - chcemy przywrócić scale = 1, zachowując środek widoku
-                canvas.classList.add('smooth-pan');
-                
-                const screenCenterX = window.innerWidth / 2;
-                const screenCenterY = window.innerHeight / 2;
-                
-                // Gdzie na canvasie jest obecny środek ekranu?
-                const canvasCenterX = (screenCenterX - translateX) / scale;
-                const canvasCenterY = (screenCenterY - translateY) / scale;
-                
-                scale = 1;
-                
-                // Ustawiamy nowe przesunięcie, aby ten sam punkt na canvasie był na środku
-                translateX = screenCenterX - canvasCenterX * scale;
-                translateY = screenCenterY - canvasCenterY * scale;
-                
-                updateCanvas();
-                setTimeout(() => canvas.classList.remove('smooth-pan'), 600);
-            }
-            lastViewportTap = now;
+        // Obsługa double tap na puste pole (zoom out do 1.0)
+        if (isOneFingerZoom && !hasPanned && !e.target.closest('.card') && !e.target.closest('#ui-layer')) {
+            // To był double tap, ale palec nie został przesunięty
+            canvas.classList.add('smooth-pan');
+            
+            const screenCenterX = window.innerWidth / 2;
+            const screenCenterY = window.innerHeight / 2;
+            const canvasCenterX = (screenCenterX - translateX) / scale;
+            const canvasCenterY = (screenCenterY - translateY) / scale;
+            
+            scale = 1;
+            
+            translateX = screenCenterX - canvasCenterX * scale;
+            translateY = screenCenterY - canvasCenterY * scale;
+            
+            updateCanvas();
+            setTimeout(() => canvas.classList.remove('smooth-pan'), 600);
         }
+        
+        isDraggingBoard = false;
+        isOneFingerZoom = false;
     }
 });
 
