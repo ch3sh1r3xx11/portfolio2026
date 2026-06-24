@@ -19,6 +19,8 @@ body, html {
     background-color: var(--bg);
     color: #fff;
     font-family: var(--font-mono);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     overflow: hidden; /* Zablokowanie standardowego scrolla */
     touch-action: none; /* Wyłączenie standardowego szczypania przeglądarki, zrobimy własne */
 }
@@ -47,7 +49,6 @@ body, html {
     /* Tło z kropek, które "żyje" razem z tablicą */
     background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
     background-size: 40px 40px;
-    will-change: transform;
 }
 
 #canvas.smooth-pan {
