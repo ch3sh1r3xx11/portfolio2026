@@ -450,8 +450,8 @@ addNoteBtn.addEventListener('click', async () => {
             type: 'text',
             x: centerX,
             y: centerY,
-            title: "Nowa Notatka",
-            content: "Zacznij pisać..."
+            title: "",
+            content: ""
         };
         const command = new AddCommand(docRef.id, data);
         historyManager.execute(command);
@@ -473,7 +473,7 @@ if(addTextBtn) {
                 type: 'textblock',
                 x: centerX,
                 y: centerY,
-                content: "Wpisz tekst...",
+                content: "",
                 width: 250
             };
             const command = new AddCommand(docRef.id, data);
@@ -599,7 +599,7 @@ function updateCardElement(id, data) {
     card.style.top = `${data.y}px`;
     
     if (data.width) card.style.width = `${data.width}px`;
-    if (data.height) card.style.height = `${data.height}px`;
+    // Height is handled automatically by CSS (fit-content) to allow auto-expansion
     
     if (data.type === 'text') {
         const header = card.querySelector('.card-header');
@@ -619,6 +619,12 @@ function makeDraggable(element, id) {
     element.addEventListener('mousedown', (e) => {
         if(e.target.contentEditable === "true" && document.activeElement === e.target) return; 
         if(e.target.closest('.delete-btn')) return;
+        
+        const rect = element.getBoundingClientRect();
+        // Sprawdź czy kliknięto w prawy dolny róg (uchwyt resize)
+        const isResizeHandle = (e.clientX - rect.left) > (rect.width - 25) && (e.clientY - rect.top) > (rect.height - 25);
+        isResizingCard = isResizeHandle;
+        
         activeCard = element;
         hasCardMoved = false;
         window.cardInitialW = element.offsetWidth;
@@ -786,7 +792,7 @@ function makeEditable(element, id) {
 }
 
 window.addEventListener('mousemove', (e) => {
-    if (!activeCard) return;
+    if (!activeCard || isResizingCard) return;
     hasCardMoved = true;
     
     const newX = e.clientX / scale - cardStartX;
@@ -820,7 +826,7 @@ const handleCardDragEnd = async () => {
         }
         
         // Zapisz pozycję
-        if (hasCardMoved) {
+        if (hasCardMoved && !isResizingCard) {
             const currentX = parseFloat(activeCard.style.left);
             const currentY = parseFloat(activeCard.style.top);
             if (cardInitialX !== currentX || cardInitialY !== currentY) {
@@ -829,6 +835,7 @@ const handleCardDragEnd = async () => {
             }
         }
         activeCard = null;
+        isResizingCard = false;
     }
 };
 
