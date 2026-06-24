@@ -109,6 +109,69 @@ viewport.addEventListener('wheel', (e) => {
     updateCanvas();
 }, { passive: false });
 
+// --- TOUCH PAN & ZOOM (MOBILE) ---
+let initialPinchDistance = null;
+let initialScale = 1;
+
+viewport.addEventListener('touchstart', (e) => {
+    canvas.classList.remove('smooth-pan');
+    if (loginOverlay.style.display === 'flex') return;
+    if (e.target.closest('.card') || e.target.closest('#ui-layer')) return;
+
+    if (e.touches.length === 1) {
+        isDraggingBoard = true;
+        startX = e.touches[0].clientX - translateX;
+        startY = e.touches[0].clientY - translateY;
+    } else if (e.touches.length === 2) {
+        isDraggingBoard = false;
+        initialPinchDistance = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+        );
+        initialScale = scale;
+    }
+}, { passive: false });
+
+viewport.addEventListener('touchmove', (e) => {
+    if (loginOverlay.style.display === 'flex') return;
+    if (e.target.closest('.card') || e.target.closest('#ui-layer')) return;
+    if (e.touches.length > 1) e.preventDefault(); // Blokuj domyślny scroll przy zoomie
+
+    if (e.touches.length === 1 && isDraggingBoard) {
+        translateX = e.touches[0].clientX - startX;
+        translateY = e.touches[0].clientY - startY;
+        updateCanvas();
+    } else if (e.touches.length === 2 && initialPinchDistance) {
+        const currentDistance = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+        );
+        
+        let newScale = initialScale * (currentDistance / initialPinchDistance);
+        newScale = Math.max(0.1, Math.min(newScale, 5));
+        
+        const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        
+        const canvasX = (centerX - translateX) / scale;
+        const canvasY = (centerY - translateY) / scale;
+
+        translateX = centerX - canvasX * newScale;
+        translateY = centerY - canvasY * newScale;
+        scale = newScale;
+        updateCanvas();
+    }
+}, { passive: false });
+
+viewport.addEventListener('touchend', (e) => {
+    if (e.touches.length < 2) {
+        initialPinchDistance = null;
+    }
+    if (e.touches.length === 0) {
+        isDraggingBoard = false;
+    }
+});
+
 
 // --- KOTWICA (ANCHOR) ---
 const anchorBtn = document.getElementById('anchor-btn');
@@ -252,25 +315,36 @@ function updateCardElement(id, data) {
 }
 
 function makeDraggable(element, id) {
-    element.addEventListener('mousedown', (e) => {
+    const handleDragStart = (e) => {
         if(e.target.contentEditable === "true") return; 
         if(e.target.classList.contains('delete-btn')) return;
         
         // Zabezpieczenie: jeśli to zdjęcie i kliknięto prawy dolny róg (resize), to ignoruj drag
         if (window.getComputedStyle(element).resize !== 'none') {
             const rect = element.getBoundingClientRect();
-            // Przeglądarkowy uchwyt resize to około 20x20px w prawym dolnym rogu (skalowanie ignorujemy tutaj dla uproszczenia bo i tak działa z grubsza)
-            if (e.clientX > rect.right - 25 && e.clientY > rect.bottom - 25) {
+            let clientX = e.clientX;
+            let clientY = e.clientY;
+            if(e.type === 'touchstart') {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            }
+            if (clientX > rect.right - 25 && clientY > rect.bottom - 25) {
                 return; 
             }
         }
         
         activeCard = element;
         hasCardMoved = false;
-        cardStartX = e.clientX / scale - parseFloat(element.style.left || 0);
-        cardStartY = e.clientY / scale - parseFloat(element.style.top || 0);
+        const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+        const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+        
+        cardStartX = clientX / scale - parseFloat(element.style.left || 0);
+        cardStartY = clientY / scale - parseFloat(element.style.top || 0);
         e.stopPropagation();
-    });
+    };
+
+    element.addEventListener('mousedown', handleDragStart);
+    element.addEventListener('touchstart', handleDragStart, { passive: false });
 }
 
 function makeEditable(element, id) {
@@ -299,7 +373,19 @@ window.addEventListener('mousemove', (e) => {
     activeCard.style.top = `${newY}px`;
 });
 
-window.addEventListener('mouseup', async () => {
+window.addEventListener('touchmove', (e) => {
+    if (!activeCard || e.touches.length > 1) return;
+    hasCardMoved = true;
+    e.preventDefault(); // Zapobiega przewijaniu ekranu przy przeciąganiu notatki
+    
+    const newX = e.touches[0].clientX / scale - cardStartX;
+    const newY = e.touches[0].clientY / scale - cardStartY;
+    
+    activeCard.style.left = `${newX}px`;
+    activeCard.style.top = `${newY}px`;
+}, { passive: false });
+
+const handleCardDragEnd = async () => {
     if(activeCard) {
         if (hasCardMoved) {
             const id = activeCard.id;
@@ -314,9 +400,49 @@ window.addEventListener('mouseup', async () => {
         }
         activeCard = null;
     }
-});
+};
 
-// --- WKLEJANIE ZDJĘĆ (CTRL+V) ---
+window.addEventListener('mouseup', handleCardDragEnd);
+window.addEventListener('touchend', handleCardDragEnd);
+
+// --- WKLEJANIE / DODAWANIE ZDJĘĆ ---
+const addImageBtn = document.getElementById('add-image-btn');
+const imageUploadInput = document.getElementById('image-upload');
+
+if(addImageBtn && imageUploadInput) {
+    addImageBtn.addEventListener('click', () => {
+        imageUploadInput.click();
+    });
+
+    imageUploadInput.addEventListener('change', async (e) => {
+        if (!auth.currentUser) return;
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        console.log("Ładowanie obrazka (mobile/button) do chmury...");
+        const fileRef = ref(storage, 'images/' + Date.now() + '_' + file.name);
+        
+        try {
+            await uploadBytes(fileRef, file);
+            const url = await getDownloadURL(fileRef);
+            
+            const centerX = (window.innerWidth / 2 - translateX) / scale;
+            const centerY = (window.innerHeight / 2 - translateY) / scale;
+            
+            await addDoc(collection(db, "notes"), {
+                type: 'image',
+                url: url,
+                x: centerX,
+                y: centerY
+            });
+            console.log("Obrazek z przycisku pomyślnie dodany na Biurko!");
+        } catch (err) {
+            console.error("Błąd wgrywania zdjęcia:", err);
+        }
+        imageUploadInput.value = ""; // Reset
+    });
+}
+
 window.addEventListener('paste', async (e) => {
     if (!auth.currentUser) return; // Tylko zalogowani
     
