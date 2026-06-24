@@ -1,6 +1,5 @@
 {
   "rewrites": [
-    { "source": "/__/auth/(.*)", "destination": "https://projektownik2026.firebaseapp.com/__/auth/$1" },
     { "source": "/projektownik/(.*)", "destination": "/apps/projektownik/$1" },
     { "source": "/projektownik", "destination": "/apps/projektownik/index.html" },
     { "source": "/packages/(.*)", "destination": "/packages/$1" },
