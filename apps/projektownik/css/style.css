@@ -164,6 +164,7 @@ body, html {
     font-size: 0.85rem;
     line-height: 1.5;
     color: rgba(255,255,255,0.8);
+    outline: none;
 }
 
 /* LEWY TOOLBAR I KOTWICA */
