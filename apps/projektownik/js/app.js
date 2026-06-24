@@ -317,9 +317,11 @@ class MoveCommand {
         this.endY = endY;
     }
     async execute() {
+        if (!auth.currentUser) return;
         try { await updateDoc(doc(db, "notes", this.id), { x: this.endX, y: this.endY }); } catch(e){}
     }
     async undo() {
+        if (!auth.currentUser) return;
         try { await updateDoc(doc(db, "notes", this.id), { x: this.startX, y: this.startY }); } catch(e){}
     }
 }
@@ -609,7 +611,7 @@ function makeDraggable(element, id) {
 
     element.addEventListener('mousedown', (e) => {
         if(e.target.contentEditable === "true" && document.activeElement === e.target) return; 
-        if(e.target.closest('.delete-btn') || e.target.closest('.card-body')) return;
+        if(e.target.closest('.delete-btn')) return;
         
         if (window.getComputedStyle(element).resize !== 'none') {
             const rect = element.getBoundingClientRect();
