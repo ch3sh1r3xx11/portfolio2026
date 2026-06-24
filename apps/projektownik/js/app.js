@@ -329,7 +329,7 @@ function createCardElement(id, data) {
     if (data.type === 'image') {
         card.style.width = data.width ? `${data.width}px` : '300px';
         if (data.height) card.style.height = `${data.height}px`;
-        card.style.padding = '8px'; // mniejszy padding dla zdjęć
+        card.style.padding = '8px';
         card.style.resize = 'both';
         card.style.overflow = 'hidden';
         card.innerHTML = `
@@ -338,29 +338,43 @@ function createCardElement(id, data) {
         `;
         canvas.appendChild(card);
         makeDraggable(card, id);
-        
-        card.addEventListener('mouseup', async () => {
-            const currentW = parseFloat(window.getComputedStyle(card).width);
-            const currentH = parseFloat(window.getComputedStyle(card).height);
-            if (data.width !== currentW || data.height !== currentH) {
-                data.width = currentW;
-                data.height = currentH;
-                try {
-                    await updateDoc(doc(db, "notes", id), { width: currentW, height: currentH });
-                } catch(err) {}
-            }
-        });
     } else {
-        card.style.width = '250px';
+        card.classList.add('text-card');
+        card.style.width = data.width ? `${data.width}px` : '250px';
+        if (data.height) card.style.height = `${data.height}px`;
+        card.style.resize = 'both';
+        card.style.overflow = 'hidden';
+        
         card.innerHTML = `
             <button class="delete-btn" title="Usuń">×</button>
-            <div class="card-header">${data.title || ''}</div>
-            <div class="card-body">${data.content || ''}</div>
+            <div class="card-body">${data.content || 'Zacznij pisać...'}</div>
         `;
         canvas.appendChild(card);
         makeDraggable(card, id);
         makeEditable(card, id);
+        
+        const ro = new ResizeObserver(() => {
+            const currentW = card.offsetWidth;
+            const ratio = currentW / 250;
+            const bodyEl = card.querySelector('.card-body');
+            if(bodyEl) {
+                bodyEl.style.fontSize = `${0.9 * ratio}rem`;
+            }
+        });
+        ro.observe(card);
     }
+    
+    card.addEventListener('mouseup', async () => {
+        const currentW = parseFloat(window.getComputedStyle(card).width);
+        const currentH = parseFloat(window.getComputedStyle(card).height);
+        if (data.width !== currentW || data.height !== currentH) {
+            data.width = currentW;
+            data.height = currentH;
+            try {
+                await updateDoc(doc(db, "notes", id), { width: currentW, height: currentH });
+            } catch(err) {}
+        }
+    });
     
     // Obsługa usuwania
     const delBtn = card.querySelector('.delete-btn');
@@ -384,10 +398,8 @@ function updateCardElement(id, data) {
     card.style.top = `${data.y}px`;
     
     if (data.type !== 'image') {
-        const header = card.querySelector('.card-header');
         const body = card.querySelector('.card-body');
-        if (header && document.activeElement !== header) header.innerHTML = data.title;
-        if (body && document.activeElement !== body) body.innerHTML = data.content;
+        if (body && document.activeElement !== body) body.innerHTML = data.content || '';
     }
 }
 
@@ -464,12 +476,10 @@ function makeDraggable(element, id) {
             const now = Date.now();
             if (now - lastCardTap < 300) {
                 // To był podwójny klik na karcie!
-                const header = element.querySelector('.card-header');
                 const body = element.querySelector('.card-body');
-                // Jeśli tapnęliśmy w body, aktywujemy body, jak nie, to header
                 let target = e.target;
-                if (!target.classList.contains('card-body') && !target.classList.contains('card-header')) {
-                    target = body || header; // Domyślnie body
+                if (!target.classList.contains('card-body')) {
+                    target = body; // Domyślnie body
                 }
                 
                 if (target) {
@@ -507,12 +517,11 @@ function makeDraggable(element, id) {
 }
 
 function makeEditable(element, id) {
-    const header = element.querySelector('.card-header');
     const body = element.querySelector('.card-body');
     
     const enableEdit = (e) => {
         const el = e.target;
-        if(el.classList.contains('card-header') || el.classList.contains('card-body')) {
+        if(el.classList.contains('card-body')) {
             el.setAttribute('contenteditable', 'true');
             // Pozwalamy przeglądarce samej ułożyć kursor tam, gdzie użytkownik kliknął!
             el.focus();
@@ -526,12 +535,10 @@ function makeEditable(element, id) {
         el.setAttribute('contenteditable', 'false'); // Zablokuj edycję po wyjściu z pola
         
         await updateDoc(doc(db, "notes", id), {
-            title: header.innerHTML,
             content: body.innerHTML
         });
     };
     
-    if (header) header.addEventListener('blur', saveContent);
     if (body) body.addEventListener('blur', saveContent);
 }
 

@@ -166,6 +166,15 @@ body, html {
     pointer-events: auto;
 }
 
+.card.text-card {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    padding: 0;
+}
+
 .card:active {
     cursor: grabbing;
 }
@@ -218,6 +227,20 @@ body, html {
     min-height: 50px;
     outline: none;
     cursor: text;
+}
+
+.card.text-card .card-body {
+    width: 100%;
+    height: 100%;
+    color: var(--teal);
+    text-shadow: 0 0 15px rgba(0, 201, 200, 0.5);
+    font-weight: 700;
+    font-size: 0.9rem; /* Domyślny rozmiar dla 250px */
+}
+
+.card.text-card .delete-btn {
+    top: -15px;
+    right: -15px;
 }
 
 /* LEWY TOOLBAR I KOTWICA */
