@@ -595,11 +595,11 @@ function updateCardElement(id, data) {
     if (data.type === 'text') {
         const header = card.querySelector('.card-header');
         const body = card.querySelector('.card-body');
-        if (header && document.activeElement !== header) header.innerHTML = data.title || '';
-        if (body && document.activeElement !== body) body.innerHTML = data.content || '';
+        if (header && header.getAttribute('contenteditable') !== 'true') header.innerHTML = data.title || '';
+        if (body && body.getAttribute('contenteditable') !== 'true') body.innerHTML = data.content || '';
     } else if (data.type === 'textblock') {
         const body = card.querySelector('.card-body');
-        if (body && document.activeElement !== body) body.innerHTML = data.content || '';
+        if (body && body.getAttribute('contenteditable') !== 'true') body.innerHTML = data.content || '';
     }
 }
 
