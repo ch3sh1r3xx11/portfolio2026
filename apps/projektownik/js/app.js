@@ -378,6 +378,33 @@ function makeDraggable(element, id) {
             element.style.transform = '';
             element.style.zIndex = '';
             isLongPress = false;
+        } else if (!hasCardMoved) {
+            // Było to zwykłe, krótkie tapnięcie
+            // Zróbmy przybliżenie i wyśrodkowanie (zoom & center)
+            const cardLeft = parseFloat(element.style.left);
+            const cardTop = parseFloat(element.style.top);
+            const cardWidth = element.offsetWidth;
+            const cardHeight = element.offsetHeight;
+            
+            // Chcemy powiększyć notatkę (np. scale = 1.5 dla wygody czytania/pisania)
+            const targetScale = 1.5;
+            
+            // Środkujemy wyżej (w 1/3 ekranu), żeby klawiatura systemowa na telefonie jej nie zasłoniła
+            const windowCenterX = window.innerWidth / 2;
+            const windowTargetY = window.innerHeight / 3;
+            
+            const newTranslateX = windowCenterX - (cardLeft + cardWidth / 2) * targetScale;
+            const newTranslateY = windowTargetY - (cardTop + cardHeight / 2) * targetScale;
+            
+            canvas.classList.add('smooth-pan');
+            translateX = newTranslateX;
+            translateY = newTranslateY;
+            scale = targetScale;
+            updateCanvas();
+            
+            setTimeout(() => {
+                canvas.classList.remove('smooth-pan');
+            }, 600);
         }
     });
 }
