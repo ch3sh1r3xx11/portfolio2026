@@ -135,7 +135,7 @@ viewport.addEventListener('touchstart', (e) => {
 
 viewport.addEventListener('touchmove', (e) => {
     if (loginOverlay.style.display === 'flex') return;
-    if (e.target.closest('.card') || e.target.closest('#ui-layer')) return;
+    if (e.target.closest('#ui-layer')) return;
     if (e.touches.length > 1) e.preventDefault(); // Blokuj domyślny scroll przy zoomie
 
     if (e.touches.length === 1 && isDraggingBoard) {
@@ -175,11 +175,22 @@ viewport.addEventListener('touchend', (e) => {
         if (!e.target.closest('.card') && !e.target.closest('#ui-layer')) {
             const now = Date.now();
             if (now - lastViewportTap < 300) {
-                // Double tap
+                // Double tap - chcemy przywrócić scale = 1, zachowując środek widoku
                 canvas.classList.add('smooth-pan');
+                
+                const screenCenterX = window.innerWidth / 2;
+                const screenCenterY = window.innerHeight / 2;
+                
+                // Gdzie na canvasie jest obecny środek ekranu?
+                const canvasCenterX = (screenCenterX - translateX) / scale;
+                const canvasCenterY = (screenCenterY - translateY) / scale;
+                
                 scale = 1;
-                // Wyśrodkuj na 5000,5000 lub po prostu zrób zoom out w obecnym punkcie
-                // Prosty zoom out do 1.0 wokół środka ekranu
+                
+                // Ustawiamy nowe przesunięcie, aby ten sam punkt na canvasie był na środku
+                translateX = screenCenterX - canvasCenterX * scale;
+                translateY = screenCenterY - canvasCenterY * scale;
+                
                 updateCanvas();
                 setTimeout(() => canvas.classList.remove('smooth-pan'), 600);
             }
