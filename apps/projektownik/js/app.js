@@ -16,12 +16,20 @@ loginBtn.addEventListener('click', () => {
     });
 });
 
-const logoutBtn = document.getElementById('logout-btn');
-if(logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-        signOut(auth).catch(err => console.error(err));
-    });
-}
+// Wylogowanie
+document.getElementById('logout-btn').addEventListener('click', async () => {
+    try {
+        await signOut(auth);
+        window.location.reload();
+    } catch (e) {
+        console.error("Błąd wylogowania: ", e);
+    }
+});
+
+// Odświeżenie aplikacji (PWA)
+document.getElementById('refresh-btn').addEventListener('click', () => {
+    window.location.reload(true);
+});
 
 let unsubscribeSnapshot = null;
 
