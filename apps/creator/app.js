@@ -137,11 +137,15 @@ document.getElementById('add-kpi').addEventListener('click', () => {
 
 function insertModule(type) {
     const titles = {
+        'vision': 'Wizja',
         'goal': 'Cel (SMART)',
-        'resources': 'Zasoby i Zespół',
-        'dependencies': 'Zależności i Blokery',
-        'timeline': 'Harmonogram (Milestones)',
-        'risks': 'Rejestr Ryzyk'
+        'scope': 'Zakres',
+        'plan': 'Plan',
+        'timeline': 'Harmonogram',
+        'resources': 'Zasoby',
+        'risks': 'Ryzyka',
+        'ifthen': 'If>Then',
+        'success': 'Kryterium Sukcesu'
     };
     
     const colorClass = (type === 'resources' || type === 'timeline') ? 'teal' : 'magenta';
