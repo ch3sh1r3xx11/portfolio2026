@@ -18,14 +18,18 @@
         <div id="progress-bar"></div>
     </div>
 
-    <!-- Header Navigation -->
-    <header class="creator-header">
-        <div class="nav-logo" onclick="window.location.href='../portfolio/index.html'">creative ai driven pm</div>
+    <!-- Header Navigation (Unified Monorepo Design) -->
+    <nav>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div class="nav-logo" onclick="window.location.href='../portfolio/index.html'">creative ai driven pm</div>
+            <a href="/projektownik/index.html" class="chip" style="border-color: rgba(0, 201, 200, 0.4); color: var(--teal);">PROJEKTOWNIK ↗</a>
+            <a href="/creator/index.html" class="chip" style="border-color: rgba(232, 25, 122, 0.4); color: var(--magenta);">KREATOR ↗</a>
+        </div>
         <div class="header-controls">
             <span id="progress-text" class="progress-text">0% Gotowości</span>
             <button class="cyber-btn primary glow-btn" onclick="initProject()">[ INIT PROJECT ]</button>
         </div>
-    </header>
+    </nav>
 
     <!-- Glass Transparency Slider (Right Side) -->
     <div class="glass-slider-container">
