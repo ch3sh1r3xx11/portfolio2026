@@ -121,9 +121,9 @@ input[type=range][orient=vertical] {
 }
 
 .document-wrapper {
-    width: 100%; max-width: 1400px;
+    width: 100%; max-width: 100%;
     display: flex; flex-direction: column;
-    padding: 2rem 0;
+    padding: 2rem 5%;
 }
 
 /* Mandatory Section */
