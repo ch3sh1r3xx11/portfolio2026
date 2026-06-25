@@ -344,9 +344,11 @@ class ResizeCommand {
         this.endH = endH;
     }
     async execute() {
+        if (!auth.currentUser) return;
         try { await updateDoc(doc(db, "notes", this.id), { width: this.endW, height: this.endH }); } catch(e){}
     }
     async undo() {
+        if (!auth.currentUser) return;
         try { await updateDoc(doc(db, "notes", this.id), { width: this.startW, height: this.startH }); } catch(e){}
     }
 }
@@ -621,8 +623,13 @@ function makeDraggable(element, id) {
         if(e.target.closest('.delete-btn')) return;
         
         const rect = element.getBoundingClientRect();
-        // Sprawdź czy kliknięto w prawy dolny róg (uchwyt resize)
-        const isResizeHandle = (e.clientX - rect.left) > (rect.width - 25) && (e.clientY - rect.top) > (rect.height - 25);
+        // Sprawdź czy kliknięto w prawy dolny róg (uchwyt resize), biorąc pod uwagę skalowanie!
+        const unscaledWidth = rect.width / scale;
+        const unscaledHeight = rect.height / scale;
+        const mouseX = (e.clientX - rect.left) / scale;
+        const mouseY = (e.clientY - rect.top) / scale;
+        
+        const isResizeHandle = mouseX > (unscaledWidth - 40) && mouseY > (unscaledHeight - 40);
         isResizingCard = isResizeHandle;
         
         activeCard = element;
