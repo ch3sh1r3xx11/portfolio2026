@@ -80,6 +80,49 @@ glassSlider.addEventListener('input', (e) => {
 
 
 // --- NOTION-STYLE EDITOR LOGIC ---
+document.execCommand('defaultParagraphSeparator', false, 'p');
+
+editorContent.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return;
+        
+        const range = selection.getRangeAt(0);
+        let currentNode = range.startContainer;
+        
+        // Handle H2 (prevent creating a new H2, create a normal P instead)
+        const heading = currentNode.nodeType === 3 ? currentNode.parentNode.closest('h2') : (currentNode.closest ? currentNode.closest('h2') : null);
+        if (heading) {
+            e.preventDefault();
+            const p = document.createElement('p');
+            p.innerHTML = '<br>';
+            
+            let insertAfter = heading;
+            // Skip over SMART warnings if they exist directly after heading
+            while (insertAfter.nextElementSibling && (insertAfter.nextElementSibling.classList.contains('smart-inline-warning') || insertAfter.nextElementSibling.classList.contains('smart-inline-success'))) {
+                insertAfter = insertAfter.nextElementSibling;
+            }
+            
+            insertAfter.parentNode.insertBefore(p, insertAfter.nextSibling);
+            
+            // Move cursor
+            range.setStart(p, 0);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            return;
+        }
+
+        // Handle Styled Divs (e.g. notes). Prevent duplicate div creation, just insert line break
+        const styledDiv = currentNode.nodeType === 3 ? currentNode.parentNode.closest('div[style]') : (currentNode.closest ? currentNode.closest('div[style]') : null);
+        if (styledDiv && !e.shiftKey) {
+            e.preventDefault();
+            document.execCommand('insertLineBreak');
+            return;
+        }
+    }
+});
+
 editorContent.addEventListener('keyup', (e) => {
     handleSmartAnalysis(e);
 });
