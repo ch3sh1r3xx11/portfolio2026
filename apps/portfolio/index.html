@@ -320,9 +320,8 @@
             <div class="panel-content">
                 <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>Evidence</div>
                 <h2 class="panel-title">projekty</h2>
-                <div class="cert-list">
-                    <div class="cert-row" style="cursor:pointer" onclick="window.location.href='project.html?id=0'"><div class="cert-left"><span class="cert-name" style="color:var(--teal)">PM Learning Roadmapa ↗</span><span class="cert-org" style="color:var(--white-dim)">WBS, mapowanie zasobów AI, dekompozycja celów na Q1-Q4.</span></div></div>
-                    <div class="cert-row" style="cursor:pointer" onclick="window.location.href='project.html?id=1'"><div class="cert-left"><span class="cert-name" style="color:var(--magenta)">System Operacyjny 2026 ↗</span><span class="cert-org" style="color:var(--white-dim)">Aplikacja HTML (localStorage, Offline-first) zbudowana z AI.</span></div></div>
+                <div class="cert-list" id="project-list">
+                    <div class="cert-row" style="cursor:pointer" onclick="window.location.href='project.html?id=0'"><div class="cert-left"><span class="cert-name" style="color:var(--teal)">Ładowanie projektów z chmury...</span><span class="cert-org" style="color:var(--white-dim)">Poczekaj chwilę.</span></div></div>
                 </div>
                 <div class="stack-wrap">
                     <span class="chip" style="border-color:rgba(232,25,122,0.3);color:var(--magenta)">AI Dev</span>
@@ -569,6 +568,61 @@
     // ── Init ──
     initGeometry();
     loop();
+</script>
+
+<script type="module">
+    import { db } from './js/firebase-config.js';
+    import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    async function loadProjects() {
+        const projectList = document.getElementById('project-list');
+        if (!projectList) return;
+
+        try {
+            // Pobieramy tylko projekty, które są opublikowane
+            const q = query(collection(db, "projects"), where("isPublished", "==", true));
+            const querySnapshot = await getDocs(q);
+            
+            projectList.innerHTML = ''; // Usuwamy napis 'Ładowanie...'
+            
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                
+                const row = document.createElement('div');
+                row.className = 'cert-row';
+                row.style.cursor = 'pointer';
+                row.onclick = () => window.location.href = 'project.html?id=' + doc.id;
+                
+                const left = document.createElement('div');
+                left.className = 'cert-left';
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'cert-name';
+                nameSpan.style.color = data.themeColor ? `var(--${data.themeColor})` : 'var(--teal)';
+                nameSpan.textContent = data.title + ' ↗';
+                
+                const orgSpan = document.createElement('span');
+                orgSpan.className = 'cert-org';
+                orgSpan.style.color = 'var(--white-dim)';
+                orgSpan.textContent = data.subtitle || (data.tags ? data.tags.join(', ') : '');
+                
+                left.appendChild(nameSpan);
+                left.appendChild(orgSpan);
+                row.appendChild(left);
+                projectList.appendChild(row);
+            });
+            
+            // Jeśli pusto (brak projektów z isPublished == true w nowej bazie)
+            if (projectList.innerHTML === '') {
+                 projectList.innerHTML = '<div class="cert-row"><div class="cert-left"><span class="cert-name" style="color:var(--white-dim)">Brak opublikowanych projektów.</span></div></div>';
+            }
+        } catch (e) {
+            console.error("Błąd podczas pobierania projektów:", e);
+            projectList.innerHTML = '<div class="cert-row"><div class="cert-left"><span class="cert-name" style="color:var(--magenta)">Błąd ładowania.</span></div></div>';
+        }
+    }
+
+    loadProjects();
 </script>
 </body>
 </html>
