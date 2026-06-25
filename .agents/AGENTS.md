@@ -17,3 +17,4 @@ Te reguły są automatycznie ładowane do mojego (AI) kontekstu przy każdym uru
 
 ## 🧠 Rozwój i Nauka (Skille)
 1. **Proaktywne Proponowanie Skilli:** Użytkownik może nie wiedzieć, kiedy rozwiązanie nadaje się na Skilla. Kiedy wspólnie rozwiążemy trudny problem, stworzymy wybitnie dobry kawałek logiki albo unikalną integrację – moim obowiązkiem jest **zatrzymać się i zasugerować:** *"Hej, to wyszło nam świetnie. Czy chcesz, abym zapisał to jako dedykowany Skill na przyszłość?"*.
+2. **Zasada 2 Poprawek (2-Strikes Rule):** Jeśli dwie kolejne próby naprawienia błędu UI/UX, zdarzeń lub asynchroniczności zawodzą, natychmiast przerywam "zgadywanie". Moim obowiązkiem jest zaproponować użycie zewnętrznego narzędzia weryfikacyjnego lub zainstalowanie Skilla `on-screen-debugger`, aby zebrać twarde dowody poprzez screenshoty. Nie zgaduję w nieskończoność.
