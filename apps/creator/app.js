@@ -10,10 +10,14 @@ const progressBar = document.getElementById('progress-bar');
 const progressText = document.getElementById('progress-text');
 const titleInput = document.getElementById('project-title');
 const versionInput = document.getElementById('project-version');
+const dateInput = document.getElementById('project-date');
 const editorContent = document.getElementById('editor-content');
-const trigger = document.getElementById('block-menu-trigger');
+const addBlockBtn = document.getElementById('add-block-btn');
 const menu = document.getElementById('block-menu');
 const glassSlider = document.getElementById('glass-slider');
+
+// Set today's date
+dateInput.value = new Date().toISOString().split('T')[0];
 
 // --- PROGRESS BAR LOGIC ---
 function calculateProgress() {
@@ -73,49 +77,18 @@ glassSlider.addEventListener('input', (e) => {
 
 // --- NOTION-STYLE EDITOR LOGIC ---
 editorContent.addEventListener('keyup', (e) => {
-    updateTriggerPosition();
     handleSmartAnalysis(e);
 });
 
-editorContent.addEventListener('mouseup', () => {
-    updateTriggerPosition();
+addBlockBtn.addEventListener('click', () => {
+    menu.classList.toggle('hidden');
 });
 
-let currentFocusNode = null;
-
-function updateTriggerPosition() {
-    const selection = window.getSelection();
-    if (!selection.rangeCount) return;
-    
-    const node = selection.focusNode;
-    currentFocusNode = node;
-    const text = node.textContent || "";
-    
-    if (text.trim() === "") {
-        // Find the block element (div or p) to position next to it
-        let block = node.nodeType === 3 ? node.parentElement : node;
-        
-        // Simple visual toggle for now, actual precise positioning would require bounding rects
-        trigger.classList.remove('hidden');
-        
-        // Very basic positioning logic
-        const rect = block.getBoundingClientRect();
-        const editorRect = editorContent.getBoundingClientRect();
-        
-        if (rect.top > editorRect.top) {
-            trigger.style.top = (rect.top - editorRect.top + editorContent.scrollTop) + 'px';
-        }
-
-    } else {
-        trigger.classList.add('hidden');
+// Close menu when clicking outside
+document.addEventListener('click', (e) => {
+    if (!addBlockBtn.contains(e.target) && !menu.contains(e.target)) {
         menu.classList.add('hidden');
     }
-}
-
-trigger.addEventListener('click', () => {
-    menu.classList.toggle('hidden');
-    // Position menu near trigger
-    menu.style.top = (parseInt(trigger.style.top || 0) + 30) + 'px';
 });
 
 document.querySelectorAll('.block-option').forEach(btn => {
@@ -123,9 +96,39 @@ document.querySelectorAll('.block-option').forEach(btn => {
         const type = e.target.closest('button').dataset.type;
         insertModule(type);
         menu.classList.add('hidden');
-        trigger.classList.add('hidden');
         updateProgress();
     });
+});
+
+// Toolbar Actions (Shared Mechanics)
+document.getElementById('add-note').addEventListener('click', () => {
+    const html = `<div style="background: rgba(245, 166, 35, 0.1); border-left: 2px solid #f5a623; padding: 1rem; margin: 1rem 0; color: #f5a623;">Nowa notatka...</div><p><br></p>`;
+    document.execCommand('insertHTML', false, html);
+    editorContent.focus();
+});
+
+document.getElementById('add-text-btn').addEventListener('click', () => {
+    const html = `<p>Wpisz tekst tutaj...</p>`;
+    document.execCommand('insertHTML', false, html);
+    editorContent.focus();
+});
+
+document.getElementById('add-image-btn').addEventListener('click', () => {
+    const html = `<div style="border: 1px dashed rgba(255,255,255,0.2); padding: 2rem; text-align: center; color: rgba(255,255,255,0.3); margin: 1rem 0; border-radius: 4px;">[ Miejsce na obraz ]</div><p><br></p>`;
+    document.execCommand('insertHTML', false, html);
+    editorContent.focus();
+});
+
+document.getElementById('add-frame').addEventListener('click', () => {
+    const html = `<hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 2rem 0;"><p><br></p>`;
+    document.execCommand('insertHTML', false, html);
+    editorContent.focus();
+});
+
+document.getElementById('add-kpi').addEventListener('click', () => {
+    const html = `<div style="display: flex; align-items: center; gap: 10px; margin: 0.5rem 0;"><input type="checkbox" style="accent-color: var(--teal); width: 16px; height: 16px;"><span style="color: var(--white-dim);">Zadanie / KPI...</span></div>`;
+    document.execCommand('insertHTML', false, html);
+    editorContent.focus();
 });
 
 function insertModule(type) {
