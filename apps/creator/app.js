@@ -113,11 +113,30 @@ editorContent.addEventListener('keydown', (e) => {
             return;
         }
 
-        // Handle KPI Checkboxes (Enter creates a new checkbox list item)
+        // Handle KPI Checkboxes (Enter creates a new checkbox list item, or exits if empty)
         const kpiBlock = currentNode.nodeType === 3 ? currentNode.parentNode.closest('.block-kpi') : (currentNode.closest ? currentNode.closest('.block-kpi') : null);
         if (kpiBlock) {
             e.preventDefault();
-            // If the current KPI block is empty, we should probably exit the list, but for now let's just create a new one.
+            
+            const spanText = kpiBlock.querySelector('span') ? kpiBlock.querySelector('span').textContent.trim() : '';
+            if (spanText === '') {
+                // Exit list
+                const parent = kpiBlock.parentNode;
+                const nextSibling = kpiBlock.nextSibling;
+                kpiBlock.remove();
+                
+                const p = document.createElement('p');
+                p.innerHTML = '<br>';
+                parent.insertBefore(p, nextSibling);
+                
+                range.setStart(p, 0);
+                range.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(range);
+                return;
+            }
+
+            // Create new KPI block
             const newKpi = document.createElement('div');
             newKpi.className = 'block-kpi';
             newKpi.innerHTML = '<input type="checkbox"><span><br></span>';
@@ -167,32 +186,27 @@ document.querySelectorAll('.block-option').forEach(btn => {
 // Toolbar Actions (Shared Mechanics)
 document.getElementById('add-note').addEventListener('click', () => {
     const html = `<div class="block-note">Nowa notatka...</div><p><br></p>`;
-    document.execCommand('insertHTML', false, html);
-    editorContent.focus();
+    safeInsertBlock(html);
 });
 
 document.getElementById('add-text-btn').addEventListener('click', () => {
     const html = `<p>Wpisz tekst tutaj...</p>`;
-    document.execCommand('insertHTML', false, html);
-    editorContent.focus();
+    safeInsertBlock(html);
 });
 
 document.getElementById('add-image-btn').addEventListener('click', () => {
     const html = `<div style="border: 1px dashed rgba(255,255,255,0.2); padding: 2rem; text-align: center; color: rgba(255,255,255,0.3); margin: 1rem 0; border-radius: 4px;">[ Miejsce na obraz ]</div><p><br></p>`;
-    document.execCommand('insertHTML', false, html);
-    editorContent.focus();
+    safeInsertBlock(html);
 });
 
 document.getElementById('add-frame').addEventListener('click', () => {
     const html = `<hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 2rem 0;"><p><br></p>`;
-    document.execCommand('insertHTML', false, html);
-    editorContent.focus();
+    safeInsertBlock(html);
 });
 
 document.getElementById('add-kpi').addEventListener('click', () => {
     const html = `<div class="block-kpi"><input type="checkbox"><span>Zadanie / KPI...</span></div>`;
-    document.execCommand('insertHTML', false, html);
-    editorContent.focus();
+    safeInsertBlock(html);
 });
 
 function insertModule(type) {
@@ -209,14 +223,48 @@ function insertModule(type) {
     };
     
     const colorClass = (type === 'resources' || type === 'timeline') ? 'teal' : 'magenta';
-    
-    // To cleanly insert, we use document.execCommand
-    // Wstawiamy nagłówek i pusty div pod nim na treść
     const html = `
         <h2 class="module-heading ${colorClass}" data-type="${type}"># ${titles[type]}</h2>
         <div class="block-content"><br></div>
     `;
     
+    safeInsertBlock(html);
+}
+
+// Bezpieczne wstawianie bloków (zapobiega wstawianiu bloku w środek innego bloku)
+function safeInsertBlock(html) {
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        let node = selection.getRangeAt(0).startContainer;
+        let specialBlock = node.nodeType === 3 ? node.parentNode.closest('.block-kpi, .block-note, .module-heading') : (node.closest ? node.closest('.block-kpi, .block-note, .module-heading') : null);
+        
+        if (specialBlock) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            let currentInsertPos = specialBlock;
+            
+            Array.from(tempDiv.childNodes).forEach(child => {
+                specialBlock.parentNode.insertBefore(child, currentInsertPos.nextSibling);
+                currentInsertPos = child;
+            });
+            
+            editorContent.focus();
+            const range = document.createRange();
+            // find the first insertable text area in the newly inserted HTML
+            const spanOrP = tempDiv.querySelector('span, p, div.block-content');
+            if (spanOrP && currentInsertPos.parentNode) {
+                 // The element is now in the DOM, we need to find it in the DOM
+                 // currentInsertPos is the last inserted element
+                 range.setStart(currentInsertPos, 0);
+            } else {
+                 range.setStartAfter(currentInsertPos);
+            }
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            return;
+        }
+    }
     document.execCommand('insertHTML', false, html);
     editorContent.focus();
 }
@@ -376,6 +424,21 @@ async function loadProject(id) {
                     let text = "";
                     spans.forEach(s => text += s.textContent.replace(/\\n/g, ' '));
                     kpi.innerHTML = `<input type="checkbox"><span>${text.trim() || 'Zadanie / KPI...'}</span>`;
+                }
+            });
+
+            // MIGRATION: Clean up nested or empty KPIs
+            const allKpis = editorContent.querySelectorAll('.block-kpi');
+            allKpis.forEach(kpi => {
+                const span = kpi.querySelector('span');
+                if (!span || span.textContent.trim() === '') {
+                    kpi.remove(); // Remove empty checkboxes generated by bug
+                    return;
+                }
+                if (kpi.querySelector('.block-kpi')) {
+                    // Flatten checkbox inside checkbox
+                    const text = span ? span.textContent : '';
+                    kpi.innerHTML = `<input type="checkbox"><span>${text.trim()}</span>`;
                 }
             });
 
