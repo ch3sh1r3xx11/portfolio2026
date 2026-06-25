@@ -1,5 +1,5 @@
 import { db } from '/js/firebase-config.js';
-import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, addDoc, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // State
 let projectData = {
@@ -7,6 +7,7 @@ let projectData = {
     version: "",
     content: ""
 };
+let currentProjectId = null;
 
 // Elements
 const progressBar = document.getElementById('progress-bar');
@@ -232,21 +233,34 @@ async function initProject() {
     projectData.content = editorContent.innerHTML;
     
     if (!projectData.title) {
-        alert("Podaj przynajmniej nazwę projektu przed inicjalizacją.");
+        alert("Podaj przynajmniej nazwę projektu.");
         titleInput.focus();
         return;
     }
 
     try {
-        await addDoc(collection(db, "projects"), {
-            title: projectData.title,
-            subtitle: `v${projectData.version || '0.1'}`,
-            isPublished: true,
-            themeColor: "magenta",
-            date: dateInput.value,
-            content: projectData.content,
-            createdAt: new Date().toISOString()
-        });
+        if (currentProjectId) {
+            // Update
+            const docRef = doc(db, "projects", currentProjectId);
+            await updateDoc(docRef, {
+                title: projectData.title,
+                subtitle: `v${projectData.version || '0.1'}`,
+                date: dateInput.value,
+                content: projectData.content,
+                updatedAt: new Date().toISOString()
+            });
+        } else {
+            // Create
+            await addDoc(collection(db, "projects"), {
+                title: projectData.title,
+                subtitle: `v${projectData.version || '0.1'}`,
+                isPublished: true,
+                themeColor: "magenta",
+                date: dateInput.value,
+                content: projectData.content,
+                createdAt: new Date().toISOString()
+            });
+        }
 
         // Animacja flasha całego ekranu
         const flash = document.createElement('div');
@@ -271,5 +285,40 @@ async function initProject() {
 
 document.getElementById('btn-init-project').addEventListener('click', initProject);
 
+async function loadProject(id) {
+    try {
+        const docRef = doc(db, "projects", id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            titleInput.value = data.title || "";
+            if (data.subtitle && data.subtitle.startsWith('v')) {
+                versionInput.value = data.subtitle.substring(1);
+            } else {
+                versionInput.value = data.subtitle || "0.1";
+            }
+            if (data.date) {
+                dateInput.value = data.date;
+            }
+            editorContent.innerHTML = data.content || "";
+            updateProgress();
+        } else {
+            console.error("Projekt nie istnieje!");
+            alert("Nie znaleziono projektu w bazie.");
+        }
+    } catch (e) {
+        console.error("Błąd podczas ładowania projektu:", e);
+    }
+}
+
 // Init
-updateProgress();
+const urlParams = new URLSearchParams(window.location.search);
+const projectId = urlParams.get('id');
+
+if (projectId) {
+    currentProjectId = projectId;
+    document.getElementById('btn-init-project').textContent = '[ UPDATE PROJECT ]';
+    loadProject(projectId);
+} else {
+    updateProgress();
+}
