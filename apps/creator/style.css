@@ -209,8 +209,38 @@ input[type=range][orient=vertical] {
     color: var(--teal);
     background: rgba(0, 201, 200, 0.1);
     padding: 0.2rem 0.5rem;
+    border-radius: 4px;
     border-left: 2px solid var(--teal);
     animation: fadeIn 0.3s ease;
+}
+
+/* Custom Editor Blocks */
+.block-note {
+    background: rgba(245, 166, 35, 0.1);
+    border-left: 2px solid #f5a623;
+    padding: 1rem;
+    margin: 1rem 0;
+    color: #f5a623;
+}
+
+.block-kpi {
+    margin: 0.5rem 0;
+    position: relative;
+    padding-left: 30px;
+    color: var(--white-dim);
+    min-height: 24px;
+}
+.block-kpi input[type="checkbox"] {
+    position: absolute;
+    left: 0;
+    top: 4px;
+    accent-color: var(--teal);
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+.block-kpi span {
+    outline: none;
 }
 
 @keyframes fadeIn {
