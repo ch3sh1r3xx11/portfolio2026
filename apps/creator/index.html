@@ -3,91 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kreator Projektów | Creative AI PM</title>
+    <title>Kreator | Creative AI PM</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-    <!-- Link do wspólnych tokenów i stylów z shared-ui (zależnie od tego, jak to jest zorganizowane w projekcie) -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Background Wallpaper from Portfolio -->
+    <div class="bg-wallpaper"></div>
+
     <!-- Global Progress Bar -->
     <div id="progress-container">
         <div id="progress-bar"></div>
     </div>
 
-    <!-- Main Workspace -->
+    <!-- Header Navigation -->
+    <header class="creator-header">
+        <div class="nav-logo" onclick="window.location.href='../portfolio/index.html'">creative ai driven pm</div>
+        <div class="header-controls">
+            <span id="progress-text" class="progress-text">0% Gotowości</span>
+            <button class="cyber-btn primary glow-btn" onclick="initProject()">[ INIT PROJECT ]</button>
+        </div>
+    </header>
+
+    <!-- Glass Transparency Slider (Right Side) -->
+    <div class="glass-slider-container">
+        <label for="glass-slider" class="glass-slider-label">Szkło</label>
+        <input type="range" id="glass-slider" class="cyber-slider" min="0" max="100" value="70" orient="vertical">
+    </div>
+
+    <!-- Main Workspace (Single Canvas) -->
     <main class="creator-workspace">
-        <header class="creator-header">
-            <a href="../portfolio/index.html" class="back-link">← Portfolio</a>
-            <div class="step-indicator" id="step-indicator">Krok 1: Incepcja</div>
-        </header>
+        <!-- Notion-Style Container with Glassmorphism -->
+        <div class="canvas-container" id="canvas-container">
+            
+            <!-- Mandatory Section -->
+            <div class="mandatory-section">
+                <input type="text" id="project-title" class="editor-title-input" placeholder="Wprowadź Nazwę Projektu..." autocomplete="off">
+                <input type="text" id="project-version" class="editor-version-input" placeholder="v1.0" autocomplete="off">
+            </div>
 
-        <div class="wizard-container" id="wizard-container">
-            <!-- Step 1: Chaos (Brain dump) -->
-            <section class="wizard-step active" id="step-1">
-                <h1 class="step-title">Incepcja. Wyrzuć to z siebie.</h1>
-                <p class="step-desc">Nie przejmuj się strukturą. Po prostu opisz, co chcesz osiągnąć, dlaczego to ważne i co jest problemem.</p>
-                <textarea id="chaos-input" class="cyber-textarea" placeholder="Wpisz swój luźny pomysł tutaj... (np. Chcę zbudować aplikację, która zautomatyzuje moje raportowanie, bo tracę na to 5 godzin w tygodniu)"></textarea>
-                <div class="step-actions">
-                    <button class="cyber-btn primary" onclick="nextStep(2)">Analizuj (Krok 2) -></button>
-                </div>
-            </section>
+            <hr class="canvas-divider">
 
-            <!-- Step 2: SMART Verifier -->
-            <section class="wizard-step" id="step-2">
-                <h1 class="step-title">Skanowanie S.M.A.R.T.</h1>
-                <p class="step-desc">System analizuje Twój cel. Pamiętaj: to asystent, Ty podejmujesz ostateczną decyzję.</p>
-                <div id="smart-analysis-container" class="cyber-panel">
-                    <!-- Dynamic analysis goes here -->
-                </div>
-                <div class="step-actions">
-                    <button class="cyber-btn secondary" onclick="nextStep(1)"><- Wróć</button>
-                    <button class="cyber-btn primary" onclick="nextStep(3)">Buduj Strukturę (Krok 3) -></button>
-                </div>
-            </section>
-
-            <!-- Step 3: Notion-Style Charter -->
-            <section class="wizard-step" id="step-3">
-                <h1 class="step-title">Charter Projektu (Draft)</h1>
-                <p class="step-desc">Pisz płynnie. Użyj przycisku [+], aby dodać ustrukturyzowane bloki jak "Zasoby", "Harmonogram" czy "Ryzyka".</p>
+            <!-- Notion-Style Editor Body -->
+            <div class="editor-body">
+                <!-- Pływający przycisk [ + ] -->
+                <div id="block-menu-trigger" class="block-menu-trigger hidden">+</div>
                 
-                <div id="notion-editor" class="notion-editor">
-                    <input type="text" id="project-title" class="editor-title-input" placeholder="Nazwa Projektu">
-                    
-                    <div class="editor-body">
-                        <!-- Ten kontener będzie obsługiwał pływający przycisk -->
-                        <div id="editor-content" class="editor-content" contenteditable="true"></div>
-                        
-                        <!-- Floating Plus Button Menu (Hidden by default) -->
-                        <div id="block-menu-trigger" class="block-menu-trigger hidden">+</div>
-                        <div id="block-menu" class="block-menu hidden">
-                            <button class="block-option" data-type="resources"><span style="color: var(--teal)">#</span> Zasoby</button>
-                            <button class="block-option" data-type="dependencies"><span style="color: var(--magenta)">#</span> Zależności</button>
-                            <button class="block-option" data-type="timeline"><span style="color: var(--teal)">#</span> Harmonogram</button>
-                            <button class="block-option" data-type="risks"><span style="color: var(--magenta)">#</span> Ryzyka</button>
-                        </div>
-                    </div>
+                <!-- Menu z blokami -->
+                <div id="block-menu" class="block-menu hidden">
+                    <div class="block-menu-header">Dodaj blok</div>
+                    <button class="block-option" data-type="goal"><span style="color: var(--teal)">#</span> Cel (SMART)</button>
+                    <button class="block-option" data-type="resources"><span style="color: var(--magenta)">#</span> Zasoby i Zespół</button>
+                    <button class="block-option" data-type="dependencies"><span style="color: var(--magenta)">#</span> Zależności</button>
+                    <button class="block-option" data-type="timeline"><span style="color: var(--teal)">#</span> Harmonogram</button>
+                    <button class="block-option" data-type="risks"><span style="color: var(--magenta)">#</span> Ryzyka</button>
                 </div>
 
-                <div class="step-actions mt-lg">
-                    <button class="cyber-btn secondary" onclick="nextStep(2)"><- Wróć</button>
-                    <button class="cyber-btn primary" onclick="nextStep(4)">Podsumuj (Krok 4) -></button>
-                </div>
-            </section>
-
-            <!-- Step 4: Summary & Init -->
-            <section class="wizard-step" id="step-4">
-                <h1 class="step-title">System Gotowy do Startu</h1>
-                <p class="step-desc">Wszystkie systemy w normie. Projekt zostanie zapisany i udostępniony na Heatmapie.</p>
-                <div class="summary-panel cyber-panel" id="final-summary">
-                    <!-- Summary generated via JS -->
-                </div>
-                <div class="step-actions">
-                    <button class="cyber-btn secondary" onclick="nextStep(3)"><- Wróć</button>
-                    <button class="cyber-btn primary glow-btn" onclick="initProject()">[ INIT PROJECT ]</button>
-                </div>
-            </section>
+                <!-- Główna ściana tekstu -->
+                <div id="editor-content" class="editor-content" contenteditable="true" placeholder="Naciśnij Enter, aby zacząć pisać, lub kliknij [+] żeby dodać blok..."></div>
+            </div>
+            
         </div>
     </main>
 
