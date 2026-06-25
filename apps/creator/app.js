@@ -1,3 +1,6 @@
+import { db } from '../portfolio/js/firebase-config.js';
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
 // State
 let projectData = {
     title: "",
@@ -223,7 +226,7 @@ function handleSmartAnalysis(e) {
 
 
 // --- INIT / SAVE LOGIC ---
-function initProject() {
+async function initProject() {
     projectData.title = titleInput.value.trim();
     projectData.version = versionInput.value.trim();
     projectData.content = editorContent.innerHTML;
@@ -234,31 +237,39 @@ function initProject() {
         return;
     }
 
-    let activityLog = JSON.parse(localStorage.getItem('pm_activity_log')) || [];
-    activityLog.push({
-        type: 'project_created',
-        title: projectData.title,
-        version: projectData.version || 'v1.0',
-        date: new Date().toISOString()
-    });
-    localStorage.setItem('pm_activity_log', JSON.stringify(activityLog));
+    try {
+        await addDoc(collection(db, "projects"), {
+            title: projectData.title,
+            subtitle: `v${projectData.version || '0.1'}`,
+            isPublished: true,
+            themeColor: "magenta",
+            date: dateInput.value,
+            content: projectData.content,
+            createdAt: new Date().toISOString()
+        });
 
-    // Opcjonalnie: animacja flasha całego ekranu
-    const flash = document.createElement('div');
-    flash.style.position = 'fixed';
-    flash.style.inset = '0';
-    flash.style.background = 'var(--magenta)';
-    flash.style.zIndex = '9999';
-    flash.style.transition = 'opacity 0.5s ease';
-    document.body.appendChild(flash);
-    
-    setTimeout(() => {
-        flash.style.opacity = '0';
+        // Animacja flasha całego ekranu
+        const flash = document.createElement('div');
+        flash.style.position = 'fixed';
+        flash.style.inset = '0';
+        flash.style.background = 'var(--magenta)';
+        flash.style.zIndex = '9999';
+        flash.style.transition = 'opacity 0.5s ease';
+        document.body.appendChild(flash);
+        
         setTimeout(() => {
-            window.location.href = "../portfolio/index.html"; // Powrót na stronę główną do heatmapy
-        }, 500);
-    }, 100);
+            flash.style.opacity = '0';
+            setTimeout(() => {
+                window.location.href = "../portfolio/index.html"; // Powrót na stronę główną
+            }, 500);
+        }, 100);
+    } catch (e) {
+        console.error("Błąd zapisu do Firestore:", e);
+        alert("Wystąpił błąd podczas inicjalizowania projektu. Sprawdź konsolę.");
+    }
 }
+
+document.getElementById('btn-init-project').addEventListener('click', initProject);
 
 // Init
 updateProgress();
