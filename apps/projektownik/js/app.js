@@ -1,6 +1,21 @@
 import { db, auth, provider, signInWithPopup, onAuthStateChanged, storage, ref, uploadBytes, getDownloadURL, signOut } from './firebase-config.js';
 import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+// --- SYSTEM DEBUGOWANIA ON-SCREEN ---
+window.debugLog = function(msg) {
+    let box = document.getElementById('debug-box');
+    if(!box) {
+        box = document.createElement('div');
+        box.id = 'debug-box';
+        box.style.cssText = 'position:fixed; top:10px; right:10px; background:rgba(0,0,0,0.85); color:#0f0; padding:10px; z-index:999999; font-family:monospace; font-size:11px; pointer-events:none; width:300px; max-height:400px; overflow-y:auto; border: 1px solid #0f0; border-radius: 4px;';
+        document.body.appendChild(box);
+    }
+    const time = new Date().toISOString().split('T')[1].slice(0, 12);
+    box.innerHTML += `<div>[${time}] ${msg}</div>`;
+    box.scrollTop = box.scrollHeight;
+    console.log("[DEBUG]", msg);
+};
+
 const viewport = document.getElementById('viewport');
 const canvas = document.getElementById('canvas');
 
@@ -345,7 +360,8 @@ class ResizeCommand {
     }
     async execute() {
         if (!auth.currentUser) return;
-        try { await updateDoc(doc(db, "notes", this.id), { width: this.endW, height: this.endH }); } catch(e){}
+        window.debugLog(`ResizeCmd exec: ${this.endW}x${this.endH}`);
+        try { await updateDoc(doc(db, "notes", this.id), { width: this.endW, height: this.endH }); } catch(e){ window.debugLog('ResizeCmd Error!'); }
     }
     async undo() {
         if (!auth.currentUser) return;
@@ -632,6 +648,8 @@ function makeDraggable(element, id) {
         const isResizeHandle = mouseX > (unscaledWidth - 40) && mouseY > (unscaledHeight - 40);
         isResizingCard = isResizeHandle;
         
+        window.debugLog(`Mousedown. isResizeHandle: ${isResizeHandle}`);
+        
         activeCard = element;
         hasCardMoved = false;
         window.cardInitialW = element.offsetWidth;
@@ -826,8 +844,11 @@ const handleCardDragEnd = async () => {
         const currentW = activeCard.offsetWidth;
         const currentH = activeCard.offsetHeight;
         
+        window.debugLog(`DragEnd on ${activeCard.id}. OldW:${window.cardInitialW} NewW:${currentW}`);
+        
         // Zapisz zmianę rozmiaru
         if (window.cardInitialW && (window.cardInitialW !== currentW || window.cardInitialH !== currentH)) {
+            window.debugLog('Size changed! Creating ResizeCommand.');
             const cmd = new ResizeCommand(activeCard.id, window.cardInitialW, window.cardInitialH, currentW, currentH);
             historyManager.execute(cmd);
         }
@@ -846,7 +867,7 @@ const handleCardDragEnd = async () => {
     }
 };
 
-window.addEventListener('mouseup', handleCardDragEnd);
+window.addEventListener('mouseup', () => { window.debugLog('window mouseup fired'); handleCardDragEnd(); });
 window.addEventListener('touchend', handleCardDragEnd);
 
 // --- WKLEJANIE / DODAWANIE ZDJĘĆ ---
