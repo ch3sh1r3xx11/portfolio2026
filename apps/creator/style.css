@@ -233,6 +233,21 @@ input[type=range][orient=vertical] {
     font-family: var(--font-mono);
 }
 
+.glass-card {
+    background: rgba(18, 18, 24, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    transition: all 0.3s ease;
+}
+.glass-card:focus-within {
+    border-color: var(--teal);
+    box-shadow: 0 0 15px rgba(0, 201, 200, 0.1);
+}
+
 .block-kpi {
     margin: 0.5rem 0;
     position: relative;

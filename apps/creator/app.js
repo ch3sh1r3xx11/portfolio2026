@@ -4,10 +4,11 @@ import { collection, addDoc, doc, getDoc, updateDoc, onSnapshot } from "https://
 // State
 let projectData = {
     title: "",
-    version: "",
+    version: "0.1",
     content: ""
 };
 let currentProjectId = null;
+let lastLocalSaveTime = 0;
 
 // Elements
 const progressBar = document.getElementById('progress-bar');
@@ -159,6 +160,32 @@ editorContent.addEventListener('keydown', (e) => {
             e.preventDefault();
             document.execCommand('insertLineBreak');
             return;
+        }
+    } else if (e.key === 'Backspace') {
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return;
+        const range = selection.getRangeAt(0);
+        
+        if (range.startOffset === 0 && range.collapsed) {
+            let currentNode = range.startContainer;
+            const kpiBlock = currentNode.nodeType === 3 ? currentNode.parentNode.closest('.block-kpi') : (currentNode.closest ? currentNode.closest('.block-kpi') : null);
+            
+            if (kpiBlock) {
+                const textContent = kpiBlock.textContent.replace(/\u200B/g, '').trim();
+                if (textContent === '' || textContent.length === 0) {
+                    e.preventDefault();
+                    const parent = kpiBlock.parentNode;
+                    const nextSibling = kpiBlock.nextSibling;
+                    kpiBlock.remove();
+                    const p = document.createElement('p');
+                    p.innerHTML = '<br>';
+                    parent.insertBefore(p, nextSibling);
+                    range.setStart(p, 0);
+                    range.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+            }
         }
     }
 });
@@ -357,6 +384,7 @@ async function initProject() {
     try {
         if (currentProjectId) {
             // Update
+            lastLocalSaveTime = Date.now();
             const docRef = doc(db, "projects", currentProjectId);
             await updateDoc(docRef, {
                 title: projectData.title,
@@ -367,6 +395,7 @@ async function initProject() {
             });
         } else {
             // Create
+            lastLocalSaveTime = Date.now();
             await addDoc(collection(db, "projects"), {
                 title: projectData.title,
                 subtitle: `v${projectData.version || '0.1'}`,
@@ -378,25 +407,10 @@ async function initProject() {
             });
         }
 
-        // Animacja flasha całego ekranu
-        const flash = document.createElement('div');
-        flash.style.position = 'fixed';
-        flash.style.inset = '0';
-        flash.style.background = 'var(--magenta)';
-        flash.style.zIndex = '9999';
-        flash.style.transition = 'opacity 0.5s ease';
-        document.body.appendChild(flash);
+        if (!currentProjectId) {
+            window.location.href = "/"; // Powrót na stronę główną tylko przy nowym projekcie
+        }
         
-        setTimeout(() => {
-            flash.style.opacity = '0';
-            setTimeout(() => {
-                if (!currentProjectId) {
-                    window.location.href = "/"; // Powrót na stronę główną tylko przy nowym projekcie
-                } else {
-                    flash.remove(); // Zostajemy w kreatorze, aby kontynuować pracę po aktualizacji
-                }
-            }, 500);
-        }, 100);
     } catch (e) {
         console.error("Błąd zapisu do Firestore:", e);
         alert("Wystąpił błąd podczas inicjalizowania projektu. Sprawdź konsolę.");
@@ -416,18 +430,20 @@ async function loadProject(id) {
                 
                 // Real-time AI Collaboration: If change comes from the server
                 if (!isFirstLoad && docSnap.metadata.hasPendingWrites === false) {
-                    // Flash Antigravity purple to indicate AI updated the document
-                    const flash = document.createElement('div');
-                    flash.style.position = 'fixed';
-                    flash.style.inset = '0';
-                    flash.style.background = 'rgba(138, 43, 226, 0.3)'; // Antigravity Purple
-                    flash.style.zIndex = '9999';
-                    flash.style.pointerEvents = 'none';
-                    flash.style.transition = 'opacity 0.8s ease-out';
-                    document.body.appendChild(flash);
-                    
-                    setTimeout(() => { flash.style.opacity = '0'; }, 100);
-                    setTimeout(() => { flash.remove(); }, 900);
+                    if (Date.now() - lastLocalSaveTime > 2000) {
+                        // Flash Antigravity purple to indicate AI updated the document
+                        const flash = document.createElement('div');
+                        flash.style.position = 'fixed';
+                        flash.style.inset = '0';
+                        flash.style.background = 'rgba(138, 43, 226, 0.3)'; // Antigravity Purple
+                        flash.style.zIndex = '9999';
+                        flash.style.pointerEvents = 'none';
+                        flash.style.transition = 'opacity 0.8s ease-out';
+                        document.body.appendChild(flash);
+                        
+                        setTimeout(() => { flash.style.opacity = '0'; }, 100);
+                        setTimeout(() => { flash.remove(); }, 900);
+                    }
                 }
 
                 // Update UI only on first load or remote change
