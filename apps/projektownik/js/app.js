@@ -509,6 +509,29 @@ let cardInitialX = 0;
 let cardInitialY = 0;
 let isResizingCard = false;
 let hasCardMoved = false;
+
+// --- RESIZE OBSERVER (FALLBACK DLA BRAKUJĄCYCH MOUSEUP) ---
+let resizeDebounce = null;
+const cardResizeObserver = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+        const card = entry.target;
+        if (isResizingCard && activeCard === card) {
+            clearTimeout(resizeDebounce);
+            resizeDebounce = setTimeout(() => {
+                const currentW = card.offsetWidth;
+                const currentH = card.offsetHeight;
+                
+                if (window.cardInitialW && (window.cardInitialW !== currentW || window.cardInitialH !== currentH)) {
+                    window.debugLog(`ResizeObs Save W:${currentW} H:${currentH}`);
+                    const cmd = new ResizeCommand(card.id, window.cardInitialW, window.cardInitialH, currentW, currentH);
+                    historyManager.execute(cmd);
+                    window.cardInitialW = currentW;
+                    window.cardInitialH = currentH;
+                }
+            }, 400);
+        }
+    }
+});
 window.cardInitialW = 0;
 window.cardInitialH = 0;
 
@@ -628,6 +651,8 @@ function updateCardElement(id, data) {
         const body = card.querySelector('.card-body');
         if (body && body.getAttribute('contenteditable') !== 'true') body.innerHTML = data.content || '';
     }
+    
+    cardResizeObserver.observe(card);
 }
 
 function makeDraggable(element, id) {
@@ -846,11 +871,13 @@ const handleCardDragEnd = async () => {
         
         window.debugLog(`DragEnd on ${activeCard.id}. OldW:${window.cardInitialW} NewW:${currentW}`);
         
-        // Zapisz zmianę rozmiaru
+        // Zapisz zmianę rozmiaru (jeśli mouseup zadziałał przed ResizeObserver)
         if (window.cardInitialW && (window.cardInitialW !== currentW || window.cardInitialH !== currentH)) {
-            window.debugLog('Size changed! Creating ResizeCommand.');
+            window.debugLog('Size changed (MouseUp)!');
             const cmd = new ResizeCommand(activeCard.id, window.cardInitialW, window.cardInitialH, currentW, currentH);
             historyManager.execute(cmd);
+            window.cardInitialW = currentW;
+            window.cardInitialH = currentH;
         }
         
         // Zapisz pozycję
@@ -868,6 +895,7 @@ const handleCardDragEnd = async () => {
 };
 
 window.addEventListener('mouseup', () => { window.debugLog('window mouseup fired'); handleCardDragEnd(); });
+window.addEventListener('pointerup', () => { window.debugLog('window pointerup fired'); handleCardDragEnd(); });
 window.addEventListener('touchend', handleCardDragEnd);
 
 // --- WKLEJANIE / DODAWANIE ZDJĘĆ ---
