@@ -1,4 +1,4 @@
-import { db } from '../portfolio/js/firebase-config.js';
+import { db } from '/js/firebase-config.js';
 import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // State
