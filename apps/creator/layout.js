@@ -93,7 +93,7 @@ function reflowCards(ignoreCard = null) {
     cards.forEach(card => {
         if (card !== ignoreCard) {
             // Ustawiamy absolutne pozycjonowanie tylko dla kart na płótnie
-            card.style.transform = `translateY(${currentY}px)`;
+            card.style.transform = `translate(0px, ${currentY}px)`;
         }
         // Dodajemy wysokość karty oraz margines dla kolejnego elementu
         currentY += card.offsetHeight + GAP;
@@ -194,9 +194,11 @@ if (editorContent) {
     mutationObserver.observe(editorContent, { childList: true, subtree: true });
 }
 
-// --- NATYWNY DRAG AND DROP (ZA NAGŁÓWEK) ---
+// --- NATYWNY DRAG AND DROP (Free Drag & Snap) ---
+let dragStartX = 0;
+let initialCardX = 0;
+
 window.addEventListener('mousedown', (e) => {
-    // Chwytamy za .module-heading
     const heading = e.target.closest('.module-heading');
     if (!heading) return;
     
@@ -210,9 +212,18 @@ window.addEventListener('mousedown', (e) => {
     draggedCard.classList.add('is-dragging');
     
     const transform = draggedCard.style.transform;
-    initialCardY = parseInt(transform.replace('translateY(', '').replace('px)', '')) || 0;
+    const match2D = transform.match(/translate\(([^p]+)px,\s*([^p]+)px\)/);
+    if (match2D) {
+        initialCardX = parseFloat(match2D[1]) || 0;
+        initialCardY = parseFloat(match2D[2]) || 0;
+    } else {
+        const matchY = transform.match(/translateY\(([^p]+)px\)/);
+        initialCardX = 0;
+        initialCardY = matchY ? parseFloat(matchY[1]) : 0;
+    }
     
     draggedCard.style.transition = 'none';
+    dragStartX = e.clientX;
     dragStartY = e.clientY;
     
     const cards = Array.from(editorContent.querySelectorAll('.glass-card'));
@@ -222,10 +233,12 @@ window.addEventListener('mousedown', (e) => {
 window.addEventListener('mousemove', (e) => {
     if (!isDraggingCard || !draggedCard) return;
     
+    const deltaX = (e.clientX - dragStartX) / scale;
     const deltaY = (e.clientY - dragStartY) / scale;
+    const newX = initialCardX + deltaX;
     const newY = initialCardY + deltaY;
     
-    draggedCard.style.transform = `translateY(${newY}px)`;
+    draggedCard.style.transform = `translate(${newX}px, ${newY}px)`;
     
     const cards = Array.from(editorContent.querySelectorAll('.glass-card'));
     const cardCenterY = newY + (draggedCard.offsetHeight / 2);
@@ -257,11 +270,11 @@ window.addEventListener('mouseup', () => {
     if (isDraggingCard && draggedCard) {
         isDraggingCard = false;
         draggedCard.classList.remove('is-dragging');
-        draggedCard.style.transition = ''; 
+        // Przywracamy animację dla efektu przyciągania (Snap to center)
+        draggedCard.style.transition = 'transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease'; 
         draggedCard = null;
         reflowCards();
         
-        // Wyślij event, że trzeba zsynchronizować zmiany (Firebase save)
         document.getElementById('update-project-btn')?.click();
     }
 });
