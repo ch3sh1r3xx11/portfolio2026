@@ -157,7 +157,16 @@
             nav { padding:0.7rem 1.25rem; }
             .panel-content { padding: 3rem 1.5rem; }
         }
+
+        /* Stylizacja dla markdowna wewnątrz panelu */
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 { margin-top: 1.5em; margin-bottom: 0.5em; color: var(--white); }
+        .markdown-body p { margin-bottom: 1em; }
+        .markdown-body ul, .markdown-body ol { margin-bottom: 1em; padding-left: 1.5em; }
+        .markdown-body li { margin-bottom: 0.25em; }
+        .markdown-body a { color: var(--magenta); text-decoration: none; }
+        .markdown-body strong { color: var(--white); }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
 
@@ -172,181 +181,211 @@
     </div>
 </div>
 
-<script src="data.js"></script>
-<script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const startId = parseInt(urlParams.get('id')) || 0;
+<script type="module">
+    import { db } from './js/firebase-config.js';
+    import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    const baseProjects = projectData; 
-    // Duplikujemy ekrany naprzemiennie, żeby cylinder miał pełne 8 slotów
-    const multiplier = Math.max(1, Math.ceil(8 / baseProjects.length));
-    const projects = [];
-    for (let i = 0; i < multiplier; i++) {
-        projects.push(...baseProjects);
-    }
-    const startIndex = projects.findIndex(p => p.id === startId) || 0;
+    async function loadFirebaseData() {
+        try {
+            const q = query(collection(db, "projects"), where("isPublished", "==", true));
+            const querySnapshot = await getDocs(q);
+            
+            let projects = [];
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                projects.push({
+                    id: doc.id,
+                    title: data.title || 'Brak tytułu',
+                    themeColor: data.themeColor ? `var(--${data.themeColor})` : 'var(--teal)',
+                    charterMarkdown: data.charterMarkdown || '*Brak treści raportu.*',
+                    tags: data.tags || []
+                });
+            });
 
-    const cylinder = document.getElementById('cylinder');
-    
-    let html = '';
-    projects.forEach((project, i) => {
-        html += `
-        <div class="panel" data-index="${i}">
-            <div class="panel-bg-deep"></div>
-            <div class="panel-bg"></div>
-            <div class="panel-content">
-                <div class="panel-num" style="color:${project.themeColor}"><span class="panel-num-line" style="background:${project.themeColor}"></span>PROJECT CHARTER</div>
-                <h2 class="panel-title">${project.title}</h2>
-                <div>
-                    ${project.html}
-                </div>
-                <div class="stack-wrap">
-                    ${project.chips}
-                </div>
-            </div>
-        </div>`;
-    });
-    cylinder.innerHTML = html;
-
-    const panels = Array.from(document.querySelectorAll('.panel'));
-    const counter = document.getElementById('counter');
-    const N = panels.length;
-    const theta = 360 / N; 
-
-    let currentAngle = 0;
-    let velocity = 0;
-    let isDragging = false;
-    let isAutoRotating = false;
-    let autoRotateTarget = 0;
-    let radius = 0;
-
-    // ── Calculate prism geometry — radius from HEIGHT (vertical axis) ──
-    function initGeometry() {
-        const h = cylinder.offsetHeight;
-        const gap = window.innerWidth < 768 ? 60 : 150;
-        radius = Math.round((h / 2) / Math.tan(Math.PI / N)) + gap;
-
-        panels.forEach((panel, i) => {
-            panel.style.transform = `rotateX(${-i * theta}deg) translateZ(${radius}px)`;
-        });
-
-        // Set initial position to startIndex
-        currentAngle = startIndex * theta;
-        cylinder.style.transform = `translateZ(${-radius}px) rotateX(${currentAngle}deg)`;
-    }
-
-    // Physics Loop — identical logic to portfolio.html
-    function loop() {
-        if (isAutoRotating) {
-            const distance = currentAngle - autoRotateTarget;
-            velocity -= distance * 0.1;
-            velocity *= 0.75;
-            if (Math.abs(distance) < 0.1 && Math.abs(velocity) < 0.1) {
-                currentAngle = autoRotateTarget;
-                isAutoRotating = false;
-                velocity = 0;
+            if(projects.length === 0) {
+                document.getElementById('cylinder').innerHTML = '<h1 style="text-align:center">Brak projektów</h1>';
+                return;
             }
-        } else if (!isDragging) {
-            velocity *= 0.95;
+            initApp(projects);
+        } catch(e) {
+            console.error("Błąd Firebase", e);
+            document.getElementById('cylinder').innerHTML = '<h1 style="text-align:center">Błąd ładowania</h1>';
+        }
+    }
 
-            if (Math.abs(velocity) < 2) {
-                const snapPoint = Math.round(currentAngle / theta) * theta;
-                const distance = currentAngle - snapPoint;
-                
-                if (Math.abs(distance) < (theta * 0.25)) {
-                    velocity -= distance * 0.15;
-                    velocity *= 0.5;
+    function initApp(baseProjects) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const startId = urlParams.get('id');
+
+        // Duplikujemy ekrany naprzemiennie, żeby cylinder miał pełne 8 slotów
+        const multiplier = Math.max(1, Math.ceil(8 / baseProjects.length));
+        const projects = [];
+        for (let i = 0; i < multiplier; i++) {
+            projects.push(...baseProjects);
+        }
+        
+        let startIndex = projects.findIndex(p => p.id === startId);
+        if (startIndex === -1) startIndex = 0;
+
+        const cylinder = document.getElementById('cylinder');
+        
+        let html = '';
+        projects.forEach((project, i) => {
+            const parsedContent = marked.parse(project.charterMarkdown);
+            let chipsHtml = project.tags.map(t => `<span class="chip" style="border-color:${project.themeColor}">${t}</span>`).join('');
+            
+            html += `
+            <div class="panel" data-index="${i}">
+                <div class="panel-bg-deep"></div>
+                <div class="panel-bg"></div>
+                <div class="panel-content">
+                    <div class="panel-num" style="color:${project.themeColor}"><span class="panel-num-line" style="background:${project.themeColor}"></span>PROJECT CHARTER</div>
+                    <h2 class="panel-title" style="color:${project.themeColor}">${project.title}</h2>
+                    <div class="markdown-body" style="overflow-y: auto; max-height: 45vh; padding-right: 1.5rem; font-size: 0.95rem; line-height: 1.7; color: var(--white-dim);">
+                        ${parsedContent}
+                    </div>
+                    <div class="stack-wrap">
+                        ${chipsHtml}
+                    </div>
+                </div>
+            </div>`;
+        });
+        cylinder.innerHTML = html;
+
+        setupAnimation(startIndex, baseProjects, projects);
+    }
+
+    function setupAnimation(startIndex, baseProjects, projects) {
+        const cylinder = document.getElementById('cylinder');
+        const panels = Array.from(document.querySelectorAll('.panel'));
+        const counter = document.getElementById('counter');
+        const N = panels.length;
+        const theta = 360 / N; 
+
+        let currentAngle = 0;
+        let velocity = 0;
+        let isDragging = false;
+        let isAutoRotating = false;
+        let autoRotateTarget = 0;
+        let radius = 0;
+
+        function initGeometry() {
+            const h = cylinder.offsetHeight;
+            const gap = window.innerWidth < 768 ? 60 : 150;
+            radius = Math.round((h / 2) / Math.tan(Math.PI / N)) + gap;
+
+            panels.forEach((panel, i) => {
+                panel.style.transform = `rotateX(${-i * theta}deg) translateZ(${radius}px)`;
+            });
+
+            currentAngle = startIndex * theta;
+            cylinder.style.transform = `translateZ(${-radius}px) rotateX(${currentAngle}deg)`;
+        }
+
+        function loop() {
+            if (isAutoRotating) {
+                const distance = currentAngle - autoRotateTarget;
+                velocity -= distance * 0.1;
+                velocity *= 0.75;
+                if (Math.abs(distance) < 0.1 && Math.abs(velocity) < 0.1) {
+                    currentAngle = autoRotateTarget;
+                    isAutoRotating = false;
+                    velocity = 0;
+                }
+            } else if (!isDragging) {
+                velocity *= 0.95;
+                if (Math.abs(velocity) < 2) {
+                    const snapPoint = Math.round(currentAngle / theta) * theta;
+                    const distance = currentAngle - snapPoint;
+                    if (Math.abs(distance) < (theta * 0.25)) {
+                        velocity -= distance * 0.15;
+                        velocity *= 0.5;
+                    }
                 }
             }
-        }
 
-        currentAngle += velocity;
-        cylinder.style.transform = `translateZ(${-radius}px) rotateX(${currentAngle}deg)`;
+            currentAngle += velocity;
+            cylinder.style.transform = `translateZ(${-radius}px) rotateX(${currentAngle}deg)`;
 
-        // Update counter — map back to real project index
-        const nearestIndex = Math.round(currentAngle / theta);
-        const realIndex = ((nearestIndex % N) + N) % N;
-        const actualProject = projects[realIndex];
-        const displayIndex = baseProjects.findIndex(p => p.id === actualProject.id);
-        
-        counter.textContent = String(displayIndex + 1).padStart(2, '0') + ' / ' + String(baseProjects.length).padStart(2, '0');
-
-        requestAnimationFrame(loop);
-    }
-
-    function rotateRelative(dir) {
-        let currentIndex = Math.round(currentAngle / theta);
-        isAutoRotating = true;
-        autoRotateTarget = (currentIndex + dir) * theta;
-    }
-
-    function next() { rotateRelative(1); }
-    function prev() { rotateRelative(-1); }
-
-    // ── Keyboard ──
-    document.addEventListener('keydown', e => {
-        if      (e.key === 'ArrowDown' || e.key === 'ArrowRight') next();
-        else if (e.key === 'ArrowUp'   || e.key === 'ArrowLeft')  prev();
-    });
-
-    // ── Scroll wheel (vertical = deltaY) ──
-    let wheelTimeout;
-    document.addEventListener('wheel', e => {
-        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-            e.preventDefault();
-            isAutoRotating = false;
-            isDragging = true;
+            const nearestIndex = Math.round(currentAngle / theta);
+            const realIndex = ((nearestIndex % N) + N) % N;
+            const actualProject = projects[realIndex];
+            const displayIndex = baseProjects.findIndex(p => p.id === actualProject.id);
             
-            clearTimeout(wheelTimeout);
-            wheelTimeout = setTimeout(() => {
-                isDragging = false;
-            }, 60);
+            counter.textContent = String(displayIndex + 1).padStart(2, '0') + ' / ' + String(baseProjects.length).padStart(2, '0');
 
-            currentAngle += e.deltaY * 0.3;
-            velocity = e.deltaY * 0.2;
+            requestAnimationFrame(loop);
         }
-    }, { passive: false });
 
-    // ── Touch / Drag (vertical = clientY) ──
-    let ty = 0;
-    function startDrag(y) {
-        isDragging = true;
-        isAutoRotating = false;
-        ty = y;
-        velocity = 0;
+        function rotateRelative(dir) {
+            let currentIndex = Math.round(currentAngle / theta);
+            isAutoRotating = true;
+            autoRotateTarget = (currentIndex + dir) * theta;
+        }
+
+        function next() { rotateRelative(1); }
+        function prev() { rotateRelative(-1); }
+
+        document.addEventListener('keydown', e => {
+            if      (e.key === 'ArrowDown' || e.key === 'ArrowRight') next();
+            else if (e.key === 'ArrowUp'   || e.key === 'ArrowLeft')  prev();
+        });
+
+        let wheelTimeout;
+        document.addEventListener('wheel', e => {
+            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                e.preventDefault();
+                isAutoRotating = false;
+                isDragging = true;
+                
+                clearTimeout(wheelTimeout);
+                wheelTimeout = setTimeout(() => { isDragging = false; }, 60);
+
+                currentAngle += e.deltaY * 0.3;
+                velocity = e.deltaY * 0.2;
+            }
+        }, { passive: false });
+
+        let ty = 0;
+        function startDrag(y) {
+            isDragging = true;
+            isAutoRotating = false;
+            ty = y;
+            velocity = 0;
+        }
+        function moveDrag(y) {
+            if (!isDragging) return;
+            const dy = y - ty;
+            ty = y;
+            const deltaAngle = -dy * 0.15;
+            currentAngle += deltaAngle;
+            velocity = deltaAngle;
+        }
+        function endDrag() { isDragging = false; }
+
+        document.addEventListener('touchstart', e => startDrag(e.touches[0].clientY), { passive: true });
+        document.addEventListener('touchmove', e => moveDrag(e.touches[0].clientY), { passive: true });
+        document.addEventListener('touchend', endDrag, { passive: true });
+
+        document.addEventListener('mousedown', e => {
+            if (e.button !== 0) return; 
+            if (e.target.closest('a') || e.target.closest('.btn')) return; 
+            startDrag(e.clientY);
+        });
+        document.addEventListener('mousemove', e => moveDrag(e.clientY));
+        document.addEventListener('mouseup', endDrag);
+
+        let rt;
+        window.addEventListener('resize', () => {
+            clearTimeout(rt);
+            rt = setTimeout(initGeometry, 100);
+        });
+
+        initGeometry();
+        loop();
     }
-    function moveDrag(y) {
-        if (!isDragging) return;
-        const dy = y - ty;
-        ty = y;
-        const deltaAngle = -dy * 0.15;
-        currentAngle += deltaAngle;
-        velocity = deltaAngle;
-    }
-    function endDrag() {
-        isDragging = false;
-    }
 
-    document.addEventListener('touchstart', e => startDrag(e.touches[0].clientY), { passive: true });
-    document.addEventListener('touchmove', e => moveDrag(e.touches[0].clientY), { passive: true });
-    document.addEventListener('touchend', endDrag, { passive: true });
-
-    document.addEventListener('mousedown', e => {
-        if (e.button !== 0) return; 
-        if (e.target.closest('a') || e.target.closest('.btn')) return; 
-        startDrag(e.clientY);
-    });
-    document.addEventListener('mousemove', e => moveDrag(e.clientY));
-    document.addEventListener('mouseup', endDrag);
-
-    let rt;
-    window.addEventListener('resize', () => {
-        clearTimeout(rt);
-        rt = setTimeout(initGeometry, 100);
-    });
-
-    initGeometry();
-    loop();
+    loadFirebaseData();
 </script>
 </body>
 </html>
