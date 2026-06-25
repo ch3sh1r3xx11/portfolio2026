@@ -211,6 +211,42 @@ editorContent.addEventListener('keydown', (e) => {
 });
 
 editorContent.addEventListener('keyup', (e) => {
+    // Markdown checkboxy [] lub [ ]
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const node = range.startContainer;
+        
+        if (node.nodeType === 3) {
+            const text = node.textContent;
+            if (text.endsWith('[] ') || text.endsWith('[ ] ')) {
+                const glassCard = node.parentNode.closest('.glass-card');
+                if (glassCard) {
+                    const kpiBlock = document.createElement('div');
+                    kpiBlock.className = 'block-kpi';
+                    kpiBlock.innerHTML = '<input type="checkbox"><span><br></span>';
+                    
+                    const pNode = node.parentNode.closest('p, .block-content, .block-note');
+                    if (pNode && pNode.parentNode) {
+                        pNode.parentNode.insertBefore(kpiBlock, pNode);
+                        if (pNode.textContent.trim() === '[]' || pNode.textContent.trim() === '') {
+                            pNode.remove();
+                        } else {
+                            node.textContent = text.replace(/\[\s*\] $/, '');
+                        }
+                    }
+                    
+                    // Set cursor inside new span
+                    const newRange = document.createRange();
+                    newRange.setStart(kpiBlock.querySelector('span'), 0);
+                    newRange.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                }
+            }
+        }
+    }
+
     handleSmartAnalysis(e);
 });
 

@@ -40,8 +40,8 @@
     </div>
 
     <!-- Main Workspace (Full Screen Wall of Text) -->
-    <main class="creator-workspace">
-        <div class="document-wrapper">
+    <main id="viewport" class="creator-workspace">
+        <div id="canvas" class="document-wrapper">
             <!-- Mandatory Section -->
             <div class="mandatory-section">
                 <div class="meta-row">
@@ -76,7 +76,7 @@
                 </div>
 
                 <!-- Główna ściana tekstu -->
-                <div id="editor-content" class="editor-content" contenteditable="true"></div>
+                <div id="editor-content" class="editor-content"></div>
             </div>
         </div>
     </main>
@@ -109,6 +109,7 @@
         </div>
     </div>
 
+    <script src="layout.js"></script>
     <script type="module" src="app.js"></script>
 </body>
 </html>

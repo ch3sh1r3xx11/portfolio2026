@@ -115,15 +115,19 @@ input[type=range][orient=vertical] {
 /* ── MAIN CANVAS (Wall of Text) ── */
 .creator-workspace {
     flex: 1; display: flex; flex-direction: column; align-items: center;
-    padding: 6rem 20px 10vh 20px;
     position: relative; z-index: 5;
     background: transparent;
+    overflow: hidden; /* Flow Motion */
+    touch-action: none;
 }
 
 .document-wrapper {
     width: 100%; max-width: 100%;
-    display: flex; flex-direction: column;
     padding: 2rem 5%;
+    position: absolute;
+    top: 0; left: 0;
+    transform-origin: 0 0;
+    will-change: transform;
 }
 
 /* Mandatory Section */
@@ -154,6 +158,7 @@ input[type=range][orient=vertical] {
 .editor-content {
     width: 100%; min-height: 50vh; color: var(--white-dim); font-size: 1.1rem;
     line-height: 1.8; outline: none;
+    position: relative; /* Container for absolute glass cards */
 }
 .editor-content h1, .editor-content h2, .editor-content h3 {
     color: var(--white); margin-top: 2rem; margin-bottom: 0.5rem;
@@ -240,12 +245,54 @@ input[type=range][orient=vertical] {
     border: 1px solid rgba(255,255,255,0.05);
     border-radius: 12px;
     padding: 1.5rem;
-    margin: 2rem 0;
-    transition: all 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+    
+    /* Absolute Layout for Auto-Layout Manager */
+    position: absolute;
+    left: 0; right: 0;
+    /* initial top is 0, translateY will be used to position it */
 }
 .glass-card:focus-within {
     border-color: var(--teal);
     box-shadow: 0 0 15px rgba(0, 201, 200, 0.1);
+}
+
+.block-hover-menu {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 100;
+}
+.block-hover-menu.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+.hover-btn {
+    background: rgba(18, 18, 24, 0.8);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    color: var(--white-dim);
+    cursor: pointer;
+    padding: 4px 6px;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+.hover-btn:hover {
+    background: var(--teal);
+    color: var(--black);
+}
+.hover-btn.delete-btn:hover {
+    background: var(--magenta);
+}
+.glass-card.is-dragging {
+    opacity: 0.8;
+    z-index: 50;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border-color: var(--magenta);
 }
 .glass-card > :first-child {
     margin-top: 0;
