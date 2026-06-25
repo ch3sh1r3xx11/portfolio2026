@@ -36,9 +36,8 @@
         body::before {
             content: '';
             position: fixed; inset: -5%;
-            background: url('bg.jpg') center/cover no-repeat;
+            background: radial-gradient(circle at center, #1a252f 0%, #080c0f 100%);
             z-index: -2;
-            filter: brightness(0.4) saturate(1.3);
             pointer-events: none;
         }
 
@@ -506,20 +505,20 @@
     // ── Scroll wheel ──
     let wheelTimeout;
     document.addEventListener('wheel', e => {
-        // Obsługujemy tylko swipe poziomy na obrót karuzeli
-        if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-            e.preventDefault();
-            isAutoRotating = false;
-            isDragging = true; // Blokuje magnetyczne zatrzymywanie podczas scrollowania
-            
-            clearTimeout(wheelTimeout);
-            wheelTimeout = setTimeout(() => {
-                isDragging = false; // Odblokuj snap dopiero jak przestanie scrollować
-            }, 60);
+        e.preventDefault();
+        isAutoRotating = false;
+        isDragging = true; // Blokuje magnetyczne zatrzymywanie podczas scrollowania
+        
+        clearTimeout(wheelTimeout);
+        wheelTimeout = setTimeout(() => {
+            isDragging = false; // Odblokuj snap dopiero jak przestanie scrollować
+        }, 60);
 
-            currentAngle -= e.deltaX * 0.3; // Bezpośredni obrót (1:1 z gładzikiem)
-            velocity = -e.deltaX * 0.2;     // Nadanie pędu przy puszczeniu
-        }
+        // Używamy deltaX (touchpad poziomo) lub deltaY (zwykła myszka / touchpad pionowo)
+        const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+        
+        currentAngle -= delta * 0.3; // Bezpośredni obrót
+        velocity = -delta * 0.2;     // Nadanie pędu przy puszczeniu
     }, { passive: false });
 
     // ── Touch / Drag ──
