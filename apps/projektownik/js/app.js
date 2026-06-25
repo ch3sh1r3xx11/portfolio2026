@@ -562,7 +562,8 @@ function createCardElement(id, data) {
         makeEditable(card, id);
     } else {
         // Zwykła notatka
-        card.style.width = '250px';
+        card.style.width = data.width ? `${data.width}px` : '250px';
+        if (data.height) card.style.height = `${data.height}px`;
         card.innerHTML = `
             <button class="delete-btn" title="Usuń">×</button>
             <div class="card-header">${data.title || ''}</div>
