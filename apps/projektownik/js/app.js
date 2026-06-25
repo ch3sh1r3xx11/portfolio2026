@@ -1,19 +1,9 @@
 import { db, auth, provider, signInWithPopup, onAuthStateChanged, storage, ref, uploadBytes, getDownloadURL, signOut } from './firebase-config.js';
 import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// --- SYSTEM DEBUGOWANIA ON-SCREEN ---
+// --- SYSTEM DEBUGOWANIA ON-SCREEN (WYLĄCZONY) ---
 window.debugLog = function(msg) {
-    let box = document.getElementById('debug-box');
-    if(!box) {
-        box = document.createElement('div');
-        box.id = 'debug-box';
-        box.style.cssText = 'position:fixed; top:10px; right:10px; background:rgba(0,0,0,0.85); color:#0f0; padding:10px; z-index:999999; font-family:monospace; font-size:11px; pointer-events:none; width:300px; max-height:400px; overflow-y:auto; border: 1px solid #0f0; border-radius: 4px;';
-        document.body.appendChild(box);
-    }
-    const time = new Date().toISOString().split('T')[1].slice(0, 12);
-    box.innerHTML += `<div>[${time}] ${msg}</div>`;
-    box.scrollTop = box.scrollHeight;
-    console.log("[DEBUG]", msg);
+    // console.log("[DEBUG]", msg);
 };
 
 const viewport = document.getElementById('viewport');
