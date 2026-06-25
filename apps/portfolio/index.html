@@ -215,10 +215,10 @@
             max-width:480px; margin-bottom:2rem; }
         .hero-sub strong { color: var(--white); }
         
-        .hm-container { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; margin-top: 3rem; align-self: flex-end; opacity: 0.8; }
-        .hm-row { display: flex; gap: 4px; }
-        .hm-cell { width: 7px; height: 7px; border-radius: 1px; transition: all 0.3s; }
-        @media (max-width: 640px) { .hm-cell { width: 5px; height: 5px; } }
+        .hm-container { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; opacity: 0.9; margin-top: 0; }
+        .hm-row { display: flex; gap: 5px; }
+        .hm-cell { width: 10px; height: 10px; border-radius: 2px; transition: all 0.3s; }
+        @media (max-width: 640px) { .hm-cell { width: 6px; height: 6px; } .hm-container { gap: 3px; } .hm-row { gap: 3px; } }
 
         .hero-ctas { display:flex; gap:0.75rem; flex-wrap:wrap; }
         .btn { font-family: var(--font-mono); font-size:0.75rem; font-weight:700;
@@ -315,13 +315,16 @@
                 <div class="hero-eyebrow">Creative AI-Driven PM</div>
                 <h1 class="hero-title" style="font-size:clamp(1.8rem, 6vw, 3.5rem);line-height:1.2;white-space:nowrap;letter-spacing:-0.05em;">permissionless iterate leverage</h1>
                 <p class="hero-subtitle">W przyszłości nie będzie opisów stanowisk pracy tylko opisy projektów.</p>
-                <div class="stack-wrap" style="margin-top: 2rem">
-                    <a href="#projekty" onclick="goTo(1);return false;" class="chip" style="border-color:rgba(232,25,122,0.4);color:var(--magenta)">#PROJEKTY</a>
-                    <a href="#raporty" onclick="goTo(2);return false;" class="chip" style="border-color:rgba(0,201,200,0.4);color:var(--teal)">#RAPORTY</a>
-                    <a href="#skills" onclick="goTo(3);return false;" class="chip" style="border-color:rgba(232,25,122,0.4);color:var(--magenta)">#SKILLS</a>
-                </div>
                 
-                <div class="hm-container" id="hero-heatmap"></div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; flex-wrap: wrap; gap: 2rem; margin-top: 2rem;">
+                    <div class="hero-ctas">
+                        <a href="#projekty" onclick="goTo(1);return false;" class="chip" style="border-color:rgba(232,25,122,0.4);color:var(--magenta)">#PROJEKTY</a>
+                        <a href="#raporty" onclick="goTo(2);return false;" class="chip" style="border-color:rgba(0,201,200,0.4);color:var(--teal)">#RAPORTY</a>
+                        <a href="#skills" onclick="goTo(3);return false;" class="chip" style="border-color:rgba(232,25,122,0.4);color:var(--magenta)">#SKILLS</a>
+                    </div>
+                    
+                    <div class="hm-container" id="hero-heatmap"></div>
+                </div>
             </div>
         </div>
 
