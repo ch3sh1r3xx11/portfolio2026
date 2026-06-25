@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/packages/shared-ui/css/nav.css">
     <style>
         /* Scrollbar (Cyberpunk Style) */
         ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -62,17 +63,7 @@
 
 
 
-        /* ── NAV ── */
-        nav { position:fixed; top:0; left:0; right:0; z-index:100;
-            display:flex; justify-content:space-between; align-items:center;
-            padding:0.85rem 2.5rem;
-            background: rgba(7,7,7,0.6);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255,255,255,0.04); }
-        .nav-logo { font-family: var(--font-mono); font-size:0.75rem; font-weight:700;
-            letter-spacing:0.12em; text-transform:uppercase; }
-        .nav-counter { font-family: var(--font-mono); font-size:0.75rem; font-weight:700;
-            color: var(--magenta); letter-spacing:0.1em; }
+        /* Removed nav, .nav-logo, .nav-counter as they are in shared-ui/css/nav.css */
 
         /* ── 3D SCENE ── */
         .scene {
@@ -252,8 +243,7 @@
         .badge-wip  { background:rgba(232,25,122,0.1); color:var(--magenta); border:1px solid rgba(232,25,122,0.25); }
 
         .stack-wrap { display:flex; flex-wrap:wrap; gap:0.75rem; margin-top:1.5rem; }
-        .chip { display:inline-flex; align-items:center; justify-content:center; padding:0.6rem 1.2rem; border:1px solid rgba(255,255,255,0.2); border-radius:4px; font-size:0.9rem; color:var(--white-dim); font-family: monospace; text-transform: uppercase; letter-spacing: 0.05em; transition: all 0.3s ease; text-decoration: none; }
-        .chip:hover { background: rgba(255,255,255,0.05); }
+        /* Removed .chip as it's in shared-ui/css/nav.css */
 
         /* ── MANIFEST ── */
         .manifest-quote { font-size:0.95rem; font-style:italic; line-height:1.8;
@@ -292,7 +282,6 @@
 
         /* ── RESPONSIVE ── */
         @media (max-width: 640px) {
-            nav { padding:0.7rem 1.25rem; }
             .panel-content { padding: 5rem 1.5rem; }
             .values-mini { grid-template-columns:1fr; }
         }
@@ -304,9 +293,9 @@
 
 <nav>
     <div style="display: flex; align-items: center; gap: 15px;">
-        <div class="nav-logo" style="cursor: pointer; color: var(--magenta);" onclick="goTo(0)">creative ai driven pm</div>
-        <a href="/projektownik/index.html" class="chip" style="pointer-events: auto; padding: 0.1rem 0.8rem; margin: -0.5rem 0; font-size: 0.65rem; border-color: rgba(0, 201, 200, 0.4); color: var(--teal); text-decoration: none;">PROJEKTOWNIK ↗</a>
-        <a href="/creator/index.html" class="chip" style="pointer-events: auto; padding: 0.1rem 0.8rem; margin: -0.5rem 0; font-size: 0.65rem; border-color: rgba(232, 25, 122, 0.4); color: var(--magenta); text-decoration: none;">KREATOR ↗</a>
+        <div class="nav-logo" onclick="goTo(0)">creative ai driven pm</div>
+        <a href="/projektownik/index.html" class="chip" style="border-color: rgba(0, 201, 200, 0.4); color: var(--teal);">PROJEKTOWNIK ↗</a>
+        <a href="/creator/index.html" class="chip" style="border-color: rgba(232, 25, 122, 0.4); color: var(--magenta);">KREATOR ↗</a>
     </div>
     <span class="nav-counter" id="counter">01 / 07</span>
 </nav>
