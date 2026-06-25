@@ -365,6 +365,27 @@ async function loadProject(id) {
                 dateInput.value = data.date;
             }
             editorContent.innerHTML = data.content || "";
+            
+            // --- DATA MIGRATION: Convert legacy inline styles to new CSS classes ---
+            const oldKpis = editorContent.querySelectorAll('div[style*="display: flex"]');
+            oldKpis.forEach(kpi => {
+                if (kpi.querySelector('input[type="checkbox"]')) {
+                    kpi.removeAttribute('style');
+                    kpi.className = 'block-kpi';
+                    const spans = kpi.querySelectorAll('span');
+                    let text = "";
+                    spans.forEach(s => text += s.textContent.replace(/\\n/g, ' '));
+                    kpi.innerHTML = `<input type="checkbox"><span>${text.trim() || 'Zadanie / KPI...'}</span>`;
+                }
+            });
+
+            const oldNotes = editorContent.querySelectorAll('div[style*="rgba(245, 166, 35, 0.1)"]');
+            oldNotes.forEach(note => {
+                note.removeAttribute('style');
+                note.className = 'block-note';
+            });
+            // -----------------------------------------------------------------------
+
             updateProgress();
         } else {
             console.error("Projekt nie istnieje!");
