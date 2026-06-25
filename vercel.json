@@ -2,6 +2,8 @@
   "rewrites": [
     { "source": "/projektownik/(.*)", "destination": "/apps/projektownik/$1" },
     { "source": "/projektownik", "destination": "/apps/projektownik/index.html" },
+    { "source": "/creator/(.*)", "destination": "/apps/creator/$1" },
+    { "source": "/creator", "destination": "/apps/creator/index.html" },
     { "source": "/packages/(.*)", "destination": "/packages/$1" },
     { "source": "/(.*)", "destination": "/apps/portfolio/$1" }
   ]
