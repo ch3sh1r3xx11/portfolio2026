@@ -76,6 +76,10 @@ glassSlider.addEventListener('input', (e) => {
     const val = e.target.value; // 0 to 100
     const opacity = val / 100; // W górę (100) = max blur (1.0)
     document.documentElement.style.setProperty('--glass-opacity', opacity);
+    
+    // Dynamiczna jasność tła: przy 100% bluru tło staje się prawie czarne
+    const brightness = Math.max(0.02, 0.5 - (opacity * 0.48));
+    document.documentElement.style.setProperty('--bg-brightness', brightness);
 });
 
 
@@ -386,7 +390,11 @@ async function initProject() {
         setTimeout(() => {
             flash.style.opacity = '0';
             setTimeout(() => {
-                window.location.href = "/"; // Powrót na stronę główną
+                if (!currentProjectId) {
+                    window.location.href = "/"; // Powrót na stronę główną tylko przy nowym projekcie
+                } else {
+                    flash.remove(); // Zostajemy w kreatorze, aby kontynuować pracę po aktualizacji
+                }
             }, 500);
         }, 100);
     } catch (e) {
