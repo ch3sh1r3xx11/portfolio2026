@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Report Details | AI-Driven PM</title>
+    <title>Project Details | AI-Driven PM</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -25,7 +25,7 @@
         
         body::before {
             content: ''; position: fixed; inset: -5%;
-            background: url('/packages/shared-ui/assets/bg.jpg') center/cover no-repeat; z-index: -2;
+            background: url('bg.jpg') center/cover no-repeat; z-index: -2;
             filter: brightness(0.4) saturate(1.3); pointer-events: none;
         }
         body::after {
@@ -40,7 +40,7 @@
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(255,255,255,0.04); }
         .nav-logo { font-family: var(--font-mono); font-size:0.75rem; font-weight:700;
-            letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; color: var(--magenta); text-decoration:none; transition: color 0.2s; }
+            letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; color: var(--white); text-decoration:none; transition: color 0.2s; }
         .nav-logo:hover { color: var(--magenta); }
         .nav-counter { font-family: var(--font-mono); font-size:0.75rem; font-weight:700;
             color: var(--magenta); letter-spacing:0.1em; }
@@ -187,7 +187,7 @@
 
     async function loadFirebaseData() {
         try {
-            const q = query(collection(db, "reports"), where("isPublished", "==", true));
+            const q = query(collection(db, "projects"), where("isPublished", "==", true));
             const querySnapshot = await getDocs(q);
             
             let projects = [];
@@ -239,7 +239,7 @@
                 <div class="panel-bg-deep"></div>
                 <div class="panel-bg"></div>
                 <div class="panel-content">
-                    <div class="panel-num" style="color:${project.themeColor}"><span class="panel-num-line" style="background:${project.themeColor}"></span>RAPORT</div>
+                    <div class="panel-num" style="color:${project.themeColor}"><span class="panel-num-line" style="background:${project.themeColor}"></span>PROJECT CHARTER</div>
                     <h2 class="panel-title" style="color:${project.themeColor}">${project.title}</h2>
                     <div class="markdown-body" style="overflow-y: auto; max-height: 45vh; padding-right: 1.5rem; font-size: 0.95rem; line-height: 1.7; color: var(--white-dim);">
                         ${parsedContent}
@@ -270,16 +270,16 @@
         let radius = 0;
 
         function initGeometry() {
-            const w = cylinder.offsetWidth;
+            const h = cylinder.offsetHeight;
             const gap = window.innerWidth < 768 ? 60 : 150;
-            radius = Math.round((w / 2) / Math.tan(Math.PI / N)) + gap;
+            radius = Math.round((h / 2) / Math.tan(Math.PI / N)) + gap;
 
             panels.forEach((panel, i) => {
-                panel.style.transform = `rotateY(${i * theta}deg) translateZ(${radius}px)`;
+                panel.style.transform = `rotateX(${-i * theta}deg) translateZ(${radius}px)`;
             });
 
-            currentAngle = -startIndex * theta;
-            cylinder.style.transform = `translateZ(${-radius}px) rotateY(${currentAngle}deg)`;
+            currentAngle = startIndex * theta;
+            cylinder.style.transform = `translateZ(${-radius}px) rotateX(${currentAngle}deg)`;
         }
 
         function loop() {
@@ -305,9 +305,9 @@
             }
 
             currentAngle += velocity;
-            cylinder.style.transform = `translateZ(${-radius}px) rotateY(${currentAngle}deg)`;
+            cylinder.style.transform = `translateZ(${-radius}px) rotateX(${currentAngle}deg)`;
 
-            const nearestIndex = Math.round(-currentAngle / theta);
+            const nearestIndex = Math.round(currentAngle / theta);
             const realIndex = ((nearestIndex % N) + N) % N;
             const actualProject = projects[realIndex];
             const displayIndex = baseProjects.findIndex(p => p.id === actualProject.id);
@@ -318,35 +318,22 @@
         }
 
         function rotateRelative(dir) {
-            let currentIndex = Math.round(-currentAngle / theta);
+            let currentIndex = Math.round(currentAngle / theta);
             isAutoRotating = true;
-            autoRotateTarget = -(currentIndex + dir) * theta;
+            autoRotateTarget = (currentIndex + dir) * theta;
         }
 
         function next() { rotateRelative(1); }
         function prev() { rotateRelative(-1); }
 
         document.addEventListener('keydown', e => {
-            if      (e.key === 'ArrowRight' || e.key === 'ArrowDown') next();
-            else if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   prev();
+            if      (e.key === 'ArrowDown' || e.key === 'ArrowRight') next();
+            else if (e.key === 'ArrowUp'   || e.key === 'ArrowLeft')  prev();
         });
 
         let wheelTimeout;
         document.addEventListener('wheel', e => {
-            // Tylko jak faktycznie scrollujemy karuzele, a nie kontener z markdownem
-            if (e.target.closest('.markdown-body')) {
-                if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-                    e.preventDefault();
-                    isAutoRotating = false;
-                    isDragging = true;
-                    
-                    clearTimeout(wheelTimeout);
-                    wheelTimeout = setTimeout(() => { isDragging = false; }, 60);
-
-                    currentAngle -= e.deltaX * 0.3;
-                    velocity = -e.deltaX * 0.2;
-                }
-            } else {
+            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
                 e.preventDefault();
                 isAutoRotating = false;
                 isDragging = true;
@@ -354,49 +341,38 @@
                 clearTimeout(wheelTimeout);
                 wheelTimeout = setTimeout(() => { isDragging = false; }, 60);
 
-                const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-                currentAngle -= delta * 0.3;
-                velocity = -delta * 0.2;
+                currentAngle += e.deltaY * 0.3;
+                velocity = e.deltaY * 0.2;
             }
         }, { passive: false });
 
-        let tx = 0;
-        function startDrag(x) {
+        let ty = 0;
+        function startDrag(y) {
             isDragging = true;
             isAutoRotating = false;
-            tx = x;
+            ty = y;
             velocity = 0;
         }
-        function moveDrag(x) {
+        function moveDrag(y) {
             if (!isDragging) return;
-            const dx = x - tx;
-            tx = x;
-            const deltaAngle = dx * 0.15;
+            const dy = y - ty;
+            ty = y;
+            const deltaAngle = -dy * 0.15;
             currentAngle += deltaAngle;
             velocity = deltaAngle;
         }
         function endDrag() { isDragging = false; }
 
-        document.addEventListener('touchstart', e => {
-            if (!e.target.closest('.markdown-body')) {
-                startDrag(e.touches[0].clientX);
-            }
-        }, { passive: true });
-        
-        document.addEventListener('touchmove', e => {
-            if (!e.target.closest('.markdown-body') || isDragging) {
-                moveDrag(e.touches[0].clientX);
-            }
-        }, { passive: true });
-        
+        document.addEventListener('touchstart', e => startDrag(e.touches[0].clientY), { passive: true });
+        document.addEventListener('touchmove', e => moveDrag(e.touches[0].clientY), { passive: true });
         document.addEventListener('touchend', endDrag, { passive: true });
 
         document.addEventListener('mousedown', e => {
             if (e.button !== 0) return; 
-            if (e.target.closest('a') || e.target.closest('.btn') || e.target.closest('.markdown-body')) return; 
-            startDrag(e.clientX);
+            if (e.target.closest('a') || e.target.closest('.btn')) return; 
+            startDrag(e.clientY);
         });
-        document.addEventListener('mousemove', e => moveDrag(e.clientX));
+        document.addEventListener('mousemove', e => moveDrag(e.clientY));
         document.addEventListener('mouseup', endDrag);
 
         let rt;
