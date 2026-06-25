@@ -113,9 +113,26 @@ editorContent.addEventListener('keydown', (e) => {
             return;
         }
 
-        // Handle Styled Divs (e.g. notes). Prevent duplicate div creation, just insert line break
-        const styledDiv = currentNode.nodeType === 3 ? currentNode.parentNode.closest('div[style]') : (currentNode.closest ? currentNode.closest('div[style]') : null);
-        if (styledDiv && !e.shiftKey) {
+        // Handle KPI Checkboxes (Enter creates a new checkbox list item)
+        const kpiBlock = currentNode.nodeType === 3 ? currentNode.parentNode.closest('.block-kpi') : (currentNode.closest ? currentNode.closest('.block-kpi') : null);
+        if (kpiBlock) {
+            e.preventDefault();
+            // If the current KPI block is empty, we should probably exit the list, but for now let's just create a new one.
+            const newKpi = document.createElement('div');
+            newKpi.className = 'block-kpi';
+            newKpi.innerHTML = '<input type="checkbox"><span><br></span>';
+            kpiBlock.parentNode.insertBefore(newKpi, kpiBlock.nextSibling);
+            
+            range.setStart(newKpi.querySelector('span'), 0);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            return;
+        }
+
+        // Handle Styled Notes. Prevent duplicate div creation, just insert line break
+        const noteBlock = currentNode.nodeType === 3 ? currentNode.parentNode.closest('.block-note') : (currentNode.closest ? currentNode.closest('.block-note') : null);
+        if (noteBlock && !e.shiftKey) {
             e.preventDefault();
             document.execCommand('insertLineBreak');
             return;
@@ -149,7 +166,7 @@ document.querySelectorAll('.block-option').forEach(btn => {
 
 // Toolbar Actions (Shared Mechanics)
 document.getElementById('add-note').addEventListener('click', () => {
-    const html = `<div style="background: rgba(245, 166, 35, 0.1); border-left: 2px solid #f5a623; padding: 1rem; margin: 1rem 0; color: #f5a623;">Nowa notatka...</div><p><br></p>`;
+    const html = `<div class="block-note">Nowa notatka...</div><p><br></p>`;
     document.execCommand('insertHTML', false, html);
     editorContent.focus();
 });
@@ -173,7 +190,7 @@ document.getElementById('add-frame').addEventListener('click', () => {
 });
 
 document.getElementById('add-kpi').addEventListener('click', () => {
-    const html = `<div style="display: flex; align-items: center; gap: 10px; margin: 0.5rem 0;"><input type="checkbox" style="accent-color: var(--teal); width: 16px; height: 16px;"><span style="color: var(--white-dim);">Zadanie / KPI...</span></div>`;
+    const html = `<div class="block-kpi"><input type="checkbox"><span>Zadanie / KPI...</span></div>`;
     document.execCommand('insertHTML', false, html);
     editorContent.focus();
 });
