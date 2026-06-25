@@ -273,13 +273,13 @@
             line-height:0.92; letter-spacing:-0.04em; margin-bottom:1rem; }
 
         /* ── GANTT PIPELINE ── */
-        .gantt-wrapper { position:relative; display:flex; flex-direction:column; gap:1.5rem; margin-top:1rem; padding-bottom:1.5rem;}
-        .gantt-row { display:flex; flex-direction:column; gap:0.4rem; z-index:2; }
+        .gantt-wrapper { position:relative; display:flex; flex-direction:column; gap:2rem; margin-top:1rem; padding-bottom:1.5rem;}
+        .gantt-row { display:flex; flex-direction:column; gap:0.6rem; z-index:2; }
         .gantt-label { font-family:var(--font-mono); font-size:0.75rem; letter-spacing:0.05em; font-weight:700; display:flex; justify-content:space-between; }
         .gantt-ver { opacity:0.6; font-weight:400; }
-        .gantt-track { width:100%; height:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:6px; position:relative; overflow:visible; }
-        .gantt-bar { height:100%; border-radius:6px; position:relative; }
-        .gantt-live-dot { position:absolute; right:0; top:50%; transform:translate(50%, -50%); width:10px; height:10px; border-radius:50%; animation: blink 1.5s infinite; border:2px solid var(--bg-color); }
+        .gantt-track { width:100%; height:36px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:3px; position:relative; overflow:visible; }
+        .gantt-bar { height:100%; border-radius:3px; position:relative; box-sizing:border-box; display:flex; align-items:center; }
+        .gantt-live-dot { position:absolute; right:-4px; top:50%; transform:translate(0, -50%); width:8px; height:8px; border-radius:50%; animation: blink 1.5s infinite; border:1px solid var(--bg-color); }
         .gantt-markers { position:absolute; bottom:0; left:0; width:100%; display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.5rem; color:var(--white-dim); opacity:0.5; border-top:1px dashed rgba(255,255,255,0.1); padding-top:0.4rem; z-index:1; }
 
         /* ── RESPONSIVE ── */
@@ -406,7 +406,7 @@
                     <div class="gantt-row">
                         <div class="gantt-label" style="color:var(--magenta)">Projektownik <span class="gantt-ver">v0.6</span></div>
                         <div class="gantt-track">
-                            <div class="gantt-bar" style="width:60%; background:var(--magenta); box-shadow:0 0 10px var(--magenta);">
+                            <div class="gantt-bar" style="width:60%; background:rgba(232,25,122,0.1); border:1px solid rgba(232,25,122,0.5);">
                                 <div class="gantt-live-dot" style="background:var(--magenta);"></div>
                             </div>
                         </div>
@@ -415,7 +415,7 @@
                     <div class="gantt-row">
                         <div class="gantt-label" style="color:var(--teal)">Portfolio <span class="gantt-ver">v0.4</span></div>
                         <div class="gantt-track">
-                            <div class="gantt-bar" style="width:40%; background:var(--teal); box-shadow:0 0 10px var(--teal);">
+                            <div class="gantt-bar" style="width:40%; background:rgba(0,201,200,0.1); border:1px solid rgba(0,201,200,0.5);">
                                 <div class="gantt-live-dot" style="background:var(--teal);"></div>
                             </div>
                         </div>
@@ -424,7 +424,7 @@
                     <div class="gantt-row">
                         <div class="gantt-label" style="color:var(--magenta)">YMH <span class="gantt-ver">v0.2</span></div>
                         <div class="gantt-track">
-                            <div class="gantt-bar" style="width:20%; background:var(--magenta); box-shadow:0 0 10px var(--magenta);">
+                            <div class="gantt-bar" style="width:20%; background:rgba(232,25,122,0.1); border:1px solid rgba(232,25,122,0.5);">
                                 <div class="gantt-live-dot" style="background:var(--magenta);"></div>
                             </div>
                         </div>
