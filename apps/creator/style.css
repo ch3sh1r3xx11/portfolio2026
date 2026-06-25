@@ -123,7 +123,7 @@ input[type=range][orient=vertical] {
 
 .document-wrapper {
     width: 100%; max-width: 100%;
-    padding: 2rem 5%;
+    padding: 8rem 5% 4rem 5%; /* 8rem na górze, by pasek nawigacyjny nie zasłaniał! */
     position: absolute;
     top: 0; left: 0;
     transform-origin: 0 0;
@@ -161,12 +161,17 @@ input[type=range][orient=vertical] {
     position: relative; /* Container for absolute glass cards */
 }
 .editor-content h1, .editor-content h2, .editor-content h3 {
-    color: var(--white); margin-top: 2rem; margin-bottom: 0.5rem;
+    color: var(--white); margin-top: 0; margin-bottom: 0.5rem; /* Usunąłem duży margin-top by drag header był czysty */
     font-weight: 700;
 }
 .editor-content .module-heading {
     color: var(--teal); display: block; border-bottom: 1px solid rgba(0,201,200,0.2);
-    padding-bottom: 0.2rem;
+    padding-bottom: 0.5rem;
+    cursor: grab; /* Uchwyt do przesuwania! */
+    user-select: none;
+}
+.editor-content .module-heading:active {
+    cursor: grabbing;
 }
 .editor-content .module-heading.magenta {
     color: var(--magenta); border-bottom-color: rgba(232,25,122,0.2);
@@ -257,45 +262,31 @@ input[type=range][orient=vertical] {
     box-shadow: 0 0 15px rgba(0, 201, 200, 0.1);
 }
 
-.block-hover-menu {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-    z-index: 100;
-}
-.block-hover-menu.active {
-    opacity: 1;
-    pointer-events: auto;
-}
-.hover-btn {
-    background: rgba(18, 18, 24, 0.8);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 4px;
-    color: var(--white-dim);
-    cursor: pointer;
-    padding: 4px 6px;
-    font-size: 14px;
-    transition: all 0.2s;
-}
-.hover-btn:hover {
-    background: var(--teal);
-    color: var(--black);
-}
-.hover-btn.delete-btn:hover {
-    background: var(--magenta);
-}
-.glass-card.is-dragging {
-    opacity: 0.8;
-    z-index: 50;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    border-color: var(--magenta);
-}
 .glass-card > :first-child {
     margin-top: 0;
+}
+
+/* Przycisk Usuwania na Karcie */
+.card-delete-btn {
+    position: absolute;
+    top: 1.2rem;
+    right: 1.5rem;
+    background: transparent;
+    border: none;
+    color: var(--white-dim);
+    font-size: 1.2rem;
+    font-weight: bold;
+    font-family: monospace;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 10;
+    line-height: 1;
+}
+.card-delete-btn:hover {
+    color: var(--white);
+}
+.card-delete-btn.confirm-mode {
+    color: var(--magenta);
 }
 
 .block-kpi {

@@ -117,6 +117,39 @@ function observeCards() {
         if (!card.hasAttribute('data-observed')) {
             resizeObserver.observe(card);
             card.setAttribute('data-observed', 'true');
+            
+            // Wstrzyknięcie przycisku usuwania, jeśli go nie ma
+            if (!card.querySelector('.card-delete-btn')) {
+                const delBtn = document.createElement('button');
+                delBtn.className = 'card-delete-btn';
+                delBtn.textContent = 'x';
+                card.appendChild(delBtn);
+                
+                let confirmState = false;
+                delBtn.addEventListener('click', (e) => {
+                    if (!confirmState) {
+                        confirmState = true;
+                        delBtn.textContent = '?';
+                        delBtn.classList.add('confirm-mode');
+                        setTimeout(() => {
+                            if (card.parentNode) { // if not deleted
+                                confirmState = false;
+                                delBtn.textContent = 'x';
+                                delBtn.classList.remove('confirm-mode');
+                            }
+                        }, 3000); // 3 seconds to confirm
+                    } else {
+                        // Usuwamy kartę
+                        card.style.transform = 'scale(0.8) translateY(-20px)';
+                        card.style.opacity = '0';
+                        setTimeout(() => {
+                            card.remove();
+                            reflowCards();
+                            document.getElementById('update-project-btn')?.click();
+                        }, 300);
+                    }
+                });
+            }
         }
     });
 }
@@ -139,47 +172,19 @@ if (editorContent) {
     mutationObserver.observe(editorContent, { childList: true, subtree: true });
 }
 
-// --- HOVER MENU & DRAG AND DROP ---
-const hoverMenu = document.createElement('div');
-hoverMenu.className = 'block-hover-menu';
-hoverMenu.innerHTML = `
-    <button class="hover-btn drag-handle" title="Przesuń">⠿</button>
-    <button class="hover-btn delete-btn" title="Usuń">🗑</button>
-`;
-document.body.appendChild(hoverMenu);
-
-let currentHoveredCard = null;
-
-window.addEventListener('mousemove', (e) => {
-    // Menu pojawia się gdy najeżdżamy na kartę LUB jesteśmy na samym menu
-    const card = e.target.closest('.glass-card');
-    const isMenu = e.target.closest('.block-hover-menu');
+// --- NATYWNY DRAG AND DROP (ZA NAGŁÓWEK) ---
+window.addEventListener('mousedown', (e) => {
+    // Chwytamy za .module-heading
+    const heading = e.target.closest('.module-heading');
+    if (!heading) return;
     
-    if (card && !isDraggingCard) {
-        currentHoveredCard = card;
-        const rect = card.getBoundingClientRect();
-        hoverMenu.style.top = `${rect.top}px`;
-        hoverMenu.style.left = `${rect.left - 36}px`;
-        hoverMenu.classList.add('active');
-    } else if (!isMenu && !isDraggingCard) {
-        hoverMenu.classList.remove('active');
-    }
-});
-
-hoverMenu.querySelector('.delete-btn').addEventListener('click', () => {
-    if (currentHoveredCard) {
-        currentHoveredCard.remove();
-        hoverMenu.classList.remove('active');
-        reflowCards();
-    }
-});
-
-hoverMenu.querySelector('.drag-handle').addEventListener('mousedown', (e) => {
+    const card = heading.closest('.glass-card');
+    if (!card) return;
+    
     e.preventDefault();
-    if (!currentHoveredCard) return;
     
     isDraggingCard = true;
-    draggedCard = currentHoveredCard;
+    draggedCard = card;
     draggedCard.classList.add('is-dragging');
     
     const transform = draggedCard.style.transform;
@@ -190,7 +195,6 @@ hoverMenu.querySelector('.drag-handle').addEventListener('mousedown', (e) => {
     
     const cards = Array.from(editorContent.querySelectorAll('.glass-card'));
     cardIndex = cards.indexOf(draggedCard);
-    hoverMenu.classList.remove('active');
 });
 
 window.addEventListener('mousemove', (e) => {
