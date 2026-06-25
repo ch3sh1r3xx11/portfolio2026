@@ -66,7 +66,8 @@ editorContent.addEventListener('input', updateProgress);
 // --- GLASS SLIDER LOGIC ---
 glassSlider.addEventListener('input', (e) => {
     const val = e.target.value; // 0 to 100
-    const opacity = val / 100;
+    // Odwracamy logikę: suwak w górę (więcej) = bardziej przezroczyste
+    const opacity = (100 - val) / 100;
     document.documentElement.style.setProperty('--glass-opacity', opacity);
 });
 
