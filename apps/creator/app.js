@@ -216,7 +216,7 @@ document.querySelectorAll('.block-option').forEach(btn => {
 
 // Toolbar Actions (Shared Mechanics)
 document.getElementById('add-note').addEventListener('click', () => {
-    const html = `<div class="block-note">Nowa notatka...</div><p><br></p>`;
+    const html = `<div class="glass-card" contenteditable="true"><div class="block-note">Nowa notatka...</div></div><p><br></p>`;
     safeInsertBlock(html);
 });
 
@@ -250,14 +250,28 @@ function insertModule(type) {
         'resources': 'Zasoby',
         'risks': 'Ryzyka',
         'ifthen': 'If>Then',
-        'success': 'Kryterium Sukcesu'
+        'success': 'Kryterium Sukcesu',
+        'empty': 'Nowy Blok'
     };
     
-    const colorClass = (type === 'resources' || type === 'timeline') ? 'teal' : 'magenta';
-    const html = `
-        <h2 class="module-heading ${colorClass}" data-type="${type}"># ${titles[type]}</h2>
-        <div class="block-content"><br></div>
-    `;
+    const colorClass = (type === 'resources' || type === 'timeline' || type === 'empty') ? 'teal' : 'magenta';
+    let html = '';
+    
+    if (type === 'empty') {
+        html = `
+            <div class="glass-card" contenteditable="true">
+                <h2 class="module-heading ${colorClass}" data-type="empty"># ${titles[type]}</h2>
+                <div class="block-content"><br></div>
+            </div><p><br></p>
+        `;
+    } else {
+        html = `
+            <div class="glass-card" contenteditable="true">
+                <h2 class="module-heading ${colorClass}" data-type="${type}"># ${titles[type]}</h2>
+                <div class="block-kpi"><input type="checkbox"><span><br></span></div>
+            </div><p><br></p>
+        `;
+    }
     
     safeInsertBlock(html);
 }
