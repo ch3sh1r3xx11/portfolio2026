@@ -112,6 +112,28 @@ const resizeObserver = new ResizeObserver(() => {
 
 function observeCards() {
     if (!editorContent) return;
+    
+    // --- AUTO-FIX: Cleanup or wrap orphaned elements ---
+    let domChanged = false;
+    Array.from(editorContent.children).forEach(child => {
+        if (!child.classList.contains('glass-card')) {
+            if (child.textContent.trim() === '') {
+                child.remove();
+                domChanged = true;
+            } else {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'glass-card';
+                child.parentNode.insertBefore(wrapper, child);
+                wrapper.appendChild(child);
+                domChanged = true;
+            }
+        }
+    });
+    
+    if (domChanged) {
+        document.getElementById('update-project-btn')?.click();
+    }
+    
     const cards = editorContent.querySelectorAll('.glass-card');
     cards.forEach(card => {
         if (!card.hasAttribute('data-observed')) {
