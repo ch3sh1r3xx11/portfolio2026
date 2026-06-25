@@ -331,24 +331,18 @@
             </div>
         </div>
 
-        <!-- 2: WIEDZA UNIKALNA -->
+        <!-- 2: RAPORTY -->
         <div class="panel" data-index="2">
             <div class="panel-bg-deep"></div>
             <div class="panel-bg"></div>
             <div class="panel-content">
-                <div class="panel-num" style="color:var(--teal)"><span class="panel-num-line" style="background:var(--teal)"></span>Certyfikaty & Stack</div>
-                <h2 class="panel-title">wiedza</h2>
-                <div class="cert-list">
-                    <div class="cert-row"><div class="cert-left"><span class="cert-name">McKinsey Forward</span><span class="cert-org">McKinsey & Company</span></div><span class="cert-badge badge-done">Ukończony</span></div>
-                    <div class="cert-row"><div class="cert-left"><span class="cert-name">PM Kickoff</span><span class="cert-org">PMI</span></div><span class="cert-badge badge-done">Ukończony</span></div>
-                    <div class="cert-row"><div class="cert-left"><span class="cert-name">Gen AI for PM</span><span class="cert-org">PMI</span></div><span class="cert-badge badge-done">Ukończony</span></div>
-                    <div class="cert-row"><div class="cert-left"><span class="cert-name">Google PM Certificate</span><span class="cert-org">Google / Coursera</span></div><span class="cert-badge badge-wip">W trakcie</span></div>
+                <div class="panel-num" style="color:var(--teal)"><span class="panel-num-line" style="background:var(--teal)"></span>Build in Public</div>
+                <h2 class="panel-title">raporty</h2>
+                <div class="cert-list" id="report-list">
+                    <div class="cert-row"><div class="cert-left"><span class="cert-name" style="color:var(--teal)">Ładowanie raportów z chmury...</span></div></div>
                 </div>
-                <div class="stack-wrap">
-                    <span class="chip" style="border-color:rgba(0,201,200,0.3);color:var(--teal)">Perplexity Pro</span>
-                    <span class="chip" style="border-color:rgba(232,25,122,0.3);color:var(--magenta)">Antigravity IDE</span>
-                    <span class="chip" style="border-color:rgba(155,61,232,0.3);color:var(--purple)">Google Pro</span>
-                    <span class="chip">Claude</span>
+                <div class="stack-wrap" style="margin-top: 1.5rem">
+                    <button id="btn-add-report" class="chip" style="background:transparent; border: 1px solid var(--magenta); color:var(--magenta); cursor:pointer; font-family:var(--font-mono);">+ DODAJ RAPORT</button>
                 </div>
             </div>
         </div>
@@ -570,24 +564,33 @@
     loop();
 </script>
 
+<div id="add-report-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:200; background:rgba(0,0,0,0.8); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); align-items:center; justify-content:center;">
+    <div style="background:rgba(20,25,30,0.9); border:1px solid rgba(255,255,255,0.1); border-radius:1rem; padding:2rem; width:90%; max-width:600px; display:flex; flex-direction:column; gap:1rem; color:var(--white); box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+        <h3 style="font-family:var(--font-mono); color:var(--magenta); letter-spacing:0.1em; text-transform:uppercase;">DODAJ RAPORT (BUILD IN PUBLIC)</h3>
+        <input type="text" id="report-title-input" placeholder="Tytuł raportu (np. Case Study v0.4)" style="padding:0.8rem; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.2); color:white; border-radius:4px; font-family:var(--font-body); font-size:1rem; outline:none;">
+        <textarea id="report-markdown-input" placeholder="Wklej Markdown tutaj..." rows="12" style="padding:0.8rem; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.2); color:white; border-radius:4px; font-family:var(--font-mono); resize:vertical; font-size:0.9rem; outline:none;"></textarea>
+        <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:0.5rem;">
+            <button id="btn-close-modal" style="padding:0.6rem 1.2rem; background:transparent; border:1px solid var(--white-dim); color:var(--white-dim); cursor:pointer; border-radius:4px; font-family:var(--font-mono); text-transform:uppercase;">Anuluj</button>
+            <button id="btn-save-report" style="padding:0.6rem 1.2rem; background:var(--magenta); border:none; color:white; font-weight:bold; cursor:pointer; border-radius:4px; font-family:var(--font-mono); text-transform:uppercase;">Publikuj w chmurze</button>
+        </div>
+    </div>
+</div>
+
 <script type="module">
     import { db } from './js/firebase-config.js';
-    import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { collection, getDocs, query, where, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     async function loadProjects() {
         const projectList = document.getElementById('project-list');
         if (!projectList) return;
 
         try {
-            // Pobieramy tylko projekty, które są opublikowane
             const q = query(collection(db, "projects"), where("isPublished", "==", true));
             const querySnapshot = await getDocs(q);
-            
-            projectList.innerHTML = ''; // Usuwamy napis 'Ładowanie...'
+            projectList.innerHTML = ''; 
             
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                
                 const row = document.createElement('div');
                 row.className = 'cert-row';
                 row.style.cursor = 'pointer';
@@ -595,12 +598,10 @@
                 
                 const left = document.createElement('div');
                 left.className = 'cert-left';
-                
                 const nameSpan = document.createElement('span');
                 nameSpan.className = 'cert-name';
                 nameSpan.style.color = data.themeColor ? `var(--${data.themeColor})` : 'var(--teal)';
                 nameSpan.textContent = data.title + ' ↗';
-                
                 const orgSpan = document.createElement('span');
                 orgSpan.className = 'cert-org';
                 orgSpan.style.color = 'var(--white-dim)';
@@ -611,18 +612,136 @@
                 row.appendChild(left);
                 projectList.appendChild(row);
             });
-            
-            // Jeśli pusto (brak projektów z isPublished == true w nowej bazie)
             if (projectList.innerHTML === '') {
                  projectList.innerHTML = '<div class="cert-row"><div class="cert-left"><span class="cert-name" style="color:var(--white-dim)">Brak opublikowanych projektów.</span></div></div>';
             }
         } catch (e) {
             console.error("Błąd podczas pobierania projektów:", e);
-            projectList.innerHTML = '<div class="cert-row"><div class="cert-left"><span class="cert-name" style="color:var(--magenta)">Błąd ładowania.</span></div></div>';
         }
     }
 
+    async function loadReports() {
+        const reportList = document.getElementById('report-list');
+        if (!reportList) return;
+
+        try {
+            // Sortujemy po dacie stworzenia malejąco, jeśli mamy pole date
+            const q = query(collection(db, "reports"), where("isPublished", "==", true));
+            const querySnapshot = await getDocs(q);
+            
+            // Ponieważ Firestore wymaga indexu dla where() + orderBy(), na razie sortujemy po stronie klienta
+            let reports = [];
+            querySnapshot.forEach((doc) => {
+                reports.push({id: doc.id, ...doc.data()});
+            });
+            
+            // Sort malejąco po dacie
+            reports.sort((a,b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+            reportList.innerHTML = ''; 
+            
+            reports.forEach((data) => {
+                const row = document.createElement('div');
+                row.className = 'cert-row';
+                row.style.cursor = 'pointer';
+                row.onclick = () => window.location.href = 'report.html?id=' + data.id;
+                
+                const left = document.createElement('div');
+                left.className = 'cert-left';
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'cert-name';
+                nameSpan.style.color = 'var(--teal)';
+                nameSpan.textContent = data.title + ' ↗';
+                
+                const orgSpan = document.createElement('span');
+                orgSpan.className = 'cert-org';
+                orgSpan.style.color = 'var(--white-dim)';
+                orgSpan.textContent = data.date || '';
+                
+                left.appendChild(nameSpan);
+                left.appendChild(orgSpan);
+                row.appendChild(left);
+                reportList.appendChild(row);
+            });
+            
+            if (reportList.innerHTML === '') {
+                 reportList.innerHTML = '<div class="cert-row"><div class="cert-left"><span class="cert-name" style="color:var(--white-dim)">Brak opublikowanych raportów.</span></div></div>';
+            }
+        } catch (e) {
+            console.error("Błąd podczas pobierania raportów:", e);
+            reportList.innerHTML = '<div class="cert-row"><div class="cert-left"><span class="cert-name" style="color:var(--magenta)">Błąd ładowania.</span></div></div>';
+        }
+    }
+
+    // Modal UI Logic
+    const modal = document.getElementById('add-report-modal');
+    const btnOpen = document.getElementById('btn-add-report');
+    const btnClose = document.getElementById('btn-close-modal');
+    const btnSave = document.getElementById('btn-save-report');
+    const inputTitle = document.getElementById('report-title-input');
+    const inputMd = document.getElementById('report-markdown-input');
+
+    if(btnOpen) {
+        btnOpen.addEventListener('click', (e) => {
+            e.stopPropagation(); // zeby nie triggerowalo eventow 3D
+            modal.style.display = 'flex';
+        });
+    }
+
+    if(btnClose) {
+        btnClose.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+
+    if(btnSave) {
+        btnSave.addEventListener('click', async () => {
+            const title = inputTitle.value.trim();
+            const md = inputMd.value.trim();
+            if(!title || !md) {
+                alert("Wpisz tytuł i treść raportu!");
+                return;
+            }
+
+            btnSave.textContent = "Zapisywanie...";
+            btnSave.disabled = true;
+
+            const today = new Date().toISOString().split('T')[0]; // format YYYY-MM-DD
+
+            try {
+                await addDoc(collection(db, "reports"), {
+                    title: title,
+                    charterMarkdown: md,
+                    isPublished: true,
+                    date: today,
+                    themeColor: "teal"
+                });
+                
+                // Success
+                inputTitle.value = '';
+                inputMd.value = '';
+                modal.style.display = 'none';
+                btnSave.textContent = "Publikuj w chmurze";
+                btnSave.disabled = false;
+                
+                // Refresh list
+                loadReports();
+            } catch (e) {
+                console.error("Błąd podczas zapisu:", e);
+                alert("Błąd podczas zapisu. Sprawdź konsole.");
+                btnSave.textContent = "Publikuj w chmurze";
+                btnSave.disabled = false;
+            }
+        });
+    }
+
+    // Zatrzymaj eventy 3D podczas pisania w modalu
+    modal.addEventListener('mousedown', e => e.stopPropagation());
+    modal.addEventListener('touchstart', e => e.stopPropagation());
+    modal.addEventListener('wheel', e => e.stopPropagation());
+
     loadProjects();
+    loadReports();
 </script>
 </body>
 </html>
