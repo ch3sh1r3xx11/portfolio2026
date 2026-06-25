@@ -111,59 +111,48 @@ input[type=range][orient=vertical] {
     height: 100px;
 }
 
-/* ── MAIN CANVAS ── */
+/* ── MAIN CANVAS (Wall of Text) ── */
 .creator-workspace {
     flex: 1; display: flex; flex-direction: column; align-items: center;
-    padding: 6rem 20px 10vh 20px; /* Added top padding so it goes below the fixed nav */
+    padding: 6rem 20px 10vh 20px;
     position: relative; z-index: 5;
+    background: transparent;
 }
 
-.canvas-container {
+.document-wrapper {
     width: 100%; max-width: 900px;
-    background: rgba(20, 32, 40, 0.4); /* Statyczna przezroczystość */
-    backdrop-filter: blur(10px); /* Lekki stały blur pod tekstem */
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 8px;
-    padding: 3rem 4rem;
-    min-height: 80vh;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-    transition: background 0.1s ease, backdrop-filter 0.1s ease;
+    display: flex; flex-direction: column;
+    padding: 2rem 0;
 }
 
 /* Mandatory Section */
 .mandatory-section {
     display: flex; flex-direction: column; gap: 0.5rem;
+    margin-bottom: 3rem;
 }
-.editor-title-input {
-    width: 100%; background: transparent; border: none; outline: none;
-    font-size: 3rem; font-weight: 800; color: var(--white); font-family: var(--font-mono);
+.meta-row {
+    display: flex; align-items: center; gap: 1rem;
 }
-.editor-title-input::placeholder { color: rgba(255,255,255,0.15); }
-
-.editor-version-input {
-    width: 150px; background: transparent; border: none; outline: none;
-    font-size: 1rem; color: var(--teal); font-family: var(--font-mono);
-    font-weight: 700;
+.meta-label {
+    font-size: 1rem; color: var(--white-dim); font-weight: 700;
+    width: 80px;
 }
-.editor-version-input::placeholder { color: rgba(0, 201, 200, 0.3); }
-
-.canvas-divider {
-    border: none; border-top: 1px solid rgba(255,255,255,0.05);
-    margin: 2rem 0;
+.meta-input {
+    flex: 1; background: transparent; border: none; outline: none;
+    font-size: 1rem; color: var(--white); font-family: var(--font-mono);
 }
+.meta-input::placeholder { color: rgba(255,255,255,0.15); }
+.meta-input:read-only { color: rgba(255,255,255,0.4); }
 
 /* ── NOTION STYLE EDITOR ── */
 .editor-body {
     position: relative;
+    padding-bottom: 100px; /* Space for the floating toolbar */
 }
 
 .editor-content {
-    width: 100%; min-height: 50vh; color: var(--white-dim); font-size: 1rem;
-    line-height: 1.7; outline: none;
-}
-.editor-content:empty:before {
-    content: attr(placeholder); color: rgba(255,255,255,0.2); pointer-events: none;
+    width: 100%; min-height: 50vh; color: var(--white-dim); font-size: 1.1rem;
+    line-height: 1.8; outline: none;
 }
 .editor-content h1, .editor-content h2, .editor-content h3 {
     color: var(--white); margin-top: 2rem; margin-bottom: 0.5rem;
@@ -177,22 +166,11 @@ input[type=range][orient=vertical] {
     color: var(--magenta); border-bottom-color: rgba(232,25,122,0.2);
 }
 
-/* Floating Block Menu */
-.block-menu-trigger {
-    position: absolute; left: -45px; top: 0;
-    width: 24px; height: 24px; border-radius: 4px;
-    background: transparent; color: rgba(255,255,255,0.3);
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; font-weight: bold; transition: all 0.2s;
-    font-size: 1.2rem;
-}
-.block-menu-trigger:hover { background: rgba(255,255,255,0.1); color: var(--white); }
-
 .block-menu {
-    position: absolute; left: -10px; top: 30px;
+    position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
     background: var(--black); border: 1px solid rgba(255,255,255,0.1);
     border-radius: 6px; padding: 0.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-    z-index: 100; display: flex; flex-direction: column; gap: 0.25rem;
+    z-index: 1050; display: flex; flex-direction: column; gap: 0.25rem;
     width: 220px;
 }
 .block-menu-header {
@@ -201,7 +179,6 @@ input[type=range][orient=vertical] {
     margin-bottom: 0.25rem;
 }
 .block-menu.hidden { display: none; }
-.block-menu-trigger.hidden { display: none; }
 
 .block-option {
     background: transparent; border: none; color: var(--white-dim);
