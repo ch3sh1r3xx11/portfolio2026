@@ -260,7 +260,7 @@ async function initProject() {
         setTimeout(() => {
             flash.style.opacity = '0';
             setTimeout(() => {
-                window.location.href = "../portfolio/index.html"; // Powrót na stronę główną
+                window.location.href = "/"; // Powrót na stronę główną
             }, 500);
         }, 100);
     } catch (e) {
