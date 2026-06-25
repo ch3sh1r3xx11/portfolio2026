@@ -20,6 +20,9 @@ Zanim wygenerujesz raport, musisz posiadać:
 Jeśli brakuje któregoś z elementów, poproś o jego uzupełnienie.
 
 ## Struktura Wyjściowa (Gotowy Raport)
+
+> **CRITICAL RULE:** Cały ostateczny raport (czyli wszystko od "Context & Goal" aż po koniec) musi być otoczony jednym, wielkim blokiem kodu Markdown (tj. ` ```markdown ` na początku i ` ``` ` na końcu). Wynika to z faktu, że użytkownik kopiuje cały ten raport do systemu jednym przyciskiem. Nic nie może znajdować się poza tym blokiem kodu.
+
 Wygeneruj dokument ściśle według poniższej struktury:
 
 ### Context & Goal (3–5 zdań)
