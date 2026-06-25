@@ -272,6 +272,16 @@
         .cta-big { font-size:clamp(2.5rem, 6vw, 5rem); font-weight:900;
             line-height:0.92; letter-spacing:-0.04em; margin-bottom:1rem; }
 
+        /* ── GANTT PIPELINE ── */
+        .gantt-wrapper { position:relative; display:flex; flex-direction:column; gap:1.5rem; margin-top:1rem; padding-bottom:1.5rem;}
+        .gantt-row { display:flex; flex-direction:column; gap:0.4rem; z-index:2; }
+        .gantt-label { font-family:var(--font-mono); font-size:0.75rem; letter-spacing:0.05em; font-weight:700; display:flex; justify-content:space-between; }
+        .gantt-ver { opacity:0.6; font-weight:400; }
+        .gantt-track { width:100%; height:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:6px; position:relative; overflow:visible; }
+        .gantt-bar { height:100%; border-radius:6px; position:relative; }
+        .gantt-live-dot { position:absolute; right:0; top:50%; transform:translate(50%, -50%); width:10px; height:10px; border-radius:50%; animation: blink 1.5s infinite; border:2px solid var(--bg-color); }
+        .gantt-markers { position:absolute; bottom:0; left:0; width:100%; display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.5rem; color:var(--white-dim); opacity:0.5; border-top:1px dashed rgba(255,255,255,0.1); padding-top:0.4rem; z-index:1; }
+
         /* ── RESPONSIVE ── */
         @media (max-width: 640px) {
             nav { padding:0.7rem 1.25rem; }
@@ -352,7 +362,7 @@
             <div class="panel-bg-deep"></div>
             <div class="panel-bg"></div>
             <div class="panel-content">
-                <div class="panel-num" style="color:var(--purple)"><span class="panel-num-line" style="background:var(--purple)"></span>unique leverage</div>
+                <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>unique leverage</div>
                 <h2 class="panel-title">specific knowledge</h2>
                 <p class="panel-body" style="margin-bottom:1.5rem; max-width:100%;">Unikalna mieszanka myślenia, odporności i pracy z AI, która pozwala mi zamieniać chaos w projekty, raporty i systemy.</p>
                 <div class="values-mini" style="grid-template-columns: 1fr; gap:0.5rem;">
@@ -370,7 +380,7 @@
             <div class="panel-bg-deep"></div>
             <div class="panel-bg"></div>
             <div class="panel-content">
-                <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>Proces</div>
+                <div class="panel-num" style="color:var(--teal)"><span class="panel-num-line" style="background:var(--teal)"></span>Proces</div>
                 <h2 class="panel-title">workflow i systemy</h2>
                 <p class="panel-body" style="margin-bottom:1.5rem; max-width:100%;">Zaczynam od chaosu, ale nie kończę na improwizacji. Buduję workflow, które porządkuje pracę, i systemy, które zostają po wdrożeniu.</p>
                 <div class="values-mini" style="grid-template-columns: 1fr; gap:0.5rem;">
@@ -383,19 +393,51 @@
             </div>
         </div>
 
-        <!-- 5: CTA / MISJA -->
+        <!-- 5: PIPELINE -->
         <div class="panel" data-index="5">
             <div class="panel-bg-deep"></div>
             <div class="panel-bg"></div>
             <div class="panel-content">
-                <div class="panel-num" style="color:var(--teal)"><span class="panel-num-line" style="background:var(--teal)"></span>Misja</div>
-                <h2 class="panel-title" style="margin-bottom:0.75rem">kolejny krok</h2>
-                <div class="manifest-quote">"Szukam pierwszej roli: junior PM / project coordinator / operations"</div>
-                <div class="panel-body">Buduję systemy, contentem i narzędziami AI. Na żywo. Nie korporacyjnie, autentycznie. Masz projekt? Pogadajmy.</div>
-                <div class="hero-ctas" style="margin-top: 1.5rem">
-                    <a href="https://linkedin.com" target="_blank" rel="noopener" class="btn btn-fill">LinkedIn ↗</a>
-                    <a href="mailto:polomski10@gmail.com" class="btn btn-ghost">Email ↗</a>
-                    <a href="#" class="btn btn-ghost">CV ↗</a>
+                <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>Current Versions</div>
+                <h2 class="panel-title">pipeline</h2>
+                <p class="panel-body" style="margin-bottom:2rem; max-width:100%;">Buduję równolegle. Transparentność na poziomie wersji i shipowania. Poniżej widać postęp wdrożeń w poszczególnych produktach cyfrowych.</p>
+                
+                <div class="gantt-wrapper">
+                    <!-- Projekt 1: Projektownik 0.6 (Magenta) -->
+                    <div class="gantt-row">
+                        <div class="gantt-label" style="color:var(--magenta)">Projektownik <span class="gantt-ver">v0.6</span></div>
+                        <div class="gantt-track">
+                            <div class="gantt-bar" style="width:60%; background:var(--magenta); box-shadow:0 0 10px var(--magenta);">
+                                <div class="gantt-live-dot" style="background:var(--magenta);"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Projekt 2: Portfolio 0.4 (Teal) -->
+                    <div class="gantt-row">
+                        <div class="gantt-label" style="color:var(--teal)">Portfolio <span class="gantt-ver">v0.4</span></div>
+                        <div class="gantt-track">
+                            <div class="gantt-bar" style="width:40%; background:var(--teal); box-shadow:0 0 10px var(--teal);">
+                                <div class="gantt-live-dot" style="background:var(--teal);"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Projekt 3: YMH 0.2 (Magenta) -->
+                    <div class="gantt-row">
+                        <div class="gantt-label" style="color:var(--magenta)">YMH <span class="gantt-ver">v0.2</span></div>
+                        <div class="gantt-track">
+                            <div class="gantt-bar" style="width:20%; background:var(--magenta); box-shadow:0 0 10px var(--magenta);">
+                                <div class="gantt-live-dot" style="background:var(--magenta);"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="gantt-markers">
+                        <span>v0.2</span>
+                        <span>v0.4</span>
+                        <span>v0.6</span>
+                        <span>v0.8</span>
+                        <span>v1.0</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -405,7 +447,7 @@
             <div class="panel-bg-deep"></div>
             <div class="panel-bg"></div>
             <div class="panel-content" style="justify-content:center">
-                <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>Kontakt</div>
+                <div class="panel-num" style="color:var(--teal)"><span class="panel-num-line" style="background:var(--teal)"></span>Kontakt</div>
                 <h2 class="cta-big">śledź moją piaskownicę</h2>
                 <p class="panel-body" style="max-width:420px;margin-bottom:1.5rem">Publikuję "surowy" proces, bez brand-polishu. Buduję portfel cyfrowych produktów. Jeśli chcesz to obserwować — zapraszam.</p>
                 <div class="hero-ctas">
