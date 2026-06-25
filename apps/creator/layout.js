@@ -158,8 +158,8 @@ window.addEventListener('mousemove', (e) => {
     if (card && !isDraggingCard) {
         currentHoveredCard = card;
         const rect = card.getBoundingClientRect();
-        hoverMenu.style.top = \`\${rect.top}px\`;
-        hoverMenu.style.left = \`\${rect.left - 36}px\`;
+        hoverMenu.style.top = `${rect.top}px`;
+        hoverMenu.style.left = `${rect.left - 36}px`;
         hoverMenu.classList.add('active');
     } else if (!isMenu && !isDraggingCard) {
         hoverMenu.classList.remove('active');
@@ -199,7 +199,7 @@ window.addEventListener('mousemove', (e) => {
     const deltaY = (e.clientY - dragStartY) / scale;
     const newY = initialCardY + deltaY;
     
-    draggedCard.style.transform = \`translateY(\${newY}px)\`;
+    draggedCard.style.transform = `translateY(${newY}px)`;
     
     const cards = Array.from(editorContent.querySelectorAll('.glass-card'));
     const cardCenterY = newY + (draggedCard.offsetHeight / 2);
