@@ -224,6 +224,15 @@ input[type=range][orient=vertical] {
     color: #f5a623;
 }
 
+.block-ai {
+    background: rgba(138, 43, 226, 0.1);
+    border-left: 2px solid #8A2BE2;
+    padding: 1rem;
+    margin: 1rem 0;
+    color: #d4a5ff;
+    font-family: var(--font-mono);
+}
+
 .block-kpi {
     margin: 0.5rem 0;
     position: relative;
