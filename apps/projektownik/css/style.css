@@ -171,11 +171,10 @@ body, html {
     backdrop-filter: blur(10px);
     cursor: grab;
     pointer-events: auto;
-    resize: horizontal;
+    resize: both;
     overflow: hidden;
     min-width: 200px;
-    height: fit-content !important;
-    min-height: 100px;
+    min-height: 50px;
     user-select: none;
     -webkit-user-select: none;
 }

@@ -599,7 +599,7 @@ function updateCardElement(id, data) {
     card.style.top = `${data.y}px`;
     
     if (data.width) card.style.width = `${data.width}px`;
-    // Height is handled automatically by CSS (fit-content) to allow auto-expansion
+    if (data.height) card.style.height = `${data.height}px`;
     
     if (data.type === 'text') {
         const header = card.querySelector('.card-header');
