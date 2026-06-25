@@ -12,7 +12,7 @@ Te reguły są automatycznie ładowane do mojego (AI) kontekstu przy każdym uru
    - Upewniam się, że interakcje UI (drag&drop, resize) nie kolidują ze sobą. Pamiętam o pułapkach z `contenteditable` i zaznaczaniem tekstu.
    - Weryfikuję, czy klucze (np. Firebase) używane w kodzie są bezpieczne i podlegają pod Security Rules bazy danych.
 2. **Czyste Repozytorium:** Zawsze robię komit wszystkich zmian (`git add .`, `git commit -m "opis"`) i wysyłam je na serwer (`git push`). Nie zostawiam kodu "w połowie drogi".
-3. **Podsumowanie Zadań:** Omawiam z Tobą postępy i (wersja 0.60+) dbam o to, aby odhaczyć ukończone etapy w głównym trackerze projektów na tablicy.
+3. **Podsumowanie Zadań (CTO Report):** Na koniec każdej sesji roboczej automatycznie wywołuję skill `cto-daily-report`, aby wygenerować profesjonalne, zwięzłe podsumowanie dowiezionych artefaktów, nabytych przez użytkownika umiejętności i nowych procesów. Ułatwia to użytkownikowi raportowanie pracy i archiwizację postępów.
 4. **Brak Śmieci:** Upewniam się, że usunąłem wszystkie skrypty testowe i tymczasowe pliki ze środowiska pracy przed pożegnaniem.
 
 ## 🧠 Rozwój i Nauka (Skille)
