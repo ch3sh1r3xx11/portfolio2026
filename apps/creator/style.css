@@ -247,6 +247,9 @@ input[type=range][orient=vertical] {
     border-color: var(--teal);
     box-shadow: 0 0 15px rgba(0, 201, 200, 0.1);
 }
+.glass-card > :first-child {
+    margin-top: 0;
+}
 
 .block-kpi {
     margin: 0.5rem 0;
