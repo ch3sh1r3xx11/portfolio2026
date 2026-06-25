@@ -154,11 +154,31 @@ editorContent.addEventListener('keydown', (e) => {
             return;
         }
 
-        // Handle Styled Notes. Prevent duplicate div creation, just insert line break
-        const noteBlock = currentNode.nodeType === 3 ? currentNode.parentNode.closest('.block-note') : (currentNode.closest ? currentNode.closest('.block-note') : null);
-        if (noteBlock && !e.shiftKey) {
-            e.preventDefault();
-            document.execCommand('insertLineBreak');
+        // Handle Styled Notes and AI blocks.
+        // Shift+Enter = nowa linia wewnątrz. Enter = wyjście z bloku.
+        const noteBlock = currentNode.nodeType === 3 ? currentNode.parentNode.closest('.block-note, .block-ai') : (currentNode.closest ? currentNode.closest('.block-note, .block-ai') : null);
+        if (noteBlock) {
+            if (e.shiftKey) {
+                e.preventDefault();
+                document.execCommand('insertLineBreak');
+            } else {
+                e.preventDefault();
+                const p = document.createElement('p');
+                p.innerHTML = '<br>';
+                
+                // Jeśli jesteśmy w szklanej karcie, wychodzimy pod nią, by nie psuć struktury
+                const glassCard = noteBlock.closest('.glass-card');
+                if (glassCard) {
+                    glassCard.parentNode.insertBefore(p, glassCard.nextSibling);
+                } else {
+                    noteBlock.parentNode.insertBefore(p, noteBlock.nextSibling);
+                }
+                
+                range.setStart(p, 0);
+                range.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
             return;
         }
     } else if (e.key === 'Backspace') {
@@ -281,28 +301,31 @@ function safeInsertBlock(html) {
     const selection = window.getSelection();
     if (selection.rangeCount > 0) {
         let node = selection.getRangeAt(0).startContainer;
-        let specialBlock = node.nodeType === 3 ? node.parentNode.closest('.block-kpi, .block-note, .module-heading') : (node.closest ? node.closest('.block-kpi, .block-note, .module-heading') : null);
         
-        if (specialBlock) {
+        // Szukamy najbliższej szklanej karty, by wstawić nowy blok pod nią (a nie w środku!)
+        let targetContainer = node.nodeType === 3 ? node.parentNode.closest('.glass-card') : (node.closest ? node.closest('.glass-card') : null);
+        
+        if (!targetContainer) {
+            targetContainer = node.nodeType === 3 ? node.parentNode.closest('.block-kpi, .block-note, .module-heading') : (node.closest ? node.closest('.block-kpi, .block-note, .module-heading') : null);
+        }
+        
+        if (targetContainer) {
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html;
-            let currentInsertPos = specialBlock;
+            let currentInsertPos = targetContainer;
             
             Array.from(tempDiv.childNodes).forEach(child => {
-                specialBlock.parentNode.insertBefore(child, currentInsertPos.nextSibling);
+                targetContainer.parentNode.insertBefore(child, currentInsertPos.nextSibling);
                 currentInsertPos = child;
             });
             
             editorContent.focus();
             const range = document.createRange();
-            // find the first insertable text area in the newly inserted HTML
-            const spanOrP = tempDiv.querySelector('span, p, div.block-content');
-            if (spanOrP && currentInsertPos.parentNode) {
-                 // The element is now in the DOM, we need to find it in the DOM
-                 // currentInsertPos is the last inserted element
-                 range.setStart(currentInsertPos, 0);
+            const spanOrP = Array.from(targetContainer.parentNode.children).find(el => el.innerHTML === '<br>');
+            if (spanOrP) {
+                range.setStart(spanOrP, 0);
             } else {
-                 range.setStartAfter(currentInsertPos);
+                range.setStartAfter(currentInsertPos);
             }
             range.collapse(true);
             selection.removeAllRanges();
@@ -310,8 +333,18 @@ function safeInsertBlock(html) {
             return;
         }
     }
-    document.execCommand('insertHTML', false, html);
-    editorContent.focus();
+    
+    // Fallback: append at the end
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    Array.from(tempDiv.childNodes).forEach(child => {
+        editorContent.appendChild(child);
+    });
+    
+    // Always ensure there is an empty paragraph at the very bottom
+    const p = document.createElement('p');
+    p.innerHTML = '<br>';
+    editorContent.appendChild(p);
 }
 
 
