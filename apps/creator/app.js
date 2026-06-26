@@ -75,14 +75,16 @@ versionInput.addEventListener('input', updateProgress);
 editorContent.addEventListener('input', updateProgress);
 
 // Utrwal stan checkboxów w DOM, aby innerHTML go zapisał
-editorContent.addEventListener('change', (e) => {
+editorContent.addEventListener('click', (e) => {
     if (e.target.type === 'checkbox') {
-        if (e.target.checked) {
-            e.target.setAttribute('checked', 'checked');
-        } else {
-            e.target.removeAttribute('checked');
-        }
-        collectProjectData(); // Przelicz heatmapę od razu
+        setTimeout(() => {
+            if (e.target.checked) {
+                e.target.setAttribute('checked', 'checked');
+            } else {
+                e.target.removeAttribute('checked');
+            }
+            collectProjectData(); // Przelicz heatmapę od razu
+        }, 10);
     }
 });
 
@@ -494,7 +496,7 @@ async function collectProjectData() {
     }
     
     if (checkedDiff > 0) {
-        projectData.activity[today].completions = (projectData.activity[today].completions || projectData.activity[today].ai || 0) + (checkedDiff * 3);
+        projectData.activity[today].completions = (projectData.activity[today].completions || projectData.activity[today].ai || 0) + (checkedDiff * 5); // 5 points per checkbox
         lastCheckedCount = currentCheckedCount;
     } else if (checkedDiff < 0) {
         lastCheckedCount = currentCheckedCount;
@@ -519,11 +521,11 @@ async function initProject() {
             const docRef = doc(db, "projects", currentProjectId);
             await updateDoc(docRef, {
                 title: projectData.title,
-                subtitle: projectData.version.startsWith('v') ? projectData.version : `v${projectData.version || '0.1'}`,
+                subtitle: (projectData.version || '').startsWith('v') ? projectData.version : `v${projectData.version || '0.1'}`,
                 date: dateInput.value,
                 content: projectData.content,
                 activity: projectData.activity,
-                glassOpacity: glassSlider.value,
+                glassOpacity: parseInt(glassSlider.value, 10),
                 updatedAt: new Date().toISOString()
             });
         } else {
@@ -531,13 +533,13 @@ async function initProject() {
             lastLocalSaveTime = Date.now();
             await addDoc(collection(db, "projects"), {
                 title: projectData.title,
-                subtitle: projectData.version.startsWith('v') ? projectData.version : `v${projectData.version || '0.1'}`,
+                subtitle: (projectData.version || '').startsWith('v') ? projectData.version : `v${projectData.version || '0.1'}`,
                 isPublished: true,
                 themeColor: "magenta",
                 date: dateInput.value,
                 content: projectData.content,
                 activity: projectData.activity,
-                glassOpacity: glassSlider.value,
+                glassOpacity: parseInt(glassSlider.value, 10),
                 createdAt: new Date().toISOString()
             });
         }
@@ -594,7 +596,8 @@ async function loadProject(id) {
                     }
                     if (data.glassOpacity !== undefined) {
                         glassSlider.value = data.glassOpacity;
-                        glassSlider.dispatchEvent(new Event('input'));
+                        const event = new Event('input', { bubbles: true });
+                        glassSlider.dispatchEvent(event);
                     }
                     
                     projectData.activity = data.activity || {};
@@ -715,7 +718,8 @@ function renderHeatmap(activityData) {
                 if (total > 15) val = 4;
                 
                 const opacities = [0, 0.2, 0.5, 0.8, 1.0];
-                const isHot = comp > 0 && comp >= i; // Jeśli są realizacje i przewyższają ideacje, to na gorąco
+                // Jeśli realizacje stanowią przynajmniej 30% ideacji (i są > 0), to wybijamy na Magentę
+                const isHot = comp > 0 && (comp >= (i * 0.3));
                 const rgb = isHot ? '232,25,122' : '0,201,200'; // Magenta : Teal
                 
                 cell.style.background = `rgba(${rgb}, ${opacities[val]})`;
