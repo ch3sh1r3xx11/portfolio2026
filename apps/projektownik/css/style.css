@@ -156,6 +156,16 @@ body, html {
     padding: 0;
 }
 
+.card.image-card {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    padding: 0;
+    overflow: visible !important; /* Pozwala kółkom do resizowania wyjść poza ramkę */
+}
+
 /* --- FORMATOWANIE WKLEJONYCH TABEL (np. z Notiona/Perplexity) --- */
 .card-body table {
     width: 100%;
