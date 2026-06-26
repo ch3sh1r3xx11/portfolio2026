@@ -10,6 +10,8 @@ let projectData = {
 };
 let currentProjectId = null;
 let lastLocalSaveTime = 0;
+let lastCharCount = 0;
+let lastCheckedCount = 0;
 
 // Elements
 const progressBar = document.getElementById('progress-bar');
@@ -459,13 +461,31 @@ async function collectProjectData() {
     projectData.version = versionInput.value;
     projectData.content = editorContent.innerHTML;
     
-    // Zwiększ aktywność usera na dzisiaj przy każdym zapisie/aktualizacji
+    // Zwiększ aktywność usera na dzisiaj
     const today = new Date().toISOString().split('T')[0];
     if (!projectData.activity) projectData.activity = {};
-    if (!projectData.activity[today]) projectData.activity[today] = { user: 0, ai: 0 };
-    projectData.activity[today].user += 1;
+    if (!projectData.activity[today]) projectData.activity[today] = { ideas: 0, completions: 0 };
     
-    // Odśwież widok
+    const currentCharCount = editorContent.innerText.length;
+    const currentCheckedCount = editorContent.querySelectorAll('input[type="checkbox"]:checked').length;
+    
+    const charDiff = currentCharCount - lastCharCount;
+    const checkedDiff = currentCheckedCount - lastCheckedCount;
+    
+    if (charDiff > 15) {
+        projectData.activity[today].ideas = (projectData.activity[today].ideas || projectData.activity[today].user || 0) + 1;
+        lastCharCount = currentCharCount;
+    } else if (charDiff < 0) {
+        lastCharCount = currentCharCount;
+    }
+    
+    if (checkedDiff > 0) {
+        projectData.activity[today].completions = (projectData.activity[today].completions || projectData.activity[today].ai || 0) + 2;
+        lastCheckedCount = currentCheckedCount;
+    } else if (checkedDiff < 0) {
+        lastCheckedCount = currentCheckedCount;
+    }
+    
     renderHeatmap(projectData.activity);
 }    
 
@@ -597,23 +617,21 @@ async function loadProject(id) {
                             kpi.innerHTML = `<input type="checkbox"><span>${kpiText}</span>`;
                         }
                     });
-
-                    const oldNotes = editorContent.querySelectorAll('div[style*="rgba(245, 166, 35, 0.1)"]');
-                    oldNotes.forEach(note => {
-                        note.removeAttribute('style');
-                        note.className = 'block-note';
-                    });
-                    // -----------------------------------------------------------------------
-
-                    updateProgress();
+                    
+                    lastCharCount = editorContent.innerText.length;
+                    lastCheckedCount = editorContent.querySelectorAll('input[type="checkbox"]:checked').length;
                 }
-                isFirstLoad = false;
             } else {
-                console.error("Projekt nie istnieje!");
-                if (isFirstLoad) {
-                    window.location.href = "/";
-                }
+                const oldNotes = editorContent.querySelectorAll('div[style*="rgba(245, 166, 35, 0.1)"]');
+                oldNotes.forEach(note => {
+                    note.removeAttribute('style');
+                    note.className = 'block-note';
+                });
+                // -----------------------------------------------------------------------
+
+                updateProgress();
             }
+            isFirstLoad = false;
         });
     } catch (e) {
         console.error("Błąd podczas ładowania projektu:", e);
@@ -634,69 +652,56 @@ if (projectId) {
 
 function renderHeatmap(activityData) {
     const dumpDisplay = document.getElementById('project-activity-dump');
-    const heatmapGrid = document.getElementById('activity-heatmap');
-    if (!dumpDisplay || !heatmapGrid) return;
+    const hmContainer = document.getElementById('activity-heatmap');
+    if (!dumpDisplay || !hmContainer) return;
 
     // 1. Render JSON dump
     const todayStr = new Date().toISOString().split('T')[0];
-    const todayData = activityData[todayStr] || { user: 0, ai: 0 };
-    dumpDisplay.value = `{ '${todayStr}': { user: ${todayData.user}, ai: ${todayData.ai} } }`;
+    const todayData = activityData[todayStr] || { ideas: 0, completions: 0 };
+    const ideas = todayData.ideas || todayData.user || 0;
+    const comps = todayData.completions || todayData.ai || 0;
+    dumpDisplay.value = `{ '${todayStr}': { ideas: ${ideas}, completions: ${comps} } }`;
 
-    // 2. Render Heatmap Squares
-    // Portfolio style: 3 rows, 30 columns
-    const hmContainer = document.getElementById('activity-heatmap');
+    // 2. Render Heatmap Squares (90 days timeline)
     hmContainer.innerHTML = '';
     
-    const days = [];
-    for (let i = 29; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        days.push(d.toISOString().split('T')[0]);
-    }
-
-    const hmData = [
-        { color: 'teal', data: [] }, // Row 0: User Activity
-        { color: 'mag',  data: [] }, // Row 1: AI Activity
-        { color: 'teal', data: [] }  // Row 2: Total Activity
-    ];
-
-    days.forEach(dateStr => {
-        const dayData = activityData[dateStr] || { user: 0, ai: 0 };
-        const u = dayData.user;
-        const a = dayData.ai;
-        const t = u + a;
-        
-        // Scale 0-4
-        const scale = (val) => {
-            if (val === 0) return 0;
-            if (val <= 5) return 1;
-            if (val <= 15) return 2;
-            if (val <= 30) return 3;
-            return 4;
-        };
-
-        hmData[0].data.push(scale(u));
-        hmData[1].data.push(scale(a));
-        hmData[2].data.push(scale(t));
-    });
-
-    hmData.forEach(p => {
+    // We create 3 rows
+    for (let r = 0; r < 3; r++) {
         const row = document.createElement('div');
         row.className = 'hm-row';
-        p.data.forEach((val, index) => {
+        
+        for (let c = 0; c < 30; c++) {
+            const daysAgo = 89 - (c * 3 + r);
+            const d = new Date();
+            d.setDate(d.getDate() - daysAgo);
+            const dateStr = d.toISOString().split('T')[0];
+            const dayData = activityData[dateStr] || { ideas: 0, completions: 0 };
+            
             const cell = document.createElement('div');
             cell.className = 'hm-cell';
-            cell.title = days[index];
-            if (val === 0) {
+            cell.title = dateStr;
+            
+            const i = dayData.ideas || dayData.user || 0;
+            const comp = dayData.completions || dayData.ai || 0;
+            const total = i + comp;
+            
+            if (total === 0) {
                 cell.style.background = 'rgba(255,255,255,0.05)';
             } else {
+                let val = 1;
+                if (total > 3) val = 2;
+                if (total > 8) val = 3;
+                if (total > 15) val = 4;
+                
                 const opacities = [0, 0.2, 0.5, 0.8, 1.0];
-                const rgb = p.color === 'teal' ? '0,201,200' : '232,25,122';
+                const isHot = comp > 0 && comp >= i; // Jeśli są realizacje i przewyższają ideacje, to na gorąco
+                const rgb = isHot ? '232,25,122' : '0,201,200'; // Magenta : Teal
+                
                 cell.style.background = `rgba(${rgb}, ${opacities[val]})`;
                 if (val === 4) cell.style.boxShadow = `0 0 6px rgba(${rgb}, 0.9)`;
             }
             row.appendChild(cell);
-        });
+        }
         hmContainer.appendChild(row);
-    });
+    }
 }
