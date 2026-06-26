@@ -1,5 +1,6 @@
 import { db, auth, provider, signInWithPopup, onAuthStateChanged, storage, ref, uploadBytes, getDownloadURL, signOut } from './firebase-config.js';
 import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { FlowImageManager } from '/packages/shared-ui/js/FlowImageManager.js';
 
 // --- SYSTEM DEBUGOWANIA ON-SCREEN (WYLĄCZONY) ---
 window.debugLog = function(msg) {
@@ -303,6 +304,23 @@ class HistoryManager {
 }
 const historyManager = new HistoryManager();
 
+const imageManager = new FlowImageManager({
+    getScale: () => scale,
+    onResizeComplete: (id, finalWidth, finalHeight) => {
+        const card = document.getElementById(id);
+        if (!card) return;
+        const startW = card.dataset.startW ? parseFloat(card.dataset.startW) : finalWidth;
+        const startH = card.dataset.startH ? parseFloat(card.dataset.startH) : finalHeight;
+        
+        if (startW !== finalWidth || startH !== finalHeight) {
+            const cmd = new ResizeCommand(id, startW, startH, finalWidth, finalHeight);
+            historyManager.execute(cmd);
+            card.dataset.startW = finalWidth;
+            card.dataset.startH = finalHeight;
+        }
+    }
+});
+
 document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
         if (e.shiftKey) {
@@ -535,17 +553,19 @@ function createCardElement(id, data) {
     card.style.top = `${data.y}px`;
     
     if (data.type === 'image') {
+        card.classList.add('flow-resizable-container');
         card.style.width = data.width ? `${data.width}px` : '300px';
         if (data.height) card.style.height = `${data.height}px`;
-        card.style.padding = '8px';
-        card.style.resize = 'both';
-        card.style.overflow = 'hidden';
+        card.dataset.startW = parseFloat(card.style.width);
+        card.dataset.startH = parseFloat(card.style.height);
+        
         card.innerHTML = `
-            <button class="delete-btn" title="Usuń">×</button>
-            <img src="${data.url}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px; display: block; pointer-events: none;">
+            <button class="delete-btn" title="Usuń" style="z-index: 1003;">×</button>
+            <img class="flow-image-content" src="${data.url}">
         `;
         canvas.appendChild(card);
         makeDraggable(card, id);
+        imageManager.attachTo(card, id);
     } else if (data.type === 'textblock') {
         card.classList.add('text-card');
         card.style.resize = 'both';
@@ -574,25 +594,27 @@ function createCardElement(id, data) {
         makeEditable(card, id);
     }
     
-    
-    let initialWidth = 0;
-    let initialHeight = 0;
-    
-    card.addEventListener('mousedown', () => {
-        initialWidth = parseFloat(window.getComputedStyle(card).width);
-        initialHeight = parseFloat(window.getComputedStyle(card).height);
-    });
-    
-    card.addEventListener('mouseup', async () => {
-        const currentW = parseFloat(window.getComputedStyle(card).width);
-        const currentH = parseFloat(window.getComputedStyle(card).height);
-        if (data.width !== currentW || data.height !== currentH) {
-            const cmd = new ResizeCommand(id, data.width || initialWidth, data.height || initialHeight, currentW, currentH);
-            historyManager.execute(cmd);
-            data.width = currentW;
-            data.height = currentH;
-        }
-    });
+    // Tylko stare elementy korzystają z natywnego mouseup resize.
+    if (data.type !== 'image') {
+        let initialWidth = 0;
+        let initialHeight = 0;
+        
+        card.addEventListener('mousedown', () => {
+            initialWidth = parseFloat(window.getComputedStyle(card).width);
+            initialHeight = parseFloat(window.getComputedStyle(card).height);
+        });
+        
+        card.addEventListener('mouseup', async () => {
+            const currentW = parseFloat(window.getComputedStyle(card).width);
+            const currentH = parseFloat(window.getComputedStyle(card).height);
+            if (data.width !== currentW || data.height !== currentH) {
+                const cmd = new ResizeCommand(id, data.width || initialWidth, data.height || initialHeight, currentW, currentH);
+                historyManager.execute(cmd);
+                data.width = currentW;
+                data.height = currentH;
+            }
+        });
+    }
     
     // Obsługa usuwania
     const delBtn = card.querySelector('.delete-btn');
@@ -661,7 +683,7 @@ function makeDraggable(element, id) {
         const mouseX = (e.clientX - rect.left) / scale;
         const mouseY = (e.clientY - rect.top) / scale;
         
-        const isResizeHandle = mouseX > (unscaledWidth - 40) && mouseY > (unscaledHeight - 40);
+        const isResizeHandle = !element.classList.contains('flow-resizable-container') && mouseX > (unscaledWidth - 40) && mouseY > (unscaledHeight - 40);
         isResizingCard = isResizeHandle;
         
         window.debugLog(`Mousedown. isResizeHandle: ${isResizeHandle}`);

@@ -1,6 +1,7 @@
 import { db } from '/js/firebase-config.js';
 import { collection, addDoc, doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { serializeToMarkdown, parseFromMarkdown } from './js/markdown-engine.js';
+import { FlowImageManager } from '/packages/shared-ui/js/FlowImageManager.js';
 
 // Removed on-screen-debugger
 console.log('App loaded v1.2');
@@ -14,6 +15,24 @@ let currentProjectId = null;
 let lastLocalSaveTime = 0;
 let lastCharCount = 0;
 let lastCheckedCount = 0;
+
+const imageManager = new FlowImageManager({
+    getScale: () => 1, // Brak zooma w Kreatorze
+    onResizeComplete: (id, w, h) => {
+        if (currentProjectId) {
+            collectProjectData().then(() => initProject());
+        }
+    }
+});
+
+function rehydrateImages() {
+    const images = editorContent.querySelectorAll('.flow-resizable-container');
+    images.forEach(img => {
+        // Usuwamy stare handles (mogły zostać zapisane w HTML), manager doda je od nowa
+        img.querySelectorAll('.flow-resize-handle, .flow-resize-tooltip').forEach(el => el.remove());
+        imageManager.attachTo(img);
+    });
+}
 
 // Elements
 const progressBar = document.getElementById('progress-bar');
@@ -303,8 +322,18 @@ document.getElementById('add-text-btn').addEventListener('click', () => {
 });
 
 document.getElementById('add-image-btn').addEventListener('click', () => {
-    const html = `<div style="border: 1px dashed rgba(255,255,255,0.2); padding: 2rem; text-align: center; color: rgba(255,255,255,0.3); margin: 1rem 0; border-radius: 4px;">[ Miejsce na obraz ]</div><p><br></p>`;
+    // Generujemy unikalne ID dla obrazka
+    const uniqueId = 'img-' + Date.now();
+    const html = `<div class="flow-resizable-container" id="${uniqueId}" style="width: 300px; position: relative; margin: 1rem 0;" contenteditable="false">
+        <img class="flow-image-content" src="https://picsum.photos/600/400" alt="Placeholder">
+    </div><p><br></p>`;
     safeInsertBlock(html);
+    
+    // Po wstawieniu do DOM, podpinamy eventy
+    setTimeout(() => {
+        const el = document.getElementById(uniqueId);
+        if (el) imageManager.attachTo(el, uniqueId);
+    }, 50);
 });
 
 document.getElementById('add-frame').addEventListener('click', () => {
@@ -657,6 +686,9 @@ async function loadProject(id) {
                             kpi.innerHTML = `<input type="checkbox"><span>${kpiText}</span>`;
                         }
                     });
+                    
+                    // Podpięcie zdarzeń rozciągania do wczytanych obrazów
+                    rehydrateImages();
                     
                     lastCharCount = editorContent.innerText.length;
                     lastCheckedCount = editorContent.querySelectorAll('input[type="checkbox"]:checked').length;

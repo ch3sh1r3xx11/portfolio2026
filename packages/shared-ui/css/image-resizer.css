@@ -1,0 +1,104 @@
+/* 
+ * Flow Image Resizer - Shared CSS Component
+ * Responsibilities: Styling for resizable image containers, corner handles, and dimension tooltips.
+ */
+
+.flow-resizable-container {
+    position: absolute;
+    box-sizing: border-box;
+    /* Default state has no visual border until selected or hovered */
+    border: 2px solid transparent;
+    transition: border-color 0.2s ease-out;
+}
+
+/* Kiedy element jest zaznaczony */
+.flow-resizable-container.selected {
+    border: 2px solid var(--magenta, #E8197A); /* Fallback to Magenta if var not found */
+    z-index: 1000;
+}
+
+.flow-image-content {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 6px;
+    pointer-events: none; /* Let container handle events */
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+/* Uchwyty do rozciągania w 4 rogach */
+.flow-resize-handle {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background-color: var(--teal, #00C9C8);
+    border: 2px solid #fff;
+    border-radius: 50%;
+    display: none; /* Ukryte domyślnie */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    z-index: 1001;
+}
+
+/* Pokazujemy uchwyty tylko gdy element jest zaznaczony */
+.flow-resizable-container.selected .flow-resize-handle {
+    display: block;
+}
+
+/* Pozycjonowanie uchwytów (na środku rogu) */
+.flow-resize-handle.top-left {
+    top: -8px;
+    left: -8px;
+    cursor: nwse-resize;
+}
+
+.flow-resize-handle.top-right {
+    top: -8px;
+    right: -8px;
+    cursor: nesw-resize;
+}
+
+.flow-resize-handle.bottom-left {
+    bottom: -8px;
+    left: -8px;
+    cursor: nesw-resize;
+}
+
+.flow-resize-handle.bottom-right {
+    bottom: -8px;
+    right: -8px;
+    cursor: nwse-resize;
+}
+
+/* Tooltip wyświetlający wymiary podczas przeciągania */
+.flow-resize-tooltip {
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(30, 30, 35, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease-out;
+    z-index: 1002;
+    white-space: nowrap;
+}
+
+.flow-resizable-container.resizing .flow-resize-tooltip {
+    opacity: 1;
+}
+
+/* Disable pointer events on children during resize to prevent glitching */
+.flow-resizable-container.resizing * {
+    pointer-events: none !important;
+}
