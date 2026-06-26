@@ -643,35 +643,44 @@ function renderHeatmap(activityData) {
     dumpDisplay.value = `{ '${todayStr}': { user: ${todayData.user}, ai: ${todayData.ai} } }`;
 
     // 2. Render Heatmap Squares
-    // 32 days total (4 rows x 8 cols)
-    heatmapGrid.innerHTML = '';
-    const days = [];
-    for (let i = 31; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        days.push(d.toISOString().split('T')[0]);
-    }
+    // Portfolio style: 3 rows, 10 columns
+    const hmContainer = document.getElementById('activity-heatmap');
+    hmContainer.innerHTML = '';
     
-    days.forEach(dateStr => {
-        const dayData = activityData[dateStr];
-        const square = document.createElement('div');
-        square.className = 'heatmap-square';
-        square.title = dateStr;
+    // We create 3 rows
+    for (let r = 0; r < 3; r++) {
+        const row = document.createElement('div');
+        row.className = 'hm-row';
         
-        if (dayData) {
+        for (let c = 0; c < 10; c++) {
+            const dateOffset = 29 - (c * 3 + r);
+            const d = new Date();
+            d.setDate(d.getDate() - dateOffset);
+            const dateStr = d.toISOString().split('T')[0];
+            const dayData = activityData[dateStr] || { user: 0, ai: 0 };
+            
+            const cell = document.createElement('div');
+            cell.className = 'hm-cell';
+            cell.title = dateStr;
+            
             const total = dayData.user + dayData.ai;
-            if (total > 0) {
-                if (dayData.user >= dayData.ai) {
-                    if (total < 10) square.classList.add('lvl-user-1');
-                    else if (total < 25) square.classList.add('lvl-user-2');
-                    else square.classList.add('lvl-user-3');
-                } else {
-                    if (total < 10) square.classList.add('lvl-ai-1');
-                    else if (total < 25) square.classList.add('lvl-ai-2');
-                    else square.classList.add('lvl-ai-3');
-                }
+            if (total === 0) {
+                cell.style.background = 'rgba(255,255,255,0.05)';
+            } else {
+                let val = 1;
+                if (total > 5) val = 2;
+                if (total > 15) val = 3;
+                if (total > 30) val = 4;
+                
+                const opacities = [0, 0.2, 0.5, 0.8, 1.0];
+                const isAi = dayData.ai > dayData.user;
+                const rgb = isAi ? '232,25,122' : '0,201,200'; // Magenta : Teal
+                
+                cell.style.background = `rgba(${rgb}, ${opacities[val]})`;
+                if (val === 4) cell.style.boxShadow = `0 0 6px rgba(${rgb}, 0.9)`;
             }
+            row.appendChild(cell);
         }
-        heatmapGrid.appendChild(square);
-    });
+        hmContainer.appendChild(row);
+    }
 }
