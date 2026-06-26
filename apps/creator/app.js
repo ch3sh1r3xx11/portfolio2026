@@ -31,7 +31,7 @@ function rehydrateImages() {
         img.querySelectorAll('.flow-resize-handle, .flow-resize-tooltip').forEach(el => el.remove());
         const id = img.dataset.flowId || null;
         imageManager.attachTo(img, id, () => {
-            saveToFirebase(); // Kreator's save
+            collectProjectData(); // Zapis do Firebase w Kreatorze
         });
     });
 }
@@ -336,7 +336,7 @@ document.getElementById('add-image-btn').addEventListener('click', () => {
         const el = document.getElementById(uniqueId);
         if (el) {
             imageManager.attachTo(el, uniqueId, () => {
-                saveToFirebase();
+                collectProjectData();
             });
         }
     }, 50);

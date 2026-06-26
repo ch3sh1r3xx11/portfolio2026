@@ -125,6 +125,7 @@ export class FlowImageManager {
         });
 
         // Store callback reference in instance map
+        if (!this.callbacks) this.callbacks = new Map();
         if (id && onResizeEnd) this.callbacks.set(id, onResizeEnd);
     }
 
