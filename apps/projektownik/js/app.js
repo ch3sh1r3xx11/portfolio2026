@@ -510,6 +510,7 @@ if (anchorBtn) {
 
 // Flowbar Events
 document.addEventListener('flowbar-add-block-type', async (e) => {
+    console.log("[DEBUG] Otrzymano flowbar-add-block-type w Projektowniku!", e.detail);
     const type = e.detail?.type || 'empty';
     
     const titles = {
@@ -521,9 +522,12 @@ document.addEventListener('flowbar-add-block-type', async (e) => {
     
     const centerX = (window.innerWidth / 2 - translateX) / scale;
     const centerY = (window.innerHeight / 2 - translateY) / scale;
+    console.log("[DEBUG] Współrzędne wyliczone:", centerX, centerY);
     
     try {
+        console.log("[DEBUG] Tworzę referencję do kolekcji notes...");
         const docRef = doc(collection(db, "notes"));
+        console.log("[DEBUG] Referencja utworzona:", docRef.id);
         const data = {
             type: 'block',
             blockType: type,
@@ -534,10 +538,12 @@ document.addEventListener('flowbar-add-block-type', async (e) => {
             width: 400,
             projectId: currentProjectId
         };
+        console.log("[DEBUG] Data przygotowana. Inicjuję AddCommand...");
         const command = new AddCommand(docRef.id, data);
         historyManager.execute(command);
+        console.log("[DEBUG] Komenda wykonana!");
     } catch (err) {
-        console.error("Błąd zapisu bloku do Firebase:", err);
+        console.error("[DEBUG] Błąd zapisu bloku do Firebase:", err);
     }
 });
 
