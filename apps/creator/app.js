@@ -1,5 +1,6 @@
 import { db } from '/js/firebase-config.js';
 import { collection, addDoc, doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { serializeToMarkdown, parseFromMarkdown } from './js/markdown-engine.js';
 
 // State
 window.debugLog = function(msg) {
@@ -749,3 +750,47 @@ function renderHeatmap(activityData) {
         hmContainer.appendChild(row);
     }
 }
+
+// --- MARKDOWN EXPORT / IMPORT ---
+document.getElementById('btn-export-md').addEventListener('click', () => {
+    const mdString = serializeToMarkdown(editorContent);
+    const title = titleInput.value || 'Kreator_Project';
+    const version = versionInput.value || 'v0.1';
+    const filename = `${title.replace(/\s+/g, '_')}_${version}.md`;
+    
+    const blob = new Blob([mdString], { type: 'text/markdown;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+
+document.getElementById('btn-import-md').addEventListener('click', () => {
+    document.getElementById('file-import-md').click();
+});
+
+document.getElementById('file-import-md').addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const mdString = e.target.result;
+        const newHtml = parseFromMarkdown(mdString);
+        editorContent.innerHTML = newHtml;
+        updateProgress();
+        
+        // Zapisz od razu do Firebase jeśli to istniejący projekt
+        if (currentProjectId) {
+            initProject(); 
+        } else if (titleInput.value) {
+            initProject();
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = ''; // Reset, żeby można było wgrać ten sam plik ponownie
+});
+
