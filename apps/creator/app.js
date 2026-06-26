@@ -2,8 +2,7 @@ import { db } from '/js/firebase-config.js';
 import { collection, addDoc, doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { serializeToMarkdown, parseFromMarkdown } from './js/markdown-engine.js';
 import { FlowImageManager } from '/packages/shared-ui/js/FlowImageManager.js';
-
-// Removed on-screen-debugger
+import '/packages/shared-ui/js/Flowbar.js';
 console.log('App loaded v1.2');
 let projectData = {
     title: "",
@@ -292,14 +291,27 @@ editorContent.addEventListener('keyup', (e) => {
     handleSmartAnalysis(e);
 });
 
-addBlockBtn.addEventListener('click', () => {
+// Menu zamykane kliknięciem gdzie indziej (handled globally, ale dodajmy flagę)
+let isMenuOpen = false;
+
+document.addEventListener('flowbar-add-block', () => {
     menu.classList.toggle('hidden');
+    isMenuOpen = !menu.classList.contains('hidden');
+    
+    if (!menu.classList.contains('hidden')) {
+        const btn = document.querySelector('shared-flowbar').querySelector('#fb-add-block');
+        if (btn) {
+            const rect = btn.getBoundingClientRect();
+            menu.style.bottom = (window.innerHeight - rect.top + 10) + 'px';
+            menu.style.left = rect.left + 'px';
+        }
+    }
 });
 
-// Close menu when clicking outside
 document.addEventListener('click', (e) => {
-    if (!addBlockBtn.contains(e.target) && !menu.contains(e.target)) {
+    if (isMenuOpen && !e.target.closest('.block-menu') && !e.target.closest('shared-flowbar')) {
         menu.classList.add('hidden');
+        isMenuOpen = false;
     }
 });
 
@@ -308,30 +320,38 @@ document.querySelectorAll('.block-option').forEach(btn => {
         const type = e.target.closest('button').dataset.type;
         insertModule(type);
         menu.classList.add('hidden');
+        isMenuOpen = false;
         updateProgress();
     });
 });
 
 // Toolbar Actions (Shared Mechanics)
-document.getElementById('add-note').addEventListener('click', () => {
+document.addEventListener('flowbar-add-note', () => {
     const html = `<div class="glass-card" contenteditable="true"><div class="block-note">Nowa notatka...</div></div><p><br></p>`;
     safeInsertBlock(html);
 });
 
-document.getElementById('add-text-btn').addEventListener('click', () => {
+document.addEventListener('flowbar-add-text', () => {
     const html = `<p>Wpisz tekst tutaj...</p>`;
     safeInsertBlock(html);
 });
 
-document.getElementById('add-image-btn').addEventListener('click', () => {
-    // Generujemy unikalne ID dla obrazka
+document.addEventListener('flowbar-add-image', (e) => {
+    const file = e.detail?.file;
+    // W Kreatorze mamy logikę wstrzykiwania lokalnego placeholdera albo zdjęcia...
+    // Zróbmy najpierw domyślną logikę z placeholderem, by zachować spójność.
     const uniqueId = 'img-' + Date.now();
+    
+    if (file) {
+        // Jeśli jest plik to można go wgrać, ale kreator miał tylko placeholder
+        // TODO: Wgraj plik do Firebase tak samo jak Projektownik, na razie robimy placeholder jak było
+    }
+
     const html = `<div class="flow-resizable-container" id="${uniqueId}" style="width: 300px; position: relative; margin: 1rem 0;" contenteditable="false">
         <img class="flow-image-content" src="https://picsum.photos/600/400" alt="Placeholder">
     </div><p><br></p>`;
     safeInsertBlock(html);
     
-    // Po wstawieniu do DOM, podpinamy eventy
     setTimeout(() => {
         const el = document.getElementById(uniqueId);
         if (el) {
@@ -342,12 +362,12 @@ document.getElementById('add-image-btn').addEventListener('click', () => {
     }, 50);
 });
 
-document.getElementById('add-frame').addEventListener('click', () => {
+document.addEventListener('flowbar-add-frame', () => {
     const html = `<hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 2rem 0;"><p><br></p>`;
     safeInsertBlock(html);
 });
 
-document.getElementById('add-kpi').addEventListener('click', () => {
+document.addEventListener('flowbar-add-kpi', () => {
     const html = `<div class="block-kpi"><input type="checkbox"><span><br></span></div>`;
     safeInsertBlock(html);
 });

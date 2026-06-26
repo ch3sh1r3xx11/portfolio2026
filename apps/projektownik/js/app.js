@@ -1,7 +1,7 @@
 import { db, auth, provider, signInWithPopup, onAuthStateChanged, storage, ref, uploadBytes, getDownloadURL, signOut } from './firebase-config.js';
 import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { FlowImageManager } from '/packages/shared-ui/js/FlowImageManager.js';
-
+import '/packages/shared-ui/js/Flowbar.js';
 // --- SYSTEM DEBUGOWANIA ON-SCREEN (WŁĄCZONY) ---
 window.debugLog = function(msg) {
     let box = document.getElementById('debug-box');
@@ -23,7 +23,7 @@ const canvas = document.getElementById('canvas');
 // --- LOGOWANIE GOOGLE ---
 const loginBtn = document.getElementById('login-btn');
 const logoutBtn = document.getElementById('logout-btn');
-const bottomTools = document.getElementById('bottom-tools');
+const bottomTools = document.querySelector('shared-flowbar');
 const undoBtn = document.getElementById('undo-btn');
 const redoBtn = document.getElementById('redo-btn');
 
@@ -74,16 +74,19 @@ onAuthStateChanged(auth, (user) => {
         console.log("Zalogowany jako:", user.email);
         loginBtn.style.display = 'none';
         logoutBtn.style.display = 'block';
-        bottomTools.style.display = 'flex';
-        undoBtn.style.display = 'block';
-        redoBtn.style.display = 'block';
+        if (bottomTools) bottomTools.show();
+        if (undoBtn) undoBtn.style.display = 'block';
+        if (redoBtn) redoBtn.style.display = 'block';
+        loadCards();
     } else {
         // Nie zalogowano (Gość)
         loginBtn.style.display = 'block';
         logoutBtn.style.display = 'none';
-        bottomTools.style.display = 'none';
-        undoBtn.style.display = 'none';
-        redoBtn.style.display = 'none';
+        if (bottomTools) bottomTools.hide();
+        if (undoBtn) undoBtn.style.display = 'none';
+        if (redoBtn) redoBtn.style.display = 'none';
+        canvas.innerHTML = '';
+        cards = {};
     }
 });
 
@@ -475,10 +478,8 @@ if (anchorBtn) {
 
 
 // --- TWORZENIE I DRAGOWANIE KART (FIREBASE) ---
-const addNoteBtn = document.getElementById('add-note');
-const addTextBtn = document.getElementById('add-text-btn');
 
-addNoteBtn.addEventListener('click', async () => {
+document.addEventListener('flowbar-add-note', async () => {
     if (!auth.currentUser) return; // Zabezpieczenie przed niezalogowanymi
     
     const centerX = (window.innerWidth / 2 - translateX) / scale;
@@ -500,29 +501,27 @@ addNoteBtn.addEventListener('click', async () => {
     }
 });
 
-if(addTextBtn) {
-    addTextBtn.addEventListener('click', async () => {
-        if (!auth.currentUser) return; 
-        
-        const centerX = (window.innerWidth / 2 - translateX) / scale;
-        const centerY = (window.innerHeight / 2 - translateY) / scale;
-        
-        try {
-            const docRef = doc(collection(db, "notes"));
-            const data = {
-                type: 'textblock',
-                x: centerX,
-                y: centerY,
-                content: "",
-                width: 250
-            };
-            const command = new AddCommand(docRef.id, data);
-            historyManager.execute(command);
-        } catch (e) {
-            console.error("Błąd zapisu do Firebase:", e);
-        }
-    });
-}
+document.addEventListener('flowbar-add-text', async () => {
+    if (!auth.currentUser) return; 
+    
+    const centerX = (window.innerWidth / 2 - translateX) / scale;
+    const centerY = (window.innerHeight / 2 - translateY) / scale;
+    
+    try {
+        const docRef = doc(collection(db, "notes"));
+        const data = {
+            type: 'textblock',
+            x: centerX,
+            y: centerY,
+            content: "",
+            width: 250
+        };
+        const command = new AddCommand(docRef.id, data);
+        historyManager.execute(command);
+    } catch (e) {
+        console.error("Błąd zapisu do Firebase:", e);
+    }
+});
 
 
 let activeCard = null;
@@ -947,42 +946,32 @@ window.addEventListener('pointerup', () => { window.debugLog('window pointerup f
 window.addEventListener('touchend', handleCardDragEnd);
 
 // --- WKLEJANIE / DODAWANIE ZDJĘĆ ---
-const addImageBtn = document.getElementById('add-image-btn');
-const imageUploadInput = document.getElementById('image-upload');
-
-if(addImageBtn && imageUploadInput) {
-    addImageBtn.addEventListener('click', () => {
-        imageUploadInput.click();
-    });
-
-    imageUploadInput.addEventListener('change', async (e) => {
-        if (!auth.currentUser) return;
-        const file = e.target.files[0];
-        if (!file) return;
+document.addEventListener('flowbar-add-image', async (e) => {
+    if (!auth.currentUser) return;
+    const file = e.detail?.file;
+    if (!file) return;
+    
+    console.log("Ładowanie obrazka (z Flowbara) do chmury...");
+    const fileRef = ref(storage, 'images/' + Date.now() + '_' + file.name);
+    
+    try {
+        await uploadBytes(fileRef, file);
+        const url = await getDownloadURL(fileRef);
         
-        console.log("Ładowanie obrazka (mobile/button) do chmury...");
-        const fileRef = ref(storage, 'images/' + Date.now() + '_' + file.name);
+        const centerX = (window.innerWidth / 2 - translateX) / scale;
+        const centerY = (window.innerHeight / 2 - translateY) / scale;
         
-        try {
-            await uploadBytes(fileRef, file);
-            const url = await getDownloadURL(fileRef);
-            
-            const centerX = (window.innerWidth / 2 - translateX) / scale;
-            const centerY = (window.innerHeight / 2 - translateY) / scale;
-            
-            await addDoc(collection(db, "notes"), {
-                type: 'image',
-                url: url,
-                x: centerX,
-                y: centerY
-            });
-            console.log("Obrazek z przycisku pomyślnie dodany na Biurko!");
-        } catch (err) {
-            console.error("Błąd wgrywania zdjęcia:", err);
-        }
-        imageUploadInput.value = ""; // Reset
-    });
-}
+        await addDoc(collection(db, "notes"), {
+            type: 'image',
+            url: url,
+            x: centerX,
+            y: centerY
+        });
+        console.log("Obrazek pomyślnie dodany na Biurko!");
+    } catch (err) {
+        console.error("Błąd wgrywania zdjęcia:", err);
+    }
+});
 
 window.addEventListener('paste', async (e) => {
     if (!auth.currentUser) return; // Tylko zalogowani
