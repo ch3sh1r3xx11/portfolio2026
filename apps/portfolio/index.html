@@ -603,16 +603,24 @@
             projectList.innerHTML = ''; 
             if (pipelineWrapper) pipelineWrapper.innerHTML = '';
             
-            let globalActivity = {};
-            
+            let projects = [];
             querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                
-                // --- 1. Aktualizacja Listy Projektów ---
+                projects.push({ id: doc.id, data: doc.data() });
+            });
+
+            // --- 1. Aktualizacja Listy Projektów (Sort: Ostatnio edytowane) ---
+            projects.sort((a, b) => {
+                const dateA = new Date(a.data.updatedAt || a.data.createdAt || 0);
+                const dateB = new Date(b.data.updatedAt || b.data.createdAt || 0);
+                return dateB - dateA;
+            });
+
+            projects.forEach((proj) => {
+                const data = proj.data;
                 const row = document.createElement('div');
                 row.className = 'cert-row';
                 row.style.cursor = 'pointer';
-                row.onclick = () => window.location.href = '/creator/index.html?id=' + doc.id;
+                row.onclick = () => window.location.href = '/creator/index.html?id=' + proj.id;
                 
                 const left = document.createElement('div');
                 left.className = 'cert-left';
@@ -629,9 +637,18 @@
                 left.appendChild(orgSpan);
                 row.appendChild(left);
                 projectList.appendChild(row);
+            });
 
-                // --- 2. Aktualizacja Pipeline (Gantt) ---
-                if (pipelineWrapper) {
+            // --- 2. Aktualizacja Pipeline (Gantt) (Sort: Wersja malejąco) ---
+            if (pipelineWrapper) {
+                const pipelineProjects = [...projects].sort((a, b) => {
+                    const verA = parseFloat((a.data.subtitle || '').replace('v', '')) || 0;
+                    const verB = parseFloat((b.data.subtitle || '').replace('v', '')) || 0;
+                    return verB - verA;
+                });
+
+                pipelineProjects.forEach((proj) => {
+                    const data = proj.data;
                     let verStr = data.subtitle || 'v0.1';
                     let verNum = parseFloat(verStr.replace('v', '')) || 0.1;
                     let pct = Math.min(100, Math.round(verNum * 100));
@@ -649,9 +666,13 @@
                         </div>
                     `;
                     pipelineWrapper.appendChild(pRow);
-                }
+                });
+            }
 
-                // --- 3. Agregacja Heatmapy ---
+            // --- 3. Agregacja Heatmapy ---
+            let globalActivity = {};
+            projects.forEach((proj) => {
+                const data = proj.data;
                 if (data.activity) {
                     for (let date in data.activity) {
                         if (!globalActivity[date]) globalActivity[date] = { ideas: 0, completions: 0 };
