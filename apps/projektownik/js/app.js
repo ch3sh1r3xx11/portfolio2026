@@ -692,13 +692,12 @@ function createCardElement(id, data) {
         });
 
     } else {
-        // Zwykła notatka
+        // Zwykła notatka (Sticky Note)
         card.style.width = data.width ? `${data.width}px` : '250px';
-        if (data.height) card.style.height = `${data.height}px`;
+        card.style.height = data.height ? `${data.height}px` : '250px';
         card.innerHTML = `
             <button class="delete-btn" title="Usuń">×</button>
-            <div class="card-header">${data.title || ''}</div>
-            <div class="card-body">${data.content || ''}</div>
+            <div class="card-body" style="height: 100%; overflow: auto; padding-top: 25px;">${data.content || ''}</div>
         `;
         appendCardToDom(card, data.parentId);
         makeDraggable(card, id);
@@ -787,9 +786,7 @@ function updateCardElement(id, data) {
     if (data.height) card.style.height = `${data.height}px`;
     
     if (data.type === 'text') {
-        const header = card.querySelector('.card-header');
         const body = card.querySelector('.card-body');
-        if (header && header.getAttribute('contenteditable') !== 'true') header.innerHTML = data.title || '';
         if (body && body.getAttribute('contenteditable') !== 'true') body.innerHTML = data.content || '';
     } else if (data.type === 'textblock') {
         const body = card.querySelector('.card-body');
