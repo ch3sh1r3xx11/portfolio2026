@@ -431,43 +431,47 @@ class EditCommand {
 
 
 // --- KOTWICA (ANCHOR) ---
+/*
 const anchorBtn = document.getElementById('anchor-btn');
 let anchorPos = null;
 let anchorElement = null;
 
-anchorBtn.addEventListener('click', () => {
-    if (!anchorPos) {
-        const centerX = (window.innerWidth / 2 - translateX) / scale;
-        const centerY = (window.innerHeight / 2 - translateY) / scale;
-        anchorPos = { x: centerX, y: centerY };
-        
-        anchorElement = document.createElement('div');
-        anchorElement.className = 'anchor-marker';
-        anchorElement.innerText = '⚓';
-        anchorElement.style.left = `${centerX}px`;
-        anchorElement.style.top = `${centerY}px`;
-        canvas.appendChild(anchorElement);
-        
-        anchorBtn.style.borderColor = "var(--teal)";
-        anchorBtn.style.color = "var(--teal)";
-    } else {
-        canvas.classList.add('smooth-pan');
-        translateX = window.innerWidth / 2 - (anchorPos.x * scale);
-        translateY = window.innerHeight / 2 - (anchorPos.y * scale);
-        updateCanvas();
-        setTimeout(() => { canvas.classList.remove('smooth-pan'); }, 600);
-    }
-});
+if (anchorBtn) {
+    anchorBtn.addEventListener('click', () => {
+        if (!anchorPos) {
+            const centerX = (window.innerWidth / 2 - translateX) / scale;
+            const centerY = (window.innerHeight / 2 - translateY) / scale;
+            anchorPos = { x: centerX, y: centerY };
+            
+            anchorElement = document.createElement('div');
+            anchorElement.className = 'anchor-marker';
+            anchorElement.innerText = '⚓';
+            anchorElement.style.left = `${centerX}px`;
+            anchorElement.style.top = `${centerY}px`;
+            canvas.appendChild(anchorElement);
+            
+            anchorBtn.style.borderColor = "var(--teal)";
+            anchorBtn.style.color = "var(--teal)";
+        } else {
+            canvas.classList.add('smooth-pan');
+            translateX = window.innerWidth / 2 - (anchorPos.x * scale);
+            translateY = window.innerHeight / 2 - (anchorPos.y * scale);
+            updateCanvas();
+            setTimeout(() => { canvas.classList.remove('smooth-pan'); }, 600);
+        }
+    });
 
-anchorBtn.addEventListener('dblclick', () => {
-    if (anchorPos && anchorElement) {
-        anchorElement.remove();
-        anchorElement = null;
-        anchorPos = null;
-        anchorBtn.style.borderColor = "rgba(255,255,255,0.1)";
-        anchorBtn.style.color = "#fff";
-    }
-});
+    anchorBtn.addEventListener('dblclick', () => {
+        if (anchorPos && anchorElement) {
+            anchorElement.remove();
+            anchorElement = null;
+            anchorPos = null;
+            anchorBtn.style.borderColor = "rgba(255,255,255,0.1)";
+            anchorBtn.style.color = "#fff";
+        }
+    });
+}
+*/
 
 
 // --- TWORZENIE I DRAGOWANIE KART (FIREBASE) ---
