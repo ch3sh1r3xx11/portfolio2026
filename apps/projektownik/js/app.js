@@ -1056,7 +1056,11 @@ document.addEventListener('flowbar-add-image', async (e) => {
 
 // Dodaj Blok Event
 document.addEventListener('flowbar-add-block-type', async (e) => {
-    if (!auth.currentUser) return;
+    console.log("[Projektownik] flowbar-add-block-type Złapano event!", e.detail);
+    if (!auth.currentUser) {
+        console.warn("[Projektownik] Brak zalogowanego użytkownika!");
+        return;
+    }
     
     const type = e.detail?.type || 'empty';
     const text = e.detail?.text || 'Nowy Blok';
@@ -1066,13 +1070,16 @@ document.addEventListener('flowbar-add-block-type', async (e) => {
     const spawnX = (centerX - translateX) / scale;
     const spawnY = (centerY - translateY) / scale;
 
-    const cmd = new AddCommand('block', {
+    const id = 'block_' + Date.now();
+    const cmd = new AddCommand(id, {
+        type: 'block',
         title: text,
         x: spawnX,
         y: spawnY,
         width: 400,
         height: 300
     });
+    console.log("[Projektownik] Wykonuję komendę:", cmd);
     historyManager.execute(cmd);
 });
 
