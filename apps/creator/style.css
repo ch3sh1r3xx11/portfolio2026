@@ -201,25 +201,32 @@ input[type=range][orient=vertical] {
 
 .block-menu {
     position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
-    background: var(--black); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 6px; padding: 0.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-    z-index: 1050; display: flex; flex-direction: column; gap: 0.25rem;
+    background: rgba(30, 30, 35, 0.6);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 12px;
+    backdrop-filter: saturate(180%) blur(30px);
+    -webkit-backdrop-filter: saturate(180%) blur(30px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+    z-index: 1050; display: flex; flex-direction: column; gap: 4px;
     width: 220px; max-height: 400px; overflow-y: auto;
 }
 .block-menu-header {
-    font-size: 0.7rem; color: var(--white-dim); text-transform: uppercase;
-    padding: 0.2rem 0.5rem 0.5rem 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.05);
-    margin-bottom: 0.25rem;
+    display: none; /* Ukryte całkowicie, usunięto też z HTML */
 }
 .block-menu.hidden { display: none; }
 
 .block-option {
-    background: transparent; border: none; color: var(--white-dim);
-    text-align: left; padding: 0.5rem; cursor: pointer; font-family: var(--font-mono);
-    border-radius: 4px; transition: background 0.2s, color 0.2s; font-size: 0.85rem;
+    background: transparent; border: none; color: var(--white);
+    text-align: left; padding: 8px 12px; cursor: pointer; font-family: var(--font-mono);
+    border-radius: 12px; transition: background 0.15s, transform 0.1s; font-size: 0.85rem;
 }
 .block-option:hover {
-    background: rgba(255,255,255,0.05); color: var(--white);
+    background: rgba(255,255,255,0.12);
+}
+.block-option:active {
+    background: rgba(255,255,255,0.08);
+    transform: scale(0.96);
 }
 
 /* SMART Inline Validation */
