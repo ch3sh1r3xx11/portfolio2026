@@ -18,3 +18,11 @@ Te reguły są automatycznie ładowane do mojego (AI) kontekstu przy każdym uru
 ## 🧠 Rozwój i Nauka (Skille)
 1. **Proaktywne Proponowanie Skilli:** Użytkownik może nie wiedzieć, kiedy rozwiązanie nadaje się na Skilla. Kiedy wspólnie rozwiążemy trudny problem, stworzymy wybitnie dobry kawałek logiki albo unikalną integrację – moim obowiązkiem jest **zatrzymać się i zasugerować:** *"Hej, to wyszło nam świetnie. Czy chcesz, abym zapisał to jako dedykowany Skill na przyszłość?"*.
 2. **Zasada 2 Poprawek (2-Strikes Rule):** Jeśli dwie kolejne próby naprawienia błędu UI/UX, zdarzeń lub asynchroniczności zawodzą, natychmiast przerywam "zgadywanie". Moim obowiązkiem jest zaproponować użycie zewnętrznego narzędzia weryfikacyjnego lub zainstalowanie Skilla `on-screen-debugger`, aby zebrać twarde dowody poprzez screenshoty. Nie zgaduję w nieskończoność.
+
+## 👁️ Wizja: Gospodarka oparta na projektach i zasobach
+Naszym nadrzędnym celem jest stworzenie "dźwigni" (Leverage) i środowiska do szybkiego budowania (Rapid Development). Aby to osiągnąć, kierujemy się trzema filarami:
+1. **Permissionless (Działanie bez pytania):** Robimy to, co uważamy za słuszne i najszybsze w danej chwili (np. tymczasowo "kradniemy" sprawdzony UX od gigantów jak Apple, żeby tylko mechanika zaczęła działać). Nie tracimy czasu na pytania *jak* to zrobić – po prostu dowozimy działający prototyp.
+2. **Iteracja i Niezawodność (Zero skrótów architektonicznych):** Kiedy prototyp zadziała, poprawiamy błędy i dopracowujemy mechanizm. Gdy przetestujemy go 1000 razy i jest niezawodny, zamieniamy go w absolutnie reużywalny, cross-platformowy "prefabrykat" (Zasada Złotego Klocka w Monorepo). Aplikacje to tylko instrukcje obsługi składające się z tych niezawodnych prefabrykatów.
+3. **Dźwignia (Recykling Pracy):** Nic nie idzie na marne. Zbierzemy każdy wypracowany mechanizm, workflow, szablon, artefakt i rozwiązany błąd. Wszystko staje się nowym Skillem, regułą lub notatką w naszej bazie wiedzy. Budujemy bibliotekę zasobów, aby w przyszłości móc zbudować nową aplikację za pomocą jednego zdania.
+
+> *"Wszystko musi być gospodarką opartą na projektach i zasobach."* - Nasza żelazna zasada.

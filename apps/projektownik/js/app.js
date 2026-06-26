@@ -354,20 +354,26 @@ historyManager.updateButtons();
 
 // --- COMMANDS ---
 class MoveCommand {
-    constructor(id, startX, startY, endX, endY) {
+    constructor(id, startX, startY, endX, endY, startParentId = null, endParentId = null) {
         this.id = id;
         this.startX = startX;
         this.startY = startY;
         this.endX = endX;
         this.endY = endY;
+        this.startParentId = startParentId;
+        this.endParentId = endParentId;
     }
     async execute() {
         if (!auth.currentUser) return;
-        try { await updateDoc(doc(db, "notes", this.id), { x: this.endX, y: this.endY }); } catch(e){}
+        const updates = { x: this.endX, y: this.endY };
+        if (this.endParentId !== undefined) updates.parentId = this.endParentId;
+        try { await updateDoc(doc(db, "notes", this.id), updates); } catch(e){}
     }
     async undo() {
         if (!auth.currentUser) return;
-        try { await updateDoc(doc(db, "notes", this.id), { x: this.startX, y: this.startY }); } catch(e){}
+        const updates = { x: this.startX, y: this.startY };
+        if (this.startParentId !== undefined) updates.parentId = this.startParentId;
+        try { await updateDoc(doc(db, "notes", this.id), updates); } catch(e){}
     }
 }
 
@@ -580,7 +586,7 @@ function createCardElement(id, data) {
             <button class="delete-btn" title="Usuń" style="z-index: 1003;">×</button>
             <img class="flow-image-content" src="${data.url}">
         `;
-        canvas.appendChild(card);
+        appendCardToDom(card, data.parentId);
         makeDraggable(card, id);
         
         // Attach FlowImageManager with save callback
@@ -593,8 +599,9 @@ function createCardElement(id, data) {
                 const currentL = parseFloat(card.style.left) || 0;
                 const currentT = parseFloat(card.style.top) || 0;
                 if (currentL !== newL || currentT !== newT) {
-                    const moveCmd = new MoveCommand(id, currentL, currentT, newL, newT);
-                    historyManager.execute(moveCmd);
+                    // ParentId is not changing during resize
+                    const cmd = new MoveCommand(id, currentL, currentT, newL, newT, data.parentId, data.parentId);
+                    historyManager.execute(cmd);
                 }
             }
         });
@@ -607,11 +614,32 @@ function createCardElement(id, data) {
             <button class="delete-btn" title="Usuń">×</button>
             <div class="card-body">${data.content || 'Wpisz tekst...'}</div>
         `;
-        canvas.appendChild(card);
+        appendCardToDom(card, data.parentId);
         if(data.width) card.style.width = `${data.width}px`;
         if(data.height) card.style.height = `${data.height}px`;
         makeDraggable(card, id);
         makeEditable(card, id);
+    } else if (data.type === 'block') {
+        card.classList.add('container-block');
+        card.style.resize = 'both';
+        card.style.overflow = 'visible';
+        card.style.width = data.width ? `${data.width}px` : '400px';
+        if (data.height) card.style.height = `${data.height}px`;
+        
+        card.innerHTML = `
+            <button class="delete-btn" title="Usuń">×</button>
+            <div class="card-header" contenteditable="true">${data.title || 'Nowy Blok'}</div>
+            <div class="block-content-area" style="width: 100%; height: calc(100% - 40px); pointer-events: none;"></div>
+        `;
+        appendCardToDom(card, data.parentId);
+        makeDraggable(card, id);
+        
+        // Sprawdź czy jakieś notatki czekają na ten blok jako na rodzica
+        document.querySelectorAll(`.card[data-pending-parent-id="${id}"]`).forEach(child => {
+            card.appendChild(child);
+            delete child.dataset.pendingParentId;
+        });
+
     } else {
         // Zwykła notatka
         card.style.width = data.width ? `${data.width}px` : '250px';
@@ -621,7 +649,7 @@ function createCardElement(id, data) {
             <div class="card-header">${data.title || ''}</div>
             <div class="card-body">${data.content || ''}</div>
         `;
-        canvas.appendChild(card);
+        appendCardToDom(card, data.parentId);
         makeDraggable(card, id);
         makeEditable(card, id);
     }
@@ -918,7 +946,7 @@ const handleCardDragEnd = async () => {
         
         window.debugLog(`DragEnd on ${activeCard.id}. OldW:${window.cardInitialW} NewW:${currentW}`);
         
-        // Zapisz zmianę rozmiaru (jeśli mouseup zadziałał przed ResizeObserver)
+        // Zapisz zmianę rozmiaru
         if (window.cardInitialW && (window.cardInitialW !== currentW || window.cardInitialH !== currentH)) {
             window.debugLog('Size changed (MouseUp)!');
             const cmd = new ResizeCommand(activeCard.id, window.cardInitialW, window.cardInitialH, currentW, currentH);
@@ -927,12 +955,56 @@ const handleCardDragEnd = async () => {
             window.cardInitialH = currentH;
         }
         
-        // Zapisz pozycję
+        // Zapisz pozycję i relację rodzica
         if (hasCardMoved && !isResizingCard) {
-            const currentX = parseFloat(activeCard.style.left);
-            const currentY = parseFloat(activeCard.style.top);
-            if (cardInitialX !== currentX || cardInitialY !== currentY) {
-                const cmd = new MoveCommand(activeCard.id, cardInitialX, cardInitialY, currentX, currentY);
+            let currentX = parseFloat(activeCard.style.left);
+            let currentY = parseFloat(activeCard.style.top);
+            let newParentId = null;
+            const oldParentId = activeCard.parentElement.classList.contains('container-block') ? activeCard.parentElement.id : null;
+
+            if (!activeCard.classList.contains('container-block')) {
+                const cardRect = activeCard.getBoundingClientRect();
+                const cardCenterX = cardRect.left + cardRect.width / 2;
+                const cardCenterY = cardRect.top + cardRect.height / 2;
+
+                const blocks = Array.from(document.querySelectorAll('.container-block'));
+                const targetBlock = blocks.find(b => {
+                    if (b === activeCard) return false;
+                    const bRect = b.getBoundingClientRect();
+                    return cardCenterX > bRect.left && cardCenterX < bRect.right &&
+                           cardCenterY > bRect.top && cardCenterY < bRect.bottom;
+                });
+
+                if (targetBlock) {
+                    newParentId = targetBlock.id;
+                    if (oldParentId !== newParentId) {
+                        targetBlock.appendChild(activeCard);
+                        // Convert to local coords
+                        const localX = currentX - parseFloat(targetBlock.style.left || 0);
+                        const localY = currentY - parseFloat(targetBlock.style.top || 0);
+                        activeCard.style.left = `${localX}px`;
+                        activeCard.style.top = `${localY}px`;
+                        currentX = localX;
+                        currentY = localY;
+                    }
+                } else {
+                    if (oldParentId) {
+                        canvas.appendChild(activeCard);
+                        const parentEl = document.getElementById(oldParentId);
+                        const globalX = currentX + parseFloat(parentEl?.style.left || 0);
+                        const globalY = currentY + parseFloat(parentEl?.style.top || 0);
+                        activeCard.style.left = `${globalX}px`;
+                        activeCard.style.top = `${globalY}px`;
+                        currentX = globalX;
+                        currentY = globalY;
+                    }
+                }
+            } else {
+                newParentId = oldParentId; // Blok może na razie nie być zagnieżdżany w blokach
+            }
+
+            if (cardInitialX !== currentX || cardInitialY !== currentY || oldParentId !== newParentId) {
+                const cmd = new MoveCommand(activeCard.id, cardInitialX, cardInitialY, currentX, currentY, oldParentId, newParentId);
                 historyManager.execute(cmd);
             }
         }
@@ -945,7 +1017,6 @@ window.addEventListener('mouseup', () => { window.debugLog('window mouseup fired
 window.addEventListener('pointerup', () => { window.debugLog('window pointerup fired'); handleCardDragEnd(); });
 window.addEventListener('touchend', handleCardDragEnd);
 
-// --- WKLEJANIE / DODAWANIE ZDJĘĆ ---
 document.addEventListener('flowbar-add-image', async (e) => {
     if (!auth.currentUser) return;
     const file = e.detail?.file;
@@ -958,20 +1029,57 @@ document.addEventListener('flowbar-add-image', async (e) => {
         await uploadBytes(fileRef, file);
         const url = await getDownloadURL(fileRef);
         
-        const centerX = (window.innerWidth / 2 - translateX) / scale;
-        const centerY = (window.innerHeight / 2 - translateY) / scale;
-        
-        await addDoc(collection(db, "notes"), {
-            type: 'image',
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        const spawnX = (centerX - translateX) / scale;
+        const spawnY = (centerY - translateY) / scale;
+
+        const cmd = new AddCommand('image', {
             url: url,
-            x: centerX,
-            y: centerY
+            x: spawnX,
+            y: spawnY,
+            width: 300
         });
-        console.log("Obrazek pomyślnie dodany na Biurko!");
-    } catch (err) {
-        console.error("Błąd wgrywania zdjęcia:", err);
+        historyManager.execute(cmd);
+    } catch(err) {
+        console.error("Błąd ładowania obrazka:", err);
     }
 });
+
+// Dodaj Blok Event
+document.addEventListener('flowbar-add-block', async () => {
+    if (!auth.currentUser) return;
+    
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    const spawnX = (centerX - translateX) / scale;
+    const spawnY = (centerY - translateY) / scale;
+
+    const cmd = new AddCommand('block', {
+        title: 'Nowy Blok',
+        x: spawnX,
+        y: spawnY,
+        width: 400,
+        height: 500
+    });
+    historyManager.execute(cmd);
+});
+
+// Funkcja pomocnicza do renderowania DOM (async parent resolution)
+function appendCardToDom(card, parentId) {
+    if (parentId) {
+        const parentBlock = document.getElementById(parentId);
+        if (parentBlock) {
+            parentBlock.appendChild(card);
+        } else {
+            // Rodzic jeszcze nie wyrenderowany, odłóż na planszę i poczekaj
+            canvas.appendChild(card);
+            card.dataset.pendingParentId = parentId;
+        }
+    } else {
+        canvas.appendChild(card);
+    }
+}
 
 window.addEventListener('paste', async (e) => {
     if (!auth.currentUser) return; // Tylko zalogowani
