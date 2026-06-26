@@ -93,12 +93,14 @@ class SharedFlowbar extends HTMLElement {
         // Każdy przycisk emituje globalne zdarzenie "flowbar-add-block-type" zrozumiałe dla obu edytorów.
         const blockOptions = this.querySelectorAll('.block-option');
         blockOptions.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
+            // Zabezpieczenie przed wielokrotnym bindowaniem w Web Components
+            btn.onclick = (e) => {
+                e.stopImmediatePropagation();
+                e.preventDefault();
                 const type = btn.getAttribute('data-type');
                 emit('flowbar-add-block-type', { type });
                 blockMenu.classList.add('hidden');
-            });
+            };
         });
 
         document.addEventListener('click', (e) => {
