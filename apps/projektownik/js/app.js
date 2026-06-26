@@ -569,13 +569,31 @@ function createCardElement(id, data) {
         card.dataset.startW = parseFloat(card.style.width);
         card.dataset.startH = parseFloat(card.style.height);
         
+        // Force no native resize
+        card.style.setProperty('resize', 'none', 'important');
+        
         card.innerHTML = `
             <button class="delete-btn" title="Usuń" style="z-index: 1003;">×</button>
             <img class="flow-image-content" src="${data.url}">
         `;
         canvas.appendChild(card);
         makeDraggable(card, id);
-        imageManager.attachTo(card, id);
+        
+        // Attach FlowImageManager with save callback
+        imageManager.attachTo(card, id, (id, oldW, oldH, newW, newH, newL, newT) => {
+            if (oldW !== newW || oldH !== newH) {
+                const cmd = new ResizeCommand(id, oldW, oldH, newW, newH);
+                historyManager.execute(cmd);
+                
+                // If it's absolute positioned and we changed left/top (e.g. dragged left handles)
+                const currentL = parseFloat(card.style.left) || 0;
+                const currentT = parseFloat(card.style.top) || 0;
+                if (currentL !== newL || currentT !== newT) {
+                    const moveCmd = new MoveCommand(id, currentL, currentT, newL, newT);
+                    historyManager.execute(moveCmd);
+                }
+            }
+        });
     } else if (data.type === 'textblock') {
         card.classList.add('text-card');
         card.style.resize = 'both';
@@ -675,7 +693,9 @@ function updateCardElement(id, data) {
         if (body && body.getAttribute('contenteditable') !== 'true') body.innerHTML = data.content || '';
     }
     
-    cardResizeObserver.observe(card);
+    if (data.type !== 'image') {
+        cardResizeObserver.observe(card);
+    }
 }
 
 function makeDraggable(element, id) {
