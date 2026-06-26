@@ -146,31 +146,38 @@ function observeCards() {
                 delBtn.className = 'card-delete-btn';
                 delBtn.textContent = 'x';
                 card.appendChild(delBtn);
-                
-                let confirmState = false;
-                delBtn.addEventListener('click', (e) => {
-                    if (!confirmState) {
-                        confirmState = true;
-                        delBtn.textContent = '?';
-                        delBtn.classList.add('confirm-mode');
-                        setTimeout(() => {
-                            if (card.parentNode) { // if not deleted
-                                confirmState = false;
-                                delBtn.textContent = 'x';
-                                delBtn.classList.remove('confirm-mode');
-                            }
-                        }, 3000); // 3 seconds to confirm
-                    } else {
-                        // Usuwamy kartę
-                        card.style.transform = 'scale(0.8) translateY(-20px)';
-                        card.style.opacity = '0';
-                        setTimeout(() => {
-                            card.remove();
-                            reflowCards();
-                            document.getElementById('update-project-btn')?.click();
-                        }, 300);
+            }
+        }
+    });
+}
+
+// Globalny nasłuchiwacz (Event Delegation) na usuwanie kart
+if (editorContent) {
+    editorContent.addEventListener('click', (e) => {
+        if (e.target.classList.contains('card-delete-btn')) {
+            const delBtn = e.target;
+            const card = delBtn.closest('.glass-card');
+            if (!card) return;
+            
+            if (!delBtn.classList.contains('confirm-mode')) {
+                delBtn.textContent = '?';
+                delBtn.classList.add('confirm-mode');
+                setTimeout(() => {
+                    if (card.parentNode) {
+                        delBtn.textContent = 'x';
+                        delBtn.classList.remove('confirm-mode');
                     }
-                });
+                }, 3000); // 3 seconds to confirm
+            } else {
+                // Usuwamy kartę
+                card.style.transform = 'scale(0.8) translateY(-20px)';
+                card.style.opacity = '0';
+                setTimeout(() => {
+                    card.remove();
+                    reflowCards();
+                    const saveBtn = document.getElementById('btn-init-project');
+                    if (saveBtn) saveBtn.click();
+                }, 300);
             }
         }
     });
