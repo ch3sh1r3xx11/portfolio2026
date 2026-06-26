@@ -6,7 +6,7 @@ import '/packages/shared-ui/js/SystemMenu.js';
 
 // Nasłuchiwanie na akcje z SystemMenu (Menu Techniczne)
 document.addEventListener('sys-projects', () => {
-    window.location.href = '/portfolio/index.html'; // Powrót do projektów
+    window.location.href = '/'; // Powrót do projektów
 });
 document.addEventListener('sys-refresh', () => {
     window.location.reload(true);

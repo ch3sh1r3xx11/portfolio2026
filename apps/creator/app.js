@@ -7,7 +7,7 @@ import '/packages/shared-ui/js/SystemMenu.js';
 
 // Nasłuchiwanie na System Menu
 document.addEventListener('sys-projects', () => {
-    window.location.href = '/portfolio/index.html';
+    window.location.href = '/';
 });
 document.addEventListener('sys-refresh', () => {
     window.location.reload(true);
