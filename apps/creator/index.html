@@ -15,6 +15,22 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- ON-SCREEN DEBUGGER -->
+    <script>
+        window.addEventListener('error', function(e) {
+            const errBox = document.createElement('div');
+            errBox.style.cssText = 'position:fixed;top:0;left:0;width:100%;background:rgba(255,0,0,0.9);color:white;z-index:999999;padding:20px;font-family:monospace;white-space:pre-wrap;';
+            errBox.textContent = 'ERROR: ' + e.message + '\nFile: ' + e.filename + '\nLine: ' + e.lineno;
+            document.body.appendChild(errBox);
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+            const errBox = document.createElement('div');
+            errBox.style.cssText = 'position:fixed;top:0;left:0;width:100%;background:rgba(255,100,0,0.9);color:white;z-index:999999;padding:20px;font-family:monospace;white-space:pre-wrap;';
+            errBox.textContent = 'PROMISE REJECTION: ' + (e.reason && e.reason.stack ? e.reason.stack : e.reason);
+            document.body.appendChild(errBox);
+        });
+    </script>
+
     <!-- Background Wallpaper from Portfolio -->
     <div class="bg-wallpaper"></div>
 
