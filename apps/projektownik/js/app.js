@@ -510,7 +510,6 @@ if (anchorBtn) {
 
 // Flowbar Events
 document.addEventListener('flowbar-add-block-type', async (e) => {
-    if (!auth.currentUser) return;
     const type = e.detail?.type || 'empty';
     
     const titles = {
@@ -543,8 +542,6 @@ document.addEventListener('flowbar-add-block-type', async (e) => {
 });
 
 document.addEventListener('flowbar-add-note', async () => {
-    if (!auth.currentUser) return; // Zabezpieczenie przed niezalogowanymi
-    
     const centerX = (window.innerWidth / 2 - translateX) / scale;
     const centerY = (window.innerHeight / 2 - translateY) / scale;
     
@@ -566,7 +563,6 @@ document.addEventListener('flowbar-add-note', async () => {
 });
 
 document.addEventListener('flowbar-add-text', async () => {
-    if (!auth.currentUser) return; 
     
     const centerX = (window.innerWidth / 2 - translateX) / scale;
     const centerY = (window.innerHeight / 2 - translateY) / scale;

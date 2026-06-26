@@ -335,7 +335,12 @@ document.addEventListener('flowbar-add-block-type', async (e) => {
 
 document.addEventListener('flowbar-add-note', async () => {
     if (!currentProjectId) return;
-    const docRef = await addDoc(collection(db, "notes"), {
+    const newDocRef = doc(collection(db, "notes"));
+    const html = `<div class="glass-card" contenteditable="true" data-block-id="${newDocRef.id}"><div class="block-content-sync">Nowa notatka...</div></div><p><br></p>`;
+    safeInsertBlock(html);
+    collectProjectData();
+    
+    await setDoc(newDocRef, {
         type: 'text',
         title: '',
         content: 'Nowa notatka...',
@@ -343,14 +348,16 @@ document.addEventListener('flowbar-add-note', async () => {
         x: 150,
         y: 150
     });
-    const html = `<div class="glass-card" contenteditable="true" data-block-id="${docRef.id}"><div class="block-content-sync">Nowa notatka...</div></div><p><br></p>`;
-    safeInsertBlock(html);
-    collectProjectData();
 });
 
 document.addEventListener('flowbar-add-text', async () => {
     if (!currentProjectId) return;
-    const docRef = await addDoc(collection(db, "notes"), {
+    const newDocRef = doc(collection(db, "notes"));
+    const html = `<div class="glass-card" contenteditable="true" data-block-id="${newDocRef.id}"><div class="block-content-sync">Wpisz tekst tutaj...</div></div><p><br></p>`;
+    safeInsertBlock(html);
+    collectProjectData();
+    
+    await setDoc(newDocRef, {
         type: 'text',
         title: '',
         content: 'Wpisz tekst tutaj...',
@@ -358,9 +365,6 @@ document.addEventListener('flowbar-add-text', async () => {
         x: 200,
         y: 200
     });
-    const html = `<div class="glass-card" contenteditable="true" data-block-id="${docRef.id}"><div class="block-content-sync">Wpisz tekst tutaj...</div></div><p><br></p>`;
-    safeInsertBlock(html);
-    collectProjectData();
 });
 
 
@@ -423,27 +427,18 @@ async function insertModule(type) {
     let html = '';
     
     try {
-        // Zapis do Firebase (Multiplayer Sync)
-        const docRef = await addDoc(collection(db, "notes"), {
-            type: 'block',
-            blockType: type,
-            title: titles[type],
-            content: (type === 'empty') ? '<br>' : '<div class="block-kpi"><input type="checkbox"><span><br></span></div>',
-            projectId: currentProjectId,
-            x: 100, // Domylny spawn dla Projektownika
-            y: 100
-        });
-
+        const newDocRef = doc(collection(db, "notes"));
+        
         if (type === 'empty') {
             html = `
-                <div class="glass-card" contenteditable="true" data-block-id="${docRef.id}">
+                <div class="glass-card" contenteditable="true" data-block-id="${newDocRef.id}">
                     <h2 class="module-heading ${colorClass}" data-type="empty">${titles[type]}</h2>
                     <div class="block-content-sync"><br></div>
                 </div><p><br></p>
             `;
         } else {
             html = `
-                <div class="glass-card" contenteditable="true" data-block-id="${docRef.id}">
+                <div class="glass-card" contenteditable="true" data-block-id="${newDocRef.id}">
                     <h2 class="module-heading ${colorClass}" data-type="${type}">${titles[type]}</h2>
                     <div class="block-content-sync"><div class="block-kpi"><input type="checkbox"><span><br></span></div></div>
                 </div><p><br></p>
@@ -454,6 +449,17 @@ async function insertModule(type) {
         
         // Zapisujemy HTML od razu, eby projekt zapamita pozycj tego bloku w osi Y (Markdown)
         collectProjectData();
+
+        // Zapis do Firebase (Multiplayer Sync) - w tle
+        await setDoc(newDocRef, {
+            type: 'block',
+            blockType: type,
+            title: titles[type],
+            content: (type === 'empty') ? '<br>' : '<div class="block-kpi"><input type="checkbox"><span><br></span></div>',
+            projectId: currentProjectId,
+            x: 100, // Domylny spawn dla Projektownika
+            y: 100
+        });
     } catch (e) {
         console.error("Bd podczas dodawania bloku do bazy: ", e);
     }
