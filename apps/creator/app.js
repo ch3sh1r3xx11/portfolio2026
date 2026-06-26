@@ -2,24 +2,8 @@ import { db } from '/js/firebase-config.js';
 import { collection, addDoc, doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { serializeToMarkdown, parseFromMarkdown } from './js/markdown-engine.js';
 
-// State
-window.debugLog = function(msg) {
-    let box = document.getElementById('debug-box');
-    if(!box) {
-        box = document.createElement('div');
-        box.id = 'debug-box';
-        box.style.cssText = 'position:fixed; top:10px; right:10px; background:rgba(0,0,0,0.85); color:#0f0; padding:10px; z-index:999999; font-family:monospace; font-size:11px; pointer-events:none; width:300px; max-height:400px; overflow-y:auto; border: 1px solid #0f0; border-radius: 4px;';
-        document.body.appendChild(box);
-    }
-    const time = new Date().toISOString().split('T')[1].slice(0, 12);
-    box.innerHTML += `<div>[${time}] ${msg}</div>`;
-    box.scrollTop = box.scrollHeight;
-    console.log("[DEBUG]", msg);
-};
-window.addEventListener('error', function(e) { window.debugLog('ERR: ' + e.message + ' at ' + e.lineno); });
-window.addEventListener('unhandledrejection', function(e) { window.debugLog('PROMISE ERR: ' + e.reason); });
-
-window.debugLog('App loaded v1.1');
+// Removed on-screen-debugger
+console.log('App loaded v1.2');
 let projectData = {
     title: "",
     version: "0.1",
@@ -491,7 +475,6 @@ function handleSmartAnalysis(e) {
 
 // --- INIT / SAVE LOGIC ---
 async function collectProjectData() {
-    window.debugLog('collectProjectData started');
     projectData.title = titleInput.value;
     projectData.version = versionInput.value;
     projectData.content = editorContent.innerHTML;
@@ -694,7 +677,6 @@ if (projectId) {
 }
 
 function renderHeatmap(activityData) {
-    window.debugLog('renderHeatmap called');
     const dumpDisplay = document.getElementById('project-activity-dump');
     const hmContainer = document.getElementById('activity-heatmap');
     if (!dumpDisplay || !hmContainer) return;
