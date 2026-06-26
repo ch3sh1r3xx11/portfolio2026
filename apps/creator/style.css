@@ -146,32 +146,11 @@ input[type=range][orient=vertical] {
     display: flex; flex-direction: column; gap: 0.5rem;
     pointer-events: auto;
 }
-.mandatory-section .heatmap-wrapper {
-    background: rgba(20, 20, 25, 0.6);
-    padding: 0.8rem;
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    pointer-events: auto;
-}
-.heatmap-grid {
-    display: grid;
-    grid-template-rows: repeat(3, 1fr);
-    grid-template-columns: repeat(10, 1fr);
-    gap: 4px;
-}
-.heatmap-square {
-    width: 10px;
-    height: 10px;
-    border-radius: 2px;
-    background: rgba(255, 255, 255, 0.05);
-}
-.heatmap-square.lvl-user-1 { background: rgba(0, 255, 204, 0.3); }
-.heatmap-square.lvl-user-2 { background: rgba(0, 255, 204, 0.7); }
-.heatmap-square.lvl-user-3 { background: rgba(0, 255, 204, 1.0); }
-.heatmap-square.lvl-ai-1 { background: rgba(255, 0, 255, 0.3); }
-.heatmap-square.lvl-ai-2 { background: rgba(255, 0, 255, 0.7); }
-.heatmap-square.lvl-ai-3 { background: rgba(255, 0, 255, 1.0); }
-.heatmap-square.lvl-mixed-1 { background: rgba(127, 127, 255, 0.7); } /* Mixed */
+/* HEATMAP PORTFOLIO */
+.hm-container { display: flex; flex-direction: column; gap: 4px; opacity: 0.9; }
+.hm-row { display: flex; gap: 4px; }
+.hm-cell { width: 10px; height: 10px; border-radius: 2px; transition: all 0.3s; }
+
 
 
 .meta-row {
