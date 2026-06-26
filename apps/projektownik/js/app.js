@@ -508,6 +508,40 @@ if (anchorBtn) {
 
 // --- TWORZENIE I DRAGOWANIE KART (FIREBASE) ---
 
+// Flowbar Events
+document.addEventListener('flowbar-add-block-type', async (e) => {
+    if (!auth.currentUser) return;
+    const type = e.detail?.type || 'empty';
+    
+    const titles = {
+        'vision': 'Wizja', 'goal': 'Cel (SMART)', 'scope': 'Zakres',
+        'plan': 'Plan', 'timeline': 'Harmonogram', 'resources': 'Zasoby',
+        'risks': 'Ryzyka', 'ifthen': 'If>Then', 'success': 'Kryterium Sukcesu',
+        'empty': 'Nowy Blok'
+    };
+    
+    const centerX = (window.innerWidth / 2 - translateX) / scale;
+    const centerY = (window.innerHeight / 2 - translateY) / scale;
+    
+    try {
+        const docRef = doc(collection(db, "notes"));
+        const data = {
+            type: 'block',
+            blockType: type,
+            title: titles[type] || 'Blok',
+            content: (type === 'empty') ? '' : '<div class="block-kpi"><input type="checkbox"><span><br></span></div>',
+            x: centerX - 200, // 400px width / 2
+            y: centerY - 100,
+            width: 400,
+            projectId: currentProjectId
+        };
+        const command = new AddCommand(docRef.id, data);
+        historyManager.execute(command);
+    } catch (err) {
+        console.error("Błąd zapisu bloku do Firebase:", err);
+    }
+});
+
 document.addEventListener('flowbar-add-note', async () => {
     if (!auth.currentUser) return; // Zabezpieczenie przed niezalogowanymi
     
