@@ -617,6 +617,20 @@ async function loadProject(id) {
 
                     editorContent.innerHTML = data.content || "";
                     
+                    // --- AUTO-FIX: Usuwamy '#' ze starych nagłówków ---
+                    const headings = editorContent.querySelectorAll('.module-heading');
+                    let removedHash = false;
+                    headings.forEach(h => {
+                        let text = h.textContent.trim();
+                        if (text.startsWith('#')) {
+                            h.textContent = text.replace(/^#\s*/, '');
+                            removedHash = true;
+                        }
+                    });
+                    if (removedHash) {
+                        setTimeout(initProject, 1000);
+                    }
+
                     // --- DATA MIGRATION: Convert legacy inline styles to new CSS classes ---
                     const oldKpis = editorContent.querySelectorAll('div[style*="display: flex"]');
                     oldKpis.forEach(kpi => {
