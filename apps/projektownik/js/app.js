@@ -700,6 +700,23 @@ function updateCardElement(id, data) {
     
     if (activeCard && activeCard.id === id) return;
     
+    // Obsługa relacji rodzic-dziecko
+    const currentParentId = card.parentElement.classList.contains('container-block') ? card.parentElement.id : null;
+    const newParentId = data.parentId || null;
+    if (currentParentId !== newParentId) {
+        if (newParentId) {
+            const parentBlock = document.getElementById(newParentId);
+            if (parentBlock) {
+                parentBlock.appendChild(card);
+            } else {
+                canvas.appendChild(card);
+                card.dataset.pendingParentId = newParentId;
+            }
+        } else {
+            canvas.appendChild(card);
+        }
+    }
+
     card.style.left = `${data.x}px`;
     card.style.top = `${data.y}px`;
     
