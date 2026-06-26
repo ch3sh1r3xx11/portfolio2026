@@ -724,8 +724,12 @@
                 reports.push({id: doc.id, ...doc.data()});
             });
             
-            // Sort malejąco po dacie
-            reports.sort((a,b) => new Date(b.date || 0) - new Date(a.date || 0));
+            // Sort malejąco po dacie / czasie
+            reports.sort((a,b) => {
+                const dateB = new Date(b.createdAt || b.date || 0);
+                const dateA = new Date(a.createdAt || a.date || 0);
+                return dateB - dateA;
+            });
 
             reportList.innerHTML = ''; 
             
@@ -803,6 +807,7 @@
                     charterMarkdown: md,
                     isPublished: true,
                     date: today,
+                    createdAt: new Date().toISOString(),
                     themeColor: "teal"
                 });
                 
