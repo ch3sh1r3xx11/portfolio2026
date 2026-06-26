@@ -120,6 +120,21 @@
         </div>
     </div>
 
+    <!-- Modal dla Importu MD -->
+    <div id="import-md-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:200; background:rgba(0,0,0,0.8); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); align-items:center; justify-content:center;">
+        <div style="background:rgba(20,25,30,0.9); border:1px solid rgba(255,255,255,0.1); border-radius:1rem; padding:2rem; width:90%; max-width:600px; display:flex; flex-direction:column; gap:1rem; color:var(--white); box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+            <h3 style="font-family:var(--font-mono); color:var(--magenta); letter-spacing:0.1em; text-transform:uppercase;">IMPORT MARKDOWN</h3>
+            <textarea id="import-md-textarea" placeholder="Wklej kod Markdown tutaj..." rows="12" style="padding:0.8rem; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.2); color:white; border-radius:4px; font-family:var(--font-mono); resize:vertical; font-size:0.9rem; outline:none;"></textarea>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.5rem;">
+                <button id="btn-import-md-file" style="padding:0.6rem 1.2rem; background:transparent; border:1px solid rgba(0,201,200,0.5); color:var(--teal); cursor:pointer; border-radius:4px; font-family:var(--font-mono); text-transform:uppercase;">Lub z pliku...</button>
+                <div style="display:flex; gap:1rem;">
+                    <button id="btn-close-import-modal" style="padding:0.6rem 1.2rem; background:transparent; border:1px solid var(--white-dim); color:var(--white-dim); cursor:pointer; border-radius:4px; font-family:var(--font-mono); text-transform:uppercase;">Anuluj</button>
+                    <button id="btn-import-md-text" style="padding:0.6rem 1.2rem; background:var(--magenta); border:none; color:white; font-weight:bold; cursor:pointer; border-radius:4px; font-family:var(--font-mono); text-transform:uppercase;">Wklej Tekst</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="layout.js"></script>
     <script type="module" src="app.js"></script>
 </body>

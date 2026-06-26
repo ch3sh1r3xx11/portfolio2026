@@ -765,8 +765,39 @@ document.getElementById('btn-export-md').addEventListener('click', () => {
     document.body.removeChild(link);
 });
 
+const importModal = document.getElementById('import-md-modal');
+const importTextArea = document.getElementById('import-md-textarea');
+
 document.getElementById('btn-import-md').addEventListener('click', () => {
+    importModal.style.display = 'flex';
+});
+
+document.getElementById('btn-close-import-modal').addEventListener('click', () => {
+    importModal.style.display = 'none';
+    importTextArea.value = '';
+});
+
+document.getElementById('btn-import-md-file').addEventListener('click', () => {
+    importModal.style.display = 'none';
     document.getElementById('file-import-md').click();
+});
+
+document.getElementById('btn-import-md-text').addEventListener('click', () => {
+    const mdString = importTextArea.value;
+    if (!mdString.trim()) {
+        alert("Wklej najpierw kod Markdown.");
+        return;
+    }
+    const newHtml = parseFromMarkdown(mdString);
+    editorContent.innerHTML = newHtml;
+    updateProgress();
+    
+    importModal.style.display = 'none';
+    importTextArea.value = '';
+    
+    if (currentProjectId || titleInput.value) {
+        initProject(); 
+    }
 });
 
 document.getElementById('file-import-md').addEventListener('change', (event) => {
