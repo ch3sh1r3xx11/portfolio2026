@@ -564,6 +564,7 @@ function createCardElement(id, data) {
     
     if (data.type === 'image') {
         card.classList.add('flow-resizable-container');
+        card.classList.add('image-card');
         card.style.width = data.width ? `${data.width}px` : '300px';
         if (data.height) card.style.height = `${data.height}px`;
         card.dataset.startW = parseFloat(card.style.width);

@@ -33,7 +33,7 @@
     position: absolute;
     width: 14px;
     height: 14px;
-    background-color: var(--teal, #00C9C8);
+    background-color: var(--magenta, #E8197A);
     border: 2px solid #fff;
     border-radius: 50%;
     display: none; /* Ukryte domyślnie */
