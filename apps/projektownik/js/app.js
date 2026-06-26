@@ -95,7 +95,6 @@ onAuthStateChanged(auth, (user) => {
         if (bottomTools) bottomTools.show();
         if (undoBtn) undoBtn.style.display = 'block';
         if (redoBtn) redoBtn.style.display = 'block';
-        loadCards();
     } else {
         // Nie zalogowano (Gość)
         loginBtn.style.display = 'block';
