@@ -6,7 +6,7 @@ import { serializeToMarkdown, parseFromMarkdown } from './js/markdown-engine.js'
 console.log('App loaded v1.2');
 let projectData = {
     title: "",
-    version: "0.1",
+    version: "0.71",
     content: "",
     activity: {}
 };
@@ -337,14 +337,14 @@ function insertModule(type) {
     if (type === 'empty') {
         html = `
             <div class="glass-card" contenteditable="true">
-                <h2 class="module-heading ${colorClass}" data-type="empty"># ${titles[type]}</h2>
+                <h2 class="module-heading ${colorClass}" data-type="empty">${titles[type]}</h2>
                 <div class="block-content"><br></div>
             </div><p><br></p>
         `;
     } else {
         html = `
             <div class="glass-card" contenteditable="true">
-                <h2 class="module-heading ${colorClass}" data-type="${type}"># ${titles[type]}</h2>
+                <h2 class="module-heading ${colorClass}" data-type="${type}">${titles[type]}</h2>
                 <div class="block-kpi"><input type="checkbox"><span><br></span></div>
             </div><p><br></p>
         `;
