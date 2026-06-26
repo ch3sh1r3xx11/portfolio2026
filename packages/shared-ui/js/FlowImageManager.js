@@ -86,6 +86,19 @@ export class FlowImageManager {
             // Ignoruj kliknięcia na same handles lub jeśli już coś resizujemy
             if (e.target.classList.contains('flow-resize-handle') || this.isResizing) return;
             this.selectElement(containerElement);
+            
+            // DEBUG: Sprawdzamy dlaczego nadal jest native resize
+            if (window.debugLog) {
+                const comp = window.getComputedStyle(containerElement);
+                window.debugLog(`Selected Image! CSS Resize: ${comp.resize}`);
+                window.debugLog(`Classes: ${containerElement.className}`);
+                
+                const img = containerElement.querySelector('img');
+                if (img) {
+                    window.debugLog(`Inner IMG resize: ${window.getComputedStyle(img).resize}`);
+                }
+            }
+            
             // Zatrzymujemy propagację, żeby nie odpalił się mousedown na tle
             e.stopPropagation();
         };
