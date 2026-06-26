@@ -5,7 +5,8 @@ import { collection, addDoc, doc, getDoc, updateDoc, onSnapshot } from "https://
 let projectData = {
     title: "",
     version: "0.1",
-    content: ""
+    content: "",
+    activity: {}
 };
 let currentProjectId = null;
 let lastLocalSaveTime = 0;
@@ -453,10 +454,23 @@ function handleSmartAnalysis(e) {
 
 
 // --- INIT / SAVE LOGIC ---
-async function initProject() {
-    projectData.title = titleInput.value.trim();
-    projectData.version = versionInput.value.trim();
+async function collectProjectData() {
+    projectData.title = titleInput.value;
+    projectData.version = versionInput.value;
     projectData.content = editorContent.innerHTML;
+    
+    // Zwiększ aktywność usera na dzisiaj przy każdym zapisie/aktualizacji
+    const today = new Date().toISOString().split('T')[0];
+    if (!projectData.activity) projectData.activity = {};
+    if (!projectData.activity[today]) projectData.activity[today] = { user: 0, ai: 0 };
+    projectData.activity[today].user += 1;
+    
+    // Odśwież widok
+    renderHeatmap(projectData.activity);
+}    
+
+async function initProject() {
+    await collectProjectData();
     
     if (!projectData.title) {
         alert("Podaj przynajmniej nazwę projektu.");
@@ -474,6 +488,7 @@ async function initProject() {
                 subtitle: `v${projectData.version || '0.1'}`,
                 date: dateInput.value,
                 content: projectData.content,
+                activity: projectData.activity,
                 updatedAt: new Date().toISOString()
             });
         } else {
@@ -540,6 +555,20 @@ async function loadProject(id) {
                     if (data.date) {
                         dateInput.value = data.date;
                     }
+                    
+                    projectData.activity = data.activity || {};
+                    if (Object.keys(projectData.activity).length === 0) {
+                        const today = new Date().toISOString().split('T')[0];
+                        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+                        const twoDaysAgo = new Date(Date.now() - 172800000).toISOString().split('T')[0];
+                        projectData.activity = {
+                            [twoDaysAgo]: { user: 2, ai: 0 },
+                            [yesterday]: { user: 5, ai: 2 },
+                            [today]: { user: 12, ai: 4 }
+                        };
+                    }
+                    renderHeatmap(projectData.activity);
+
                     editorContent.innerHTML = data.content || "";
                     
                     // --- DATA MIGRATION: Convert legacy inline styles to new CSS classes ---
@@ -601,4 +630,48 @@ if (projectId) {
     loadProject(projectId);
 } else {
     updateProgress();
+}
+
+function renderHeatmap(activityData) {
+    const dumpDisplay = document.getElementById('project-activity-dump');
+    const heatmapGrid = document.getElementById('activity-heatmap');
+    if (!dumpDisplay || !heatmapGrid) return;
+
+    // 1. Render JSON dump
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todayData = activityData[todayStr] || { user: 0, ai: 0 };
+    dumpDisplay.innerHTML = `<span style="color:#d7ba7d">activity</span>: { <span style="color:#ce9178">'${todayStr}'</span>: { <span style="color:#9cdcfe">user</span>: <span style="color:#b5cea8">${todayData.user}</span>, <span style="color:#9cdcfe">ai</span>: <span style="color:#b5cea8">${todayData.ai}</span> } }`;
+
+    // 2. Render Heatmap Squares
+    // 32 days total (4 rows x 8 cols)
+    heatmapGrid.innerHTML = '';
+    const days = [];
+    for (let i = 31; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        days.push(d.toISOString().split('T')[0]);
+    }
+    
+    days.forEach(dateStr => {
+        const dayData = activityData[dateStr];
+        const square = document.createElement('div');
+        square.className = 'heatmap-square';
+        square.title = dateStr;
+        
+        if (dayData) {
+            const total = dayData.user + dayData.ai;
+            if (total > 0) {
+                if (dayData.user >= dayData.ai) {
+                    if (total < 10) square.classList.add('lvl-user-1');
+                    else if (total < 25) square.classList.add('lvl-user-2');
+                    else square.classList.add('lvl-user-3');
+                } else {
+                    if (total < 10) square.classList.add('lvl-ai-1');
+                    else if (total < 25) square.classList.add('lvl-ai-2');
+                    else square.classList.add('lvl-ai-3');
+                }
+            }
+        }
+        heatmapGrid.appendChild(square);
+    });
 }
