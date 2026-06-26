@@ -5,19 +5,26 @@ class SharedFlowbar extends HTMLElement {
             <style>
                 .block-menu {
                     position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
-                    background: rgba(18, 18, 20, 0.95); border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 12px; padding: 8px; width: 220px;
-                    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+                    background: rgba(30, 30, 35, 0.6);
+                    border: 1px solid rgba(255,255,255,0.15);
+                    border-radius: 20px;
+                    padding: 12px;
+                    width: 330px;
+                    max-height: 400px; overflow-y: auto;
+                    backdrop-filter: saturate(180%) blur(30px);
+                    -webkit-backdrop-filter: saturate(180%) blur(30px);
+                    box-shadow: 0 8px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
                     z-index: 1050; display: flex; flex-direction: column; gap: 4px;
-                    backdrop-filter: blur(10px);
                 }
                 .block-menu.hidden { display: none; }
                 .block-option {
-                    background: transparent; border: none; color: #fff; padding: 10px 12px;
-                    text-align: left; font-family: monospace; font-size: 12px; cursor: pointer;
-                    border-radius: 6px; transition: background 0.2s;
+                    background: transparent; border: none; color: #fff;
+                    text-align: left; padding: 8px 12px; cursor: pointer;
+                    font-family: monospace; font-size: 14px;
+                    border-radius: 12px; transition: background 0.15s, transform 0.1s;
                 }
-                .block-option:hover { background: rgba(255, 255, 255, 0.1); }
+                .block-option:hover { background: rgba(255, 255, 255, 0.12); }
+                .block-option:active { background: rgba(255, 255, 255, 0.08); transform: scale(0.96); }
             </style>
             <div class="bottom-pill-container" style="position: relative;">
                 <div id="block-menu" class="block-menu hidden">
@@ -68,6 +75,7 @@ class SharedFlowbar extends HTMLElement {
 
     setupListeners() {
         const emit = (eventName, detail = null) => {
+            console.log("[Flowbar] Emituję event:", eventName, detail);
             this.dispatchEvent(new CustomEvent(eventName, { detail, bubbles: true, composed: true }));
         };
 
@@ -82,6 +90,7 @@ class SharedFlowbar extends HTMLElement {
             btn.addEventListener('click', (e) => {
                 const type = e.target.closest('button').dataset.type;
                 const text = e.target.closest('button').innerText.replace('# ', '').trim();
+                console.log("[Flowbar] Kliknięto blok:", type, text);
                 emit('flowbar-add-block-type', { type, text });
                 blockMenu.classList.add('hidden');
             });
