@@ -60,24 +60,28 @@ export class FlowImageManager {
     /**
      * Główna funkcja, którą wywołuje aplikacja, by "uzbroić" kontener obrazka
      */
-    attachTo(containerElement, id) {
-        // Nadaj id dla łatwej identyfikacji przy zapisie
-        if (id) containerElement.dataset.id = id;
+    attachTo(containerElement, id, onResizeEnd = null) {
+        // Prevent double attach
+        if (containerElement.dataset.flowResizable === "true") return;
+        containerElement.dataset.flowResizable = "true";
+        containerElement.dataset.flowId = id;
+        
+        // Ensure NO native resize
+        containerElement.style.setProperty('resize', 'none', 'important');
         
         // Dodaj brakujące handles jeśli ich nie ma w HTMLu
-        if (!containerElement.querySelector('.flow-resize-handle.top-left')) {
+        if (!containerElement.querySelector('.flow-resize-handle')) {
             const handles = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
             handles.forEach(pos => {
                 const handle = document.createElement('div');
                 handle.className = `flow-resize-handle ${pos}`;
-                handle.dataset.handle = pos;
+                handle.dataset.pos = pos;
                 containerElement.appendChild(handle);
             });
             
             // Tooltip z wymiarami
             const tooltip = document.createElement('div');
             tooltip.className = 'flow-resize-tooltip';
-            tooltip.innerHTML = 'szer.: 0 px wys.: 0 px';
             containerElement.appendChild(tooltip);
         }
 
@@ -98,9 +102,6 @@ export class FlowImageManager {
                     window.debugLog(`Inner IMG resize: ${window.getComputedStyle(img).resize}`);
                 }
             }
-            
-            // Zatrzymujemy propagację, żeby nie odpalił się mousedown na tle
-            e.stopPropagation();
         };
 
         containerElement.addEventListener('mousedown', selectHandler);
@@ -110,8 +111,8 @@ export class FlowImageManager {
         }, { passive: true });
 
         // Event: Rozpoczęcie resizowania (na handles)
-        const handles = containerElement.querySelectorAll('.flow-resize-handle');
-        handles.forEach(handle => {
+        const handleElements = containerElement.querySelectorAll('.flow-resize-handle');
+        handleElements.forEach(handle => {
             handle.addEventListener('mousedown', (e) => {
                 this._startResize(e.clientX, e.clientY, containerElement, handle);
                 e.stopPropagation();
@@ -120,9 +121,11 @@ export class FlowImageManager {
             handle.addEventListener('touchstart', (e) => {
                 this._startResize(e.touches[0].clientX, e.touches[0].clientY, containerElement, handle);
                 e.stopPropagation();
-                // e.preventDefault(); w touchstart musi być zrobione ostrożnie, ale tu robimy resize
             }, { passive: false });
         });
+
+        // Store callback reference in instance map
+        if (id && onResizeEnd) this.callbacks.set(id, onResizeEnd);
     }
 
     selectElement(el) {
@@ -138,10 +141,10 @@ export class FlowImageManager {
         }
     }
 
-    _startResize(clientX, clientY, container, handle) {
+    _startResize(clientX, clientY, container, handleElement) {
         this.isResizing = true;
+        this.activeHandle = handleElement.dataset.pos;
         this.selectedElement = container;
-        this.activeHandle = handle.dataset.handle;
         
         container.classList.add('resizing');
         
@@ -206,26 +209,19 @@ export class FlowImageManager {
             this.selectedElement.style.top = `${newTop}px`;
         }
 
-        // Update tooltip. Obliczamy wymiar rzeczywisty ("fizyczny" np. cm dla efektu, tu po prostu pokażemy px lub wirtualne cm)
-        // Zakładając że 100px = 2cm, więc mnożnik to 0.02 dla uzyskania "szer: X cm"
-        const cmWidth = (newWidth * 0.02).toFixed(2).replace('.', ',');
-        const cmHeight = (newHeight * 0.02).toFixed(2).replace('.', ',');
-        
         const tooltip = this.selectedElement.querySelector('.flow-resize-tooltip');
         if (tooltip) {
-            tooltip.innerHTML = `szer.: ${cmWidth} cm wys.: ${cmHeight} cm`;
+            tooltip.innerHTML = `szer.: ${Math.round(newWidth)}px wys.: ${Math.round(newHeight)}px`;
         }
     }
 
     _handleMouseMove(e) {
         if (!this.isResizing) return;
-        e.preventDefault();
         this._updateDimensions(e.clientX, e.clientY);
     }
 
     _handleTouchMove(e) {
         if (!this.isResizing) return;
-        e.preventDefault(); // Zatrzymanie natywnego scrollowania podczas resize
         this._updateDimensions(e.touches[0].clientX, e.touches[0].clientY);
     }
 

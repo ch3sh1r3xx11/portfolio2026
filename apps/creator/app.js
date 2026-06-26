@@ -28,9 +28,11 @@ const imageManager = new FlowImageManager({
 function rehydrateImages() {
     const images = editorContent.querySelectorAll('.flow-resizable-container');
     images.forEach(img => {
-        // Usuwamy stare handles (mogły zostać zapisane w HTML), manager doda je od nowa
         img.querySelectorAll('.flow-resize-handle, .flow-resize-tooltip').forEach(el => el.remove());
-        imageManager.attachTo(img);
+        const id = img.dataset.flowId || null;
+        imageManager.attachTo(img, id, () => {
+            saveToFirebase(); // Kreator's save
+        });
     });
 }
 
@@ -332,7 +334,11 @@ document.getElementById('add-image-btn').addEventListener('click', () => {
     // Po wstawieniu do DOM, podpinamy eventy
     setTimeout(() => {
         const el = document.getElementById(uniqueId);
-        if (el) imageManager.attachTo(el, uniqueId);
+        if (el) {
+            imageManager.attachTo(el, uniqueId, () => {
+                saveToFirebase();
+            });
+        }
     }, 50);
 });
 
