@@ -638,12 +638,12 @@ async function loadProject(id) {
                     let existingBlock = document.querySelector(`div[data-block-id="${blockId}"]`);
                     
                     if (change.type === "added" && !existingBlock) {
-                        const html = \`
-                            <div class="glass-card" contenteditable="true" data-block-id="\${blockId}">
-                                <h2 class="module-heading magenta" data-type="\${data.blockType || 'empty'}">\${data.title || 'Blok'}</h2>
-                                <div class="block-content-sync">\${data.content || '<br>'}</div>
+                        const html = `
+                            <div class="glass-card" contenteditable="true" data-block-id="${blockId}">
+                                <h2 class="module-heading magenta" data-type="${data.blockType || 'empty'}">${data.title || 'Blok'}</h2>
+                                <div class="block-content-sync">${data.content || '<br>'}</div>
                             </div><p><br></p>
-                        \`;
+                        `;
                         const tempDiv = document.createElement('div');
                         tempDiv.innerHTML = html;
                         Array.from(tempDiv.childNodes).forEach(child => editorContent.appendChild(child));
