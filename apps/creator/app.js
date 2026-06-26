@@ -643,44 +643,60 @@ function renderHeatmap(activityData) {
     dumpDisplay.value = `{ '${todayStr}': { user: ${todayData.user}, ai: ${todayData.ai} } }`;
 
     // 2. Render Heatmap Squares
-    // Portfolio style: 3 rows, 10 columns
+    // Portfolio style: 3 rows, 30 columns
     const hmContainer = document.getElementById('activity-heatmap');
     hmContainer.innerHTML = '';
     
-    // We create 3 rows
-    for (let r = 0; r < 3; r++) {
+    const days = [];
+    for (let i = 29; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        days.push(d.toISOString().split('T')[0]);
+    }
+
+    const hmData = [
+        { color: 'teal', data: [] }, // Row 0: User Activity
+        { color: 'mag',  data: [] }, // Row 1: AI Activity
+        { color: 'teal', data: [] }  // Row 2: Total Activity
+    ];
+
+    days.forEach(dateStr => {
+        const dayData = activityData[dateStr] || { user: 0, ai: 0 };
+        const u = dayData.user;
+        const a = dayData.ai;
+        const t = u + a;
+        
+        // Scale 0-4
+        const scale = (val) => {
+            if (val === 0) return 0;
+            if (val <= 5) return 1;
+            if (val <= 15) return 2;
+            if (val <= 30) return 3;
+            return 4;
+        };
+
+        hmData[0].data.push(scale(u));
+        hmData[1].data.push(scale(a));
+        hmData[2].data.push(scale(t));
+    });
+
+    hmData.forEach(p => {
         const row = document.createElement('div');
         row.className = 'hm-row';
-        
-        for (let c = 0; c < 10; c++) {
-            const dateOffset = 29 - (c * 3 + r);
-            const d = new Date();
-            d.setDate(d.getDate() - dateOffset);
-            const dateStr = d.toISOString().split('T')[0];
-            const dayData = activityData[dateStr] || { user: 0, ai: 0 };
-            
+        p.data.forEach((val, index) => {
             const cell = document.createElement('div');
             cell.className = 'hm-cell';
-            cell.title = dateStr;
-            
-            const total = dayData.user + dayData.ai;
-            if (total === 0) {
+            cell.title = days[index];
+            if (val === 0) {
                 cell.style.background = 'rgba(255,255,255,0.05)';
             } else {
-                let val = 1;
-                if (total > 5) val = 2;
-                if (total > 15) val = 3;
-                if (total > 30) val = 4;
-                
                 const opacities = [0, 0.2, 0.5, 0.8, 1.0];
-                const isAi = dayData.ai > dayData.user;
-                const rgb = isAi ? '232,25,122' : '0,201,200'; // Magenta : Teal
-                
+                const rgb = p.color === 'teal' ? '0,201,200' : '232,25,122';
                 cell.style.background = `rgba(${rgb}, ${opacities[val]})`;
                 if (val === 4) cell.style.boxShadow = `0 0 6px rgba(${rgb}, 0.9)`;
             }
             row.appendChild(cell);
-        }
+        });
         hmContainer.appendChild(row);
-    }
+    });
 }
