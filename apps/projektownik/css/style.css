@@ -414,3 +414,7 @@ body, html {
 .container-block .block-content-area {
     pointer-events: none;
 }
+
+shared-flowbar {
+    pointer-events: auto;
+}
