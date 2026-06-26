@@ -640,7 +640,7 @@ function renderHeatmap(activityData) {
     // 1. Render JSON dump
     const todayStr = new Date().toISOString().split('T')[0];
     const todayData = activityData[todayStr] || { user: 0, ai: 0 };
-    dumpDisplay.innerHTML = `<span style="color:#d7ba7d">activity</span>: { <span style="color:#ce9178">'${todayStr}'</span>: { <span style="color:#9cdcfe">user</span>: <span style="color:#b5cea8">${todayData.user}</span>, <span style="color:#9cdcfe">ai</span>: <span style="color:#b5cea8">${todayData.ai}</span> } }`;
+    dumpDisplay.value = `{ '${todayStr}': { user: ${todayData.user}, ai: ${todayData.ai} } }`;
 
     // 2. Render Heatmap Squares
     // 32 days total (4 rows x 8 cols)
