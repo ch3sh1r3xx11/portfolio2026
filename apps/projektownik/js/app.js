@@ -732,6 +732,9 @@ function createCardElement(id, data) {
     if (delBtn) {
         delBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
+            if (window.lastDragEndTime && Date.now() - window.lastDragEndTime < 500) {
+                return; // Ignoruj sztuczne kliknięcia po upuszczeniu na mobile
+            }
             if (delBtn.dataset.confirming === "true") {
                 const cmd = new DeleteCommand(id, data);
                 historyManager.execute(cmd);
@@ -1047,9 +1050,17 @@ const handleCardDragEnd = async () => {
                     newParentId = targetBlock.id;
                     if (oldParentId !== newParentId) {
                         targetBlock.appendChild(activeCard);
-                        // Convert to local coords
-                        const localX = currentX - parseFloat(targetBlock.style.left || 0);
-                        const localY = currentY - parseFloat(targetBlock.style.top || 0);
+                        // Convert to local coords safely
+                        let tLeft = parseFloat(targetBlock.style.left);
+                        if (isNaN(tLeft)) tLeft = 0;
+                        let tTop = parseFloat(targetBlock.style.top);
+                        if (isNaN(tTop)) tTop = 0;
+                        
+                        let localX = currentX - tLeft;
+                        let localY = currentY - tTop;
+                        if (isNaN(localX)) localX = 0;
+                        if (isNaN(localY)) localY = 0;
+                        
                         activeCard.style.left = `${localX}px`;
                         activeCard.style.top = `${localY}px`;
                         currentX = localX;
@@ -1077,7 +1088,9 @@ const handleCardDragEnd = async () => {
             }
         }
         activeCard = null;
+        hasCardMoved = false;
         isResizingCard = false;
+        window.lastDragEndTime = Date.now();
     }
 };
 
