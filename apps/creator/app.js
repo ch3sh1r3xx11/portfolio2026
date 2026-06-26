@@ -327,22 +327,42 @@ editorContent.addEventListener('keyup', (e) => {
     handleSmartAnalysis(e);
 });
 
-document.addEventListener('flowbar-add-block-type', (e) => {
+document.addEventListener('flowbar-add-block-type', async (e) => {
     const type = e.detail?.type || 'empty';
-    insertModule(type);
+    await insertModule(type);
     updateProgress();
 });
 
-// Toolbar Actions (Shared Mechanics)
-document.addEventListener('flowbar-add-note', () => {
-    const html = `<div class="glass-card" contenteditable="true"><div class="block-note">Nowa notatka...</div></div><p><br></p>`;
+document.addEventListener('flowbar-add-note', async () => {
+    if (!currentProjectId) return;
+    const docRef = await addDoc(collection(db, "notes"), {
+        type: 'text',
+        title: '',
+        content: 'Nowa notatka...',
+        projectId: currentProjectId,
+        x: 150,
+        y: 150
+    });
+    const html = `<div class="glass-card" contenteditable="true" data-block-id="${docRef.id}"><div class="block-content-sync">Nowa notatka...</div></div><p><br></p>`;
     safeInsertBlock(html);
+    collectProjectData();
 });
 
-document.addEventListener('flowbar-add-text', () => {
-    const html = `<p>Wpisz tekst tutaj...</p>`;
+document.addEventListener('flowbar-add-text', async () => {
+    if (!currentProjectId) return;
+    const docRef = await addDoc(collection(db, "notes"), {
+        type: 'text',
+        title: '',
+        content: 'Wpisz tekst tutaj...',
+        projectId: currentProjectId,
+        x: 200,
+        y: 200
+    });
+    const html = `<div class="glass-card" contenteditable="true" data-block-id="${docRef.id}"><div class="block-content-sync">Wpisz tekst tutaj...</div></div><p><br></p>`;
     safeInsertBlock(html);
+    collectProjectData();
 });
+
 
 document.addEventListener('flowbar-add-image', (e) => {
     const file = e.detail?.file;
@@ -380,7 +400,12 @@ document.addEventListener('flowbar-add-kpi', () => {
     safeInsertBlock(html);
 });
 
-function insertModule(type) {
+async function insertModule(type) {
+    if (!currentProjectId) {
+        alert("Zapisz najpierw nowy projekt (ikona dyskietki), by mc dodawa klocki Multiplayer.");
+        return;
+    }
+
     const titles = {
         'vision': 'Wizja',
         'goal': 'Cel (SMART)',
@@ -397,23 +422,41 @@ function insertModule(type) {
     const colorClass = (type === 'resources' || type === 'timeline' || type === 'empty') ? 'teal' : 'magenta';
     let html = '';
     
-    if (type === 'empty') {
-        html = `
-            <div class="glass-card" contenteditable="true">
-                <h2 class="module-heading ${colorClass}" data-type="empty">${titles[type]}</h2>
-                <div class="block-content"><br></div>
-            </div><p><br></p>
-        `;
-    } else {
-        html = `
-            <div class="glass-card" contenteditable="true">
-                <h2 class="module-heading ${colorClass}" data-type="${type}">${titles[type]}</h2>
-                <div class="block-kpi"><input type="checkbox"><span><br></span></div>
-            </div><p><br></p>
-        `;
+    try {
+        // Zapis do Firebase (Multiplayer Sync)
+        const docRef = await addDoc(collection(db, "notes"), {
+            type: 'block',
+            blockType: type,
+            title: titles[type],
+            content: (type === 'empty') ? '<br>' : '<div class="block-kpi"><input type="checkbox"><span><br></span></div>',
+            projectId: currentProjectId,
+            x: 100, // Domylny spawn dla Projektownika
+            y: 100
+        });
+
+        if (type === 'empty') {
+            html = `
+                <div class="glass-card" contenteditable="true" data-block-id="${docRef.id}">
+                    <h2 class="module-heading ${colorClass}" data-type="empty">${titles[type]}</h2>
+                    <div class="block-content-sync"><br></div>
+                </div><p><br></p>
+            `;
+        } else {
+            html = `
+                <div class="glass-card" contenteditable="true" data-block-id="${docRef.id}">
+                    <h2 class="module-heading ${colorClass}" data-type="${type}">${titles[type]}</h2>
+                    <div class="block-content-sync"><div class="block-kpi"><input type="checkbox"><span><br></span></div></div>
+                </div><p><br></p>
+            `;
+        }
+        
+        safeInsertBlock(html);
+        
+        // Zapisujemy HTML od razu, eby projekt zapamita pozycj tego bloku w osi Y (Markdown)
+        collectProjectData();
+    } catch (e) {
+        console.error("Bd podczas dodawania bloku do bazy: ", e);
     }
-    
-    safeInsertBlock(html);
 }
 
 // Bezpieczne wstawianie bloków (zapobiega wstawianiu bloku w środek innego bloku)
@@ -769,6 +812,49 @@ async function loadProject(id) {
                 // -----------------------------------------------------------------------
 
                 updateProgress();
+                
+                // AUTO-MIGRACJA STARYCH BLOKÓW
+                setTimeout(async () => {
+                    const legacyBlocks = editorContent.querySelectorAll('.glass-card:not([data-block-id])');
+                    if (legacyBlocks.length > 0) {
+                        console.log(`[Auto-Migracja] Znaleziono ${legacyBlocks.length} osieroconych bloków. Rozpoczynam wysyłanie do Multiplayera...`);
+                        let wasModified = false;
+                        
+                        for (const block of legacyBlocks) {
+                            const heading = block.querySelector('.module-heading');
+                            const type = heading ? (heading.getAttribute('data-type') || 'empty') : 'empty';
+                            const title = heading ? heading.innerText : 'Blok';
+                            const contentDiv = block.querySelector('.block-content, .block-content-sync, .block-kpi');
+                            const contentHTML = contentDiv ? contentDiv.outerHTML : '<br>';
+                            
+                            try {
+                                const docRef = await addDoc(collection(db, "notes"), {
+                                    type: 'block',
+                                    blockType: type,
+                                    title: title,
+                                    content: contentHTML,
+                                    projectId: currentProjectId,
+                                    x: 100 + Math.random() * 50, // Rozrzuć lekko by nie nachodziły na siebie w 100%
+                                    y: 100 + Math.random() * 50
+                                });
+                                
+                                block.setAttribute('data-block-id', docRef.id);
+                                // Unifikacja klas dla silnika sync
+                                if (contentDiv && contentDiv.className !== 'block-content-sync') {
+                                    contentDiv.className = 'block-content-sync';
+                                }
+                                wasModified = true;
+                            } catch (e) {
+                                console.error("Błąd podczas auto-migracji bloku:", e);
+                            }
+                        }
+                        
+                        if (wasModified) {
+                            console.log("[Auto-Migracja] Sukces! Zapisuję zaktualizowany Markdown.");
+                            collectProjectData();
+                        }
+                    }
+                }, 1000); // Odpalamy ze wstrzymaniem by nie dusić renderowania strony
             }
             isFirstLoad = false;
         });
