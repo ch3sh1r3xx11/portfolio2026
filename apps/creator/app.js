@@ -1,8 +1,18 @@
 import { db } from '/js/firebase-config.js';
-import { collection, addDoc, doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, addDoc, doc, getDoc, updateDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { serializeToMarkdown, parseFromMarkdown } from './js/markdown-engine.js';
 import { FlowImageManager } from '/packages/shared-ui/js/FlowImageManager.js';
 import '/packages/shared-ui/js/Flowbar.js';
+import '/packages/shared-ui/js/SystemMenu.js';
+
+// Nasłuchiwanie na System Menu
+document.addEventListener('sys-projects', () => {
+    window.location.href = '/portfolio/index.html';
+});
+document.addEventListener('sys-refresh', () => {
+    window.location.reload(true);
+});
+
 console.log('App loaded v1.2');
 let projectData = {
     title: "",
@@ -93,7 +103,6 @@ function updateProgress() {
 // Listeners for progress
 titleInput.addEventListener('input', updateProgress);
 versionInput.addEventListener('input', updateProgress);
-editorContent.addEventListener('input', updateProgress);
 
 // Utrwal stan checkboxów w DOM, aby innerHTML go zapisał
 editorContent.addEventListener('click', (e) => {
@@ -246,6 +255,37 @@ editorContent.addEventListener('keydown', (e) => {
                     selection.addRange(range);
                 }
             }
+        }
+    }
+});
+
+let syncTimeout = null;
+editorContent.addEventListener('input', (e) => {
+    updateProgress();
+    
+    // Zapisywanie zmian w blokach z powrotem do Firebase (Projektownika)
+    const block = e.target.closest ? e.target.closest('.glass-card[data-block-id]') : null;
+    if (block) {
+        const blockId = block.dataset.blockId;
+        const contentDiv = block.querySelector('.block-content-sync');
+        const titleDiv = block.querySelector('h2');
+        if (contentDiv && titleDiv) {
+            const newContent = contentDiv.innerHTML;
+            const newTitle = titleDiv.innerText;
+            
+            clearTimeout(syncTimeout);
+            syncTimeout = setTimeout(async () => {
+                try {
+                    const blockRef = doc(db, "notes", blockId);
+                    await updateDoc(blockRef, {
+                        content: newContent,
+                        title: newTitle
+                    });
+                    console.log("Zsynchronizowano blok z Projektownikiem:", blockId);
+                } catch (err) {
+                    console.error("Błąd synchronizacji bloku:", err);
+                }
+            }, 1000);
         }
     }
 });
@@ -588,6 +628,40 @@ async function loadProject(id) {
     try {
         const docRef = doc(db, "projects", id);
         
+        // ZASYSTANIE BLOKÓW Z PROJEKTOWNIKA (CROSS-PLATFORM BLOCKS)
+        const blocksQuery = query(collection(db, "notes"), where("projectId", "==", id));
+        onSnapshot(blocksQuery, (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                const data = change.doc.data();
+                if (data.type === 'block') {
+                    const blockId = change.doc.id;
+                    let existingBlock = document.querySelector(`div[data-block-id="${blockId}"]`);
+                    
+                    if (change.type === "added" && !existingBlock) {
+                        const html = \`
+                            <div class="glass-card" contenteditable="true" data-block-id="\${blockId}">
+                                <h2 class="module-heading magenta" data-type="\${data.blockType || 'empty'}">\${data.title || 'Blok'}</h2>
+                                <div class="block-content-sync">\${data.content || '<br>'}</div>
+                            </div><p><br></p>
+                        \`;
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = html;
+                        Array.from(tempDiv.childNodes).forEach(child => editorContent.appendChild(child));
+                    }
+                    
+                    if (change.type === "modified" && existingBlock) {
+                        // Unikamy nadpisywania jeśli użytkownik akurat to edytuje (chyba że polega na remote)
+                        if (document.activeElement !== existingBlock && !existingBlock.contains(document.activeElement)) {
+                            const contentDiv = existingBlock.querySelector('.block-content-sync');
+                            const titleDiv = existingBlock.querySelector('h2');
+                            if (contentDiv) contentDiv.innerHTML = data.content || '<br>';
+                            if (titleDiv) titleDiv.innerText = data.title || 'Blok';
+                        }
+                    }
+                }
+            });
+        });
+
         let isFirstLoad = true;
         onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
@@ -596,7 +670,6 @@ async function loadProject(id) {
                 // Real-time AI Collaboration: If change comes from the server
                 if (!isFirstLoad && docSnap.metadata.hasPendingWrites === false) {
                     if (Date.now() - lastLocalSaveTime > 2000) {
-                        // Flash Antigravity purple to indicate AI updated the document
                         const flash = document.createElement('div');
                         flash.style.position = 'fixed';
                         flash.style.inset = '0';
@@ -709,12 +782,17 @@ async function loadProject(id) {
 
 // Init
 const urlParams = new URLSearchParams(window.location.search);
-const projectId = urlParams.get('id');
+const id = urlParams.get('id');
 
-if (projectId) {
-    currentProjectId = projectId;
+if (id) {
+    // Dynamicznie zaktualizuj link do Projektownika, by niósł ze sobą otwarty projekt
+    const projLink = document.querySelector('a[href="/projektownik/index.html"]');
+    if (projLink) {
+        projLink.href = `/projektownik/index.html?id=${id}`;
+    }
+    currentProjectId = id;
     document.getElementById('btn-init-project').textContent = '[ UPDATE PROJECT ]';
-    loadProject(projectId);
+    loadProject(id);
 } else {
     updateProgress();
 }

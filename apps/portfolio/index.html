@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/packages/shared-ui/css/nav.css">
+    <link rel="stylesheet" href="/packages/shared-ui/css/system-menu.css">
     <style>
         /* Scrollbar (Cyberpunk Style) */
         ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -299,6 +300,9 @@
     </div>
     <span class="nav-counter" id="counter">01 / 07</span>
 </nav>
+
+<!-- Pływające Menu Techniczne -->
+<shared-system-menu></shared-system-menu>
 
 <!-- 3D Scene -->
 <div class="scene">
@@ -591,6 +595,15 @@
 <script type="module">
     import { db } from './js/firebase-config.js';
     import { collection, getDocs, query, where, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import '/packages/shared-ui/js/SystemMenu.js';
+
+    // Nasłuchiwanie na System Menu
+    document.addEventListener('sys-projects', () => {
+        window.location.href = '/portfolio/index.html';
+    });
+    document.addEventListener('sys-refresh', () => {
+        window.location.reload(true);
+    });
 
     async function loadProjects() {
         const projectList = document.getElementById('project-list');
