@@ -1055,8 +1055,11 @@ document.addEventListener('flowbar-add-image', async (e) => {
 });
 
 // Dodaj Blok Event
-document.addEventListener('flowbar-add-block', async () => {
+document.addEventListener('flowbar-add-block-type', async (e) => {
     if (!auth.currentUser) return;
+    
+    const type = e.detail?.type || 'empty';
+    const text = e.detail?.text || 'Nowy Blok';
     
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
@@ -1064,11 +1067,11 @@ document.addEventListener('flowbar-add-block', async () => {
     const spawnY = (centerY - translateY) / scale;
 
     const cmd = new AddCommand('block', {
-        title: 'Nowy Blok',
+        title: text,
         x: spawnX,
         y: spawnY,
         width: 400,
-        height: 500
+        height: 300
     });
     historyManager.execute(cmd);
 });

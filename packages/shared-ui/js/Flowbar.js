@@ -2,7 +2,36 @@ class SharedFlowbar extends HTMLElement {
     constructor() {
         super();
         this.innerHTML = `
-            <div class="bottom-pill-container">
+            <style>
+                .block-menu {
+                    position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+                    background: rgba(18, 18, 20, 0.95); border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 12px; padding: 8px; width: 220px;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+                    z-index: 1050; display: flex; flex-direction: column; gap: 4px;
+                    backdrop-filter: blur(10px);
+                }
+                .block-menu.hidden { display: none; }
+                .block-option {
+                    background: transparent; border: none; color: #fff; padding: 10px 12px;
+                    text-align: left; font-family: monospace; font-size: 12px; cursor: pointer;
+                    border-radius: 6px; transition: background 0.2s;
+                }
+                .block-option:hover { background: rgba(255, 255, 255, 0.1); }
+            </style>
+            <div class="bottom-pill-container" style="position: relative;">
+                <div id="block-menu" class="block-menu hidden">
+                    <button class="block-option" data-type="vision"><span style="color: var(--teal, #00c9c8)">#</span> Wizja</button>
+                    <button class="block-option" data-type="goal"><span style="color: var(--magenta, #ff00ff)">#</span> Cel (SMART)</button>
+                    <button class="block-option" data-type="scope"><span style="color: var(--teal, #00c9c8)">#</span> Zakres</button>
+                    <button class="block-option" data-type="plan"><span style="color: var(--magenta, #ff00ff)">#</span> Plan</button>
+                    <button class="block-option" data-type="timeline"><span style="color: var(--teal, #00c9c8)">#</span> Harmonogram</button>
+                    <button class="block-option" data-type="resources"><span style="color: var(--magenta, #ff00ff)">#</span> Zasoby</button>
+                    <button class="block-option" data-type="risks"><span style="color: var(--teal, #00c9c8)">#</span> Ryzyka</button>
+                    <button class="block-option" data-type="ifthen"><span style="color: var(--magenta, #ff00ff)">#</span> If>Then</button>
+                    <button class="block-option" data-type="success"><span style="color: var(--teal, #00c9c8)">#</span> Kryterium Sukcesu</button>
+                    <button class="block-option" data-type="empty"><span style="color: var(--magenta, #ff00ff)">[ ... ]</span> Pusty Blok</button>
+                </div>
                 <div class="bottom-pill" id="bottom-tools" style="display: none;">
                     <button class="pill-btn" id="fb-add-block" title="Dodaj Blok (Cel, Zakres)">
                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -20,7 +49,6 @@ class SharedFlowbar extends HTMLElement {
                     <button class="pill-btn" id="fb-add-image" title="Zdjęcie">
                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
                     </button>
-                    <!-- Input for image upload is usually hidden and handled by the app, but we can put it here or let the app handle it -->
                     <input type="file" id="fb-image-upload" accept="image/*" style="display: none;">
                     
                     <button class="pill-btn" id="fb-add-frame" title="Ramka (Przegroda)">
@@ -40,28 +68,41 @@ class SharedFlowbar extends HTMLElement {
 
     setupListeners() {
         const emit = (eventName, detail = null) => {
-            this.dispatchEvent(new CustomEvent(eventName, { 
-                detail, 
-                bubbles: true, 
-                composed: true 
-            }));
+            this.dispatchEvent(new CustomEvent(eventName, { detail, bubbles: true, composed: true }));
         };
 
-        this.querySelector('#fb-add-block').addEventListener('click', () => emit('flowbar-add-block'));
+        const blockMenu = this.querySelector('#block-menu');
+
+        this.querySelector('#fb-add-block').addEventListener('click', (e) => {
+            blockMenu.classList.toggle('hidden');
+            e.stopPropagation();
+        });
+
+        this.querySelectorAll('.block-option').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const type = e.target.closest('button').dataset.type;
+                const text = e.target.closest('button').innerText.replace('# ', '').trim();
+                emit('flowbar-add-block-type', { type, text });
+                blockMenu.classList.add('hidden');
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!this.contains(e.target)) {
+                blockMenu.classList.add('hidden');
+            }
+        });
+
         this.querySelector('#fb-add-note').addEventListener('click', () => emit('flowbar-add-note'));
         this.querySelector('#fb-add-text').addEventListener('click', () => emit('flowbar-add-text'));
         
-        // Image logic can be slightly coupled here to open the file input directly
         const imageUploadInput = this.querySelector('#fb-image-upload');
-        this.querySelector('#fb-add-image').addEventListener('click', () => {
-            imageUploadInput.click();
-        });
+        this.querySelector('#fb-add-image').addEventListener('click', () => imageUploadInput.click());
 
         imageUploadInput.addEventListener('change', (e) => {
             if (e.target.files && e.target.files[0]) {
                 emit('flowbar-add-image', { file: e.target.files[0] });
             }
-            // Reset tak by można było wgrać ten sam plik drugi raz
             e.target.value = '';
         });
 
@@ -69,7 +110,6 @@ class SharedFlowbar extends HTMLElement {
         this.querySelector('#fb-add-kpi').addEventListener('click', () => emit('flowbar-add-kpi'));
     }
 
-    // Metoda do pokazywania/ukrywania (np. przy logowaniu)
     show() {
         const tools = this.querySelector('#bottom-tools');
         if(tools) tools.style.display = 'flex';
@@ -81,4 +121,4 @@ class SharedFlowbar extends HTMLElement {
     }
 }
 
-customElements.define('shared-flowbar', SharedFlowbar);
+customElements.define('shared-flowbar', SharedFlowbar);bar);

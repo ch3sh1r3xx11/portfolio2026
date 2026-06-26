@@ -43,7 +43,6 @@ const versionInput = document.getElementById('project-version');
 const dateInput = document.getElementById('project-date');
 const editorContent = document.getElementById('editor-content');
 const addBlockBtn = document.getElementById('add-block-btn');
-const menu = document.getElementById('block-menu');
 const glassSlider = document.getElementById('glass-slider');
 
 // Set today's date
@@ -291,38 +290,10 @@ editorContent.addEventListener('keyup', (e) => {
     handleSmartAnalysis(e);
 });
 
-// Menu zamykane kliknięciem gdzie indziej (handled globally, ale dodajmy flagę)
-let isMenuOpen = false;
-
-document.addEventListener('flowbar-add-block', () => {
-    menu.classList.toggle('hidden');
-    isMenuOpen = !menu.classList.contains('hidden');
-    
-    if (!menu.classList.contains('hidden')) {
-        const btn = document.querySelector('shared-flowbar').querySelector('#fb-add-block');
-        if (btn) {
-            const rect = btn.getBoundingClientRect();
-            menu.style.bottom = (window.innerHeight - rect.top + 10) + 'px';
-            menu.style.left = rect.left + 'px';
-        }
-    }
-});
-
-document.addEventListener('click', (e) => {
-    if (isMenuOpen && !e.target.closest('.block-menu') && !e.target.closest('shared-flowbar')) {
-        menu.classList.add('hidden');
-        isMenuOpen = false;
-    }
-});
-
-document.querySelectorAll('.block-option').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        const type = e.target.closest('button').dataset.type;
-        insertModule(type);
-        menu.classList.add('hidden');
-        isMenuOpen = false;
-        updateProgress();
-    });
+document.addEventListener('flowbar-add-block-type', (e) => {
+    const type = e.detail?.type || 'empty';
+    insertModule(type);
+    updateProgress();
 });
 
 // Toolbar Actions (Shared Mechanics)
