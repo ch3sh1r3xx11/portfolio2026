@@ -74,6 +74,18 @@ titleInput.addEventListener('input', updateProgress);
 versionInput.addEventListener('input', updateProgress);
 editorContent.addEventListener('input', updateProgress);
 
+// Utrwal stan checkboxów w DOM, aby innerHTML go zapisał
+editorContent.addEventListener('change', (e) => {
+    if (e.target.type === 'checkbox') {
+        if (e.target.checked) {
+            e.target.setAttribute('checked', 'checked');
+        } else {
+            e.target.removeAttribute('checked');
+        }
+        collectProjectData(); // Przelicz heatmapę od razu
+    }
+});
+
 
 // --- GLASS SLIDER LOGIC ---
 glassSlider.addEventListener('input', (e) => {
@@ -480,7 +492,7 @@ async function collectProjectData() {
     }
     
     if (checkedDiff > 0) {
-        projectData.activity[today].completions = (projectData.activity[today].completions || projectData.activity[today].ai || 0) + 2;
+        projectData.activity[today].completions = (projectData.activity[today].completions || projectData.activity[today].ai || 0) + (checkedDiff * 10);
         lastCheckedCount = currentCheckedCount;
     } else if (checkedDiff < 0) {
         lastCheckedCount = currentCheckedCount;
