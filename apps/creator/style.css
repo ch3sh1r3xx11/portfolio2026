@@ -132,8 +132,63 @@ input[type=range][orient=vertical] {
 
 /* Mandatory Section */
 .mandatory-section {
-    display: flex; flex-direction: column; gap: 0.5rem;
+    position: relative; /* was sticky before Flow Motion */
+    z-index: 100;
+    pointer-events: none; /* Pozwalamy klikać pod spodem, z wyjątkiem samych inputów */
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
     margin-bottom: 3rem;
+    padding: 1.5rem;
+    background: rgba(10, 10, 12, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+}
+.mandatory-section .meta-info {
+    display: flex; flex-direction: column; gap: 0.5rem;
+    pointer-events: auto;
+}
+.mandatory-section .heatmap-wrapper {
+    background: rgba(20, 20, 25, 0.6);
+    padding: 0.8rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    pointer-events: auto;
+}
+.heatmap-grid {
+    display: grid;
+    grid-template-rows: repeat(4, 1fr);
+    grid-auto-flow: column;
+    gap: 4px;
+}
+.heatmap-square {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.05);
+}
+.heatmap-square.lvl-user-1 { background: rgba(0, 255, 204, 0.3); }
+.heatmap-square.lvl-user-2 { background: rgba(0, 255, 204, 0.7); }
+.heatmap-square.lvl-user-3 { background: rgba(0, 255, 204, 1.0); }
+.heatmap-square.lvl-ai-1 { background: rgba(255, 0, 255, 0.3); }
+.heatmap-square.lvl-ai-2 { background: rgba(255, 0, 255, 0.7); }
+.heatmap-square.lvl-ai-3 { background: rgba(255, 0, 255, 1.0); }
+.heatmap-square.lvl-mixed-1 { background: rgba(127, 127, 255, 0.7); } /* Mixed */
+
+.activity-dump {
+    font-family: 'Fira Code', 'Courier New', Courier, monospace;
+    font-size: 0.85rem;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 0.5rem;
+    white-space: pre;
+    color: #ce9178;
 }
 .meta-row {
     display: flex; align-items: center; gap: 1rem;

@@ -44,17 +44,27 @@
         <div id="canvas" class="document-wrapper">
             <!-- Mandatory Section -->
             <div class="mandatory-section">
-                <div class="meta-row">
-                    <span class="meta-label">Nazwa:</span>
-                    <input type="text" id="project-title" class="meta-input" placeholder="Wprowadź nazwę..." autocomplete="off">
+                <div class="meta-info">
+                    <div class="meta-row">
+                        <span class="meta-label">Nazwa:</span>
+                        <input type="text" id="project-title" class="meta-input" placeholder="Wprowadź nazwę..." autocomplete="off">
+                    </div>
+                    <div class="meta-row">
+                        <span class="meta-label">Wersja:</span>
+                        <input type="text" id="project-version" class="meta-input" value="0.2" autocomplete="off">
+                    </div>
+                    <div class="meta-row">
+                        <span class="meta-label">Data:</span>
+                        <input type="text" id="project-date" class="meta-input" readonly>
+                    </div>
+                    <div class="meta-row" id="project-activity-dump-container">
+                        <span id="project-activity-dump" class="activity-dump">activity: {}</span>
+                    </div>
                 </div>
-                <div class="meta-row">
-                    <span class="meta-label">Wersja:</span>
-                    <input type="text" id="project-version" class="meta-input" value="0.1" autocomplete="off">
-                </div>
-                <div class="meta-row">
-                    <span class="meta-label">Data:</span>
-                    <input type="text" id="project-date" class="meta-input" readonly>
+                
+                <!-- Heatmap Widget -->
+                <div class="heatmap-wrapper">
+                    <div id="activity-heatmap" class="heatmap-grid"></div>
                 </div>
             </div>
 
