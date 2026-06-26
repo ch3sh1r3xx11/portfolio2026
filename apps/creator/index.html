@@ -71,25 +71,25 @@
 
             <!-- Notion-Style Editor Body -->
             <div class="editor-body">
-                <!-- Menu z blokami (now shown above toolbar when + is clicked) -->
-                <div id="block-menu" class="block-menu hidden">
-                    <button class="block-option" data-type="vision"><span style="color: var(--teal)">#</span> Wizja</button>
-                    <button class="block-option" data-type="goal"><span style="color: var(--magenta)">#</span> Cel (SMART)</button>
-                    <button class="block-option" data-type="scope"><span style="color: var(--teal)">#</span> Zakres</button>
-                    <button class="block-option" data-type="plan"><span style="color: var(--magenta)">#</span> Plan</button>
-                    <button class="block-option" data-type="timeline"><span style="color: var(--teal)">#</span> Harmonogram</button>
-                    <button class="block-option" data-type="resources"><span style="color: var(--magenta)">#</span> Zasoby</button>
-                    <button class="block-option" data-type="risks"><span style="color: var(--teal)">#</span> Ryzyka</button>
-                    <button class="block-option" data-type="ifthen"><span style="color: var(--magenta)">#</span> If>Then</button>
-                    <button class="block-option" data-type="success"><span style="color: var(--teal)">#</span> Kryterium Sukcesu</button>
-                    <button class="block-option" data-type="empty"><span style="color: var(--magenta)">[ ... ]</span> Pusty Blok</button>
-                </div>
-
                 <!-- Główna ściana tekstu -->
                 <div id="editor-content" class="editor-content"></div>
             </div>
         </div>
     </main>
+
+    <!-- Menu z blokami (moved outside canvas so position: fixed works properly) -->
+    <div id="block-menu" class="block-menu hidden">
+        <button class="block-option" data-type="vision"><span style="color: var(--teal)">#</span> Wizja</button>
+        <button class="block-option" data-type="goal"><span style="color: var(--magenta)">#</span> Cel (SMART)</button>
+        <button class="block-option" data-type="scope"><span style="color: var(--teal)">#</span> Zakres</button>
+        <button class="block-option" data-type="plan"><span style="color: var(--magenta)">#</span> Plan</button>
+        <button class="block-option" data-type="timeline"><span style="color: var(--teal)">#</span> Harmonogram</button>
+        <button class="block-option" data-type="resources"><span style="color: var(--magenta)">#</span> Zasoby</button>
+        <button class="block-option" data-type="risks"><span style="color: var(--teal)">#</span> Ryzyka</button>
+        <button class="block-option" data-type="ifthen"><span style="color: var(--magenta)">#</span> If>Then</button>
+        <button class="block-option" data-type="success"><span style="color: var(--teal)">#</span> Kryterium Sukcesu</button>
+        <button class="block-option" data-type="empty"><span style="color: var(--magenta)">[ ... ]</span> Pusty Blok</button>
+    </div>
 
     <!-- Floating Toolbar (Shared) -->
     <div class="bottom-pill-container">
