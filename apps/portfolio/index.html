@@ -402,28 +402,8 @@
                 <div class="panel-num" style="color:var(--magenta)"><span class="panel-num-line" style="background:var(--magenta)"></span>Produkty</div>
                 <h2 class="panel-title">pipeline</h2>
                 
-                <div class="gantt-wrapper">
-                    <!-- Projekt 1: Projektownik 0.6 (Teal) -->
-                    <div class="gantt-row">
-                        <div class="gantt-label" style="color:var(--teal)">Projektownik <span class="gantt-ver">v0.6</span></div>
-                        <div class="gantt-track">
-                            <div class="gantt-bar" style="width:60%; background:rgba(0,201,200,0.1); border:1px solid rgba(0,201,200,0.5);"></div>
-                        </div>
-                    </div>
-                    <!-- Projekt 2: Portfolio 0.4 (Magenta) -->
-                    <div class="gantt-row">
-                        <div class="gantt-label" style="color:var(--magenta)">Portfolio <span class="gantt-ver">v0.51</span></div>
-                        <div class="gantt-track">
-                            <div class="gantt-bar" style="width:50%; background:rgba(232,25,122,0.1); border:1px solid rgba(232,25,122,0.5);"></div>
-                        </div>
-                    </div>
-                    <!-- Projekt 3: YMH 0.2 (Teal) -->
-                    <div class="gantt-row">
-                        <div class="gantt-label" style="color:var(--teal)">YMH <span class="gantt-ver">v0.2</span></div>
-                        <div class="gantt-track">
-                            <div class="gantt-bar" style="width:20%; background:rgba(0,201,200,0.1); border:1px solid rgba(0,201,200,0.5);"></div>
-                        </div>
-                    </div>
+                <div class="gantt-wrapper" id="pipeline-wrapper">
+                    <!-- Wygenerowane dynamicznie na podstawie Firebase -->
                 </div>
             </div>
         </div>
@@ -614,15 +594,21 @@
 
     async function loadProjects() {
         const projectList = document.getElementById('project-list');
+        const pipelineWrapper = document.getElementById('pipeline-wrapper');
         if (!projectList) return;
 
         try {
             const q = query(collection(db, "projects"), where("isPublished", "==", true));
             const querySnapshot = await getDocs(q);
             projectList.innerHTML = ''; 
+            if (pipelineWrapper) pipelineWrapper.innerHTML = '';
+            
+            let globalActivity = {};
             
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
+                
+                // --- 1. Aktualizacja Listy Projektów ---
                 const row = document.createElement('div');
                 row.className = 'cert-row';
                 row.style.cursor = 'pointer';
@@ -643,10 +629,50 @@
                 left.appendChild(orgSpan);
                 row.appendChild(left);
                 projectList.appendChild(row);
+
+                // --- 2. Aktualizacja Pipeline (Gantt) ---
+                if (pipelineWrapper) {
+                    let verStr = data.subtitle || 'v0.1';
+                    let verNum = parseFloat(verStr.replace('v', '')) || 0.1;
+                    let pct = Math.min(100, Math.round(verNum * 100));
+                    if (verNum >= 1.0) pct = 100;
+                    
+                    const pRow = document.createElement('div');
+                    pRow.className = 'gantt-row';
+                    const color = data.themeColor === 'magenta' ? 'magenta' : 'teal';
+                    const rgb = color === 'magenta' ? '232,25,122' : '0,201,200';
+
+                    pRow.innerHTML = `
+                        <div class="gantt-label" style="color:var(--${color})">${data.title} <span class="gantt-ver">${verStr}</span></div>
+                        <div class="gantt-track">
+                            <div class="gantt-bar" style="width:${pct}%; background:rgba(${rgb},0.1); border:1px solid rgba(${rgb},0.5);"></div>
+                        </div>
+                    `;
+                    pipelineWrapper.appendChild(pRow);
+                }
+
+                // --- 3. Agregacja Heatmapy ---
+                if (data.activity) {
+                    for (let date in data.activity) {
+                        if (!globalActivity[date]) globalActivity[date] = { ideas: 0, completions: 0 };
+                        globalActivity[date].ideas += (data.activity[date].ideas || data.activity[date].user || 0);
+                        globalActivity[date].completions += (data.activity[date].completions || data.activity[date].ai || 0);
+                    }
+                }
             });
+            
             if (projectList.innerHTML === '') {
                  projectList.innerHTML = '<div class="cert-row"><div class="cert-left"><span class="cert-name" style="color:var(--white-dim)">Brak opublikowanych projektów.</span></div></div>';
             }
+            if (pipelineWrapper && pipelineWrapper.innerHTML === '') {
+                 pipelineWrapper.innerHTML = '<div style="color:var(--white-dim); font-family:var(--font-mono); font-size:0.8rem;">Brak danych do pipeline.</div>';
+            }
+
+            // Renderujemy zsumowaną heatmapę
+            if (typeof renderGlobalHeatmap === 'function') {
+                renderGlobalHeatmap(globalActivity);
+            }
+            
         } catch (e) {
             console.error("Błąd podczas pobierania projektów:", e);
         }
@@ -773,31 +799,48 @@
     modal.addEventListener('wheel', e => e.stopPropagation());
 
     // --- HEATMAP GENERATION ---
-    const hmContainer = document.getElementById('hero-heatmap');
-    if (hmContainer) {
-        const hmData = [
-            { color: 'teal', data: [0,0,1,2,0,0,3,4,2,1,0,0,1,2,3,2,1,0,0,4,4,3,1,0,2,3,4,2,1,2] },
-            { color: 'mag',  data: [0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,2,0,0,0,0,0,1,3,4,4,4] },
-            { color: 'teal', data: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,1,0,0,1,1,2,0] }
-        ];
-        hmData.forEach(p => {
+    function renderGlobalHeatmap(activityData) {
+        const hmContainer = document.getElementById('hero-heatmap');
+        if (!hmContainer) return;
+        hmContainer.innerHTML = '';
+        
+        for (let r = 0; r < 3; r++) {
             const row = document.createElement('div');
             row.className = 'hm-row';
-            p.data.forEach(val => {
+            for (let c = 0; c < 30; c++) {
+                const daysAgo = 89 - (c * 3 + r);
+                const d = new Date();
+                d.setDate(d.getDate() - daysAgo);
+                const dateStr = d.toISOString().split('T')[0];
+                const dayData = activityData[dateStr] || { ideas: 0, completions: 0 };
+                
                 const cell = document.createElement('div');
                 cell.className = 'hm-cell';
-                if (val === 0) {
+                cell.title = dateStr;
+                
+                const i = dayData.ideas || dayData.user || 0;
+                const comp = dayData.completions || dayData.ai || 0;
+                const total = i + comp;
+                
+                if (total === 0) {
                     cell.style.background = 'rgba(255,255,255,0.05)';
                 } else {
+                    let val = 1;
+                    if (total > 3) val = 2;
+                    if (total > 8) val = 3;
+                    if (total > 15) val = 4;
+                    
                     const opacities = [0, 0.2, 0.5, 0.8, 1.0];
-                    const rgb = p.color === 'teal' ? '0,201,200' : '232,25,122';
+                    const isHot = comp > 0 && (comp >= (i * 0.3));
+                    const rgb = isHot ? '232,25,122' : '0,201,200'; // Magenta : Teal
+                    
                     cell.style.background = `rgba(${rgb}, ${opacities[val]})`;
                     if (val === 4) cell.style.boxShadow = `0 0 6px rgba(${rgb}, 0.9)`;
                 }
                 row.appendChild(cell);
-            });
+            }
             hmContainer.appendChild(row);
-        });
+        }
     }
 
     loadProjects();
