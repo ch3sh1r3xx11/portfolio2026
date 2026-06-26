@@ -89,8 +89,17 @@ class SharedFlowbar extends HTMLElement {
             e.stopPropagation();
         });
 
-        // Nasłuchiwanie na kliknięcia w opcje bloków przeniesione bezpośrednio do app.js
-        // aby uodpornić je na zjawisko "pożerania" kliknięć przez zewnętrzne globalne eventy (jak infinite canvas)
+        // Przywrócona logika nasłuchiwania wewnątrz komponentu (Hermetyzacja).
+        // Każdy przycisk emituje globalne zdarzenie "flowbar-add-block-type" zrozumiałe dla obu edytorów.
+        const blockOptions = this.querySelectorAll('.block-option');
+        blockOptions.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const type = btn.getAttribute('data-type');
+                emit('flowbar-add-block-type', { type });
+                blockMenu.classList.add('hidden');
+            });
+        });
 
         document.addEventListener('click', (e) => {
             if (!this.contains(e.target)) {

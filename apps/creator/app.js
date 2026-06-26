@@ -876,6 +876,10 @@ if (id) {
     currentProjectId = id;
     document.getElementById('btn-init-project').textContent = '[ UPDATE PROJECT ]';
     loadProject(id);
+    setTimeout(() => {
+        const fb = document.querySelector('shared-flowbar');
+        if (fb) fb.show();
+    }, 500);
 } else {
     updateProgress();
 }
