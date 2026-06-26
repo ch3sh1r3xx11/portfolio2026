@@ -26,19 +26,22 @@ class SharedFlowbar extends HTMLElement {
                 .block-option:hover { background: rgba(255, 255, 255, 0.12); }
                 .block-option:active { background: rgba(255, 255, 255, 0.08); transform: scale(0.96); }
             </style>
-            <div class="bottom-pill-container" style="position: relative;">
-                <div id="block-menu" class="block-menu hidden">
-                    <button class="block-option" data-type="vision"><span style="color: var(--teal, #00c9c8)">#</span> Wizja</button>
-                    <button class="block-option" data-type="goal"><span style="color: var(--magenta, #ff00ff)">#</span> Cel (SMART)</button>
-                    <button class="block-option" data-type="scope"><span style="color: var(--teal, #00c9c8)">#</span> Zakres</button>
-                    <button class="block-option" data-type="plan"><span style="color: var(--magenta, #ff00ff)">#</span> Plan</button>
-                    <button class="block-option" data-type="timeline"><span style="color: var(--teal, #00c9c8)">#</span> Harmonogram</button>
-                    <button class="block-option" data-type="resources"><span style="color: var(--magenta, #ff00ff)">#</span> Zasoby</button>
-                    <button class="block-option" data-type="risks"><span style="color: var(--teal, #00c9c8)">#</span> Ryzyka</button>
-                    <button class="block-option" data-type="ifthen"><span style="color: var(--magenta, #ff00ff)">#</span> If>Then</button>
-                    <button class="block-option" data-type="success"><span style="color: var(--teal, #00c9c8)">#</span> Kryterium Sukcesu</button>
-                    <button class="block-option" data-type="empty"><span style="color: var(--magenta, #ff00ff)">[ ... ]</span> Pusty Blok</button>
-                </div>
+            
+            <!-- block-menu musi byc poza bottom-pill-container, zeby transformX na nim nie zaburzał fixed positioning -->
+            <div id="block-menu" class="block-menu hidden">
+                <button class="block-option" data-type="vision"><span style="color: var(--teal, #00c9c8)">#</span> Wizja</button>
+                <button class="block-option" data-type="goal"><span style="color: var(--magenta, #ff00ff)">#</span> Cel (SMART)</button>
+                <button class="block-option" data-type="scope"><span style="color: var(--teal, #00c9c8)">#</span> Zakres</button>
+                <button class="block-option" data-type="plan"><span style="color: var(--magenta, #ff00ff)">#</span> Plan</button>
+                <button class="block-option" data-type="timeline"><span style="color: var(--teal, #00c9c8)">#</span> Harmonogram</button>
+                <button class="block-option" data-type="resources"><span style="color: var(--magenta, #ff00ff)">#</span> Zasoby</button>
+                <button class="block-option" data-type="risks"><span style="color: var(--teal, #00c9c8)">#</span> Ryzyka</button>
+                <button class="block-option" data-type="ifthen"><span style="color: var(--magenta, #ff00ff)">#</span> If>Then</button>
+                <button class="block-option" data-type="success"><span style="color: var(--teal, #00c9c8)">#</span> Kryterium Sukcesu</button>
+                <button class="block-option" data-type="empty"><span style="color: var(--magenta, #ff00ff)">[ ... ]</span> Pusty Blok</button>
+            </div>
+            
+            <div class="bottom-pill-container">
                 <div class="bottom-pill" id="bottom-tools" style="display: none;">
                     <button class="pill-btn" id="fb-add-block" title="Dodaj Blok (Cel, Zakres)">
                         <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -86,15 +89,8 @@ class SharedFlowbar extends HTMLElement {
             e.stopPropagation();
         });
 
-        this.querySelectorAll('.block-option').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const type = e.target.closest('button').dataset.type;
-                const text = e.target.closest('button').innerText.replace('# ', '').trim();
-                console.log("[Flowbar] Kliknięto blok:", type, text);
-                emit('flowbar-add-block-type', { type, text });
-                blockMenu.classList.add('hidden');
-            });
-        });
+        // Nasłuchiwanie na kliknięcia w opcje bloków przeniesione bezpośrednio do app.js
+        // aby uodpornić je na zjawisko "pożerania" kliknięć przez zewnętrzne globalne eventy (jak infinite canvas)
 
         document.addEventListener('click', (e) => {
             if (!this.contains(e.target)) {

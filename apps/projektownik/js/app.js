@@ -1,11 +1,31 @@
 import { db, auth, provider, signInWithPopup, onAuthStateChanged, storage, ref, uploadBytes, getDownloadURL, signOut } from './firebase-config.js';
-import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { FlowImageManager } from '/packages/shared-ui/js/FlowImageManager.js';
 import '/packages/shared-ui/js/Flowbar.js';
-// --- SYSTEM DEBUGOWANIA ON-SCREEN (WYŁĄCZONY) ---
+import '/packages/shared-ui/js/SystemMenu.js';
+
+// Nasłuchiwanie na akcje z SystemMenu (Menu Techniczne)
+document.addEventListener('sys-projects', () => {
+    window.location.href = '/portfolio/index.html'; // Powrót do projektów
+});
+document.addEventListener('sys-refresh', () => {
+    window.location.reload(true);
+});
+
 window.debugLog = function(msg) {
+    let box = document.getElementById('debug-box');
+    if(!box) {
+        box = document.createElement('div');
+        box.id = 'debug-box';
+        box.style.cssText = 'position:fixed; top:10px; right:10px; background:rgba(0,0,0,0.85); color:#0f0; padding:10px; z-index:999999; font-family:monospace; font-size:11px; pointer-events:none; width:300px; max-height:400px; overflow-y:auto; border: 1px solid #0f0; border-radius: 4px;';
+        document.body.appendChild(box);
+    }
+    const time = new Date().toISOString().split('T')[1].slice(0, 12);
+    box.innerHTML += `<div>[${time}] ${msg}</div>`;
+    box.scrollTop = box.scrollHeight;
     console.log("[DEBUG]", msg);
 };
+window.debugLog("App zainicjalizowana");
 
 
 const viewport = document.getElementById('viewport');
@@ -41,23 +61,33 @@ document.getElementById('refresh-btn').addEventListener('click', () => {
     window.location.reload(true);
 });
 
+// Odczytanie ID projektu z adresu URL (np. ?id=...)
+const urlParams = new URLSearchParams(window.location.search);
+const currentProjectId = urlParams.get('id');
+
 let unsubscribeSnapshot = null;
 
-// Ładowanie notatek dla wszystkich (nawet gości)
-unsubscribeSnapshot = onSnapshot(collection(db, "notes"), (snapshot) => {
-    snapshot.docChanges().forEach((change) => {
-        if (change.type === "added") {
-            createCardElement(change.doc.id, change.doc.data());
-        }
-        if (change.type === "modified") {
-            updateCardElement(change.doc.id, change.doc.data());
-        }
-        if (change.type === "removed") {
-            const el = document.getElementById(change.doc.id);
-            if(el) el.remove();
-        }
+if (!currentProjectId) {
+    console.warn("Brak ID projektu w URL! Przekierowuję na domyślny projekt (Flow Design).");
+    window.location.href = `?id=jLpBepj7Mbleh9TPdJGz`;
+} else {
+    // Ładowanie notatek z konkretnego projektu
+    const q = query(collection(db, "notes"), where("projectId", "==", currentProjectId));
+    unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+            if (change.type === "added") {
+                createCardElement(change.doc.id, change.doc.data());
+            }
+            if (change.type === "modified") {
+                updateCardElement(change.doc.id, change.doc.data());
+            }
+            if (change.type === "removed") {
+                const el = document.getElementById(change.doc.id);
+                if(el) el.remove();
+            }
+        });
     });
-});
+}
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -394,7 +424,12 @@ class AddCommand {
         this.data = data;
     }
     async execute() {
-        try { await setDoc(doc(db, "notes", this.id), this.data); } catch(e){}
+        try { 
+            await setDoc(doc(db, "notes", this.id), this.data); 
+        } catch(e) {
+            alert("Błąd zapisu AddCommand: " + e.message);
+            console.error(e);
+        }
     }
     async undo() {
         // Soft Delete (lub hard delete dla uproszczenia przy nowym elemencie)
@@ -489,7 +524,8 @@ document.addEventListener('flowbar-add-note', async () => {
             x: centerX,
             y: centerY,
             title: "",
-            content: ""
+            content: "",
+            projectId: currentProjectId
         };
         const command = new AddCommand(docRef.id, data);
         historyManager.execute(command);
@@ -511,7 +547,8 @@ document.addEventListener('flowbar-add-text', async () => {
             x: centerX,
             y: centerY,
             content: "",
-            width: 250
+            width: 250,
+            projectId: currentProjectId
         };
         const command = new AddCommand(docRef.id, data);
         historyManager.execute(command);
@@ -620,10 +657,11 @@ function createCardElement(id, data) {
         card.innerHTML = `
             <button class="delete-btn" title="Usuń">×</button>
             <div class="card-header" contenteditable="true">${data.title || 'Nowy Blok'}</div>
-            <div class="block-content-area" style="width: 100%; height: calc(100% - 40px); pointer-events: none;"></div>
+            <div class="card-body" contenteditable="true" style="width: 100%; height: calc(100% - 40px); outline: none; overflow-y: auto; padding: 10px; color: #fff; font-family: sans-serif; font-size: 14px; box-sizing: border-box;">${data.content || ''}</div>
         `;
         appendCardToDom(card, data.parentId);
         makeDraggable(card, id);
+        makeEditable(card, id);
         
         // Sprawdź czy jakieś notatki czekają na ten blok jako na rodzica
         document.querySelectorAll(`.card[data-pending-parent-id="${id}"]`).forEach(child => {
@@ -1042,11 +1080,13 @@ document.addEventListener('flowbar-add-image', async (e) => {
         const spawnX = (centerX - translateX) / scale;
         const spawnY = (centerY - translateY) / scale;
 
-        const cmd = new AddCommand('image', {
+        const cmd = new AddCommand('image_' + Date.now(), {
+            type: 'image',
             url: url,
             x: spawnX,
             y: spawnY,
-            width: 300
+            width: 300,
+            projectId: currentProjectId
         });
         historyManager.execute(cmd);
     } catch(err) {
@@ -1054,34 +1094,47 @@ document.addEventListener('flowbar-add-image', async (e) => {
     }
 });
 
-// Dodaj Blok Event
-document.addEventListener('flowbar-add-block-type', async (e) => {
-    console.log("[Projektownik] flowbar-add-block-type Złapano event!", e.detail);
+// --- TWORZENIE BLOKÓW Z FLOWBARA (Globalny nasłuchiwacz uodporniony na canvas) ---
+document.addEventListener('pointerdown', async (e) => {
+    const btn = e.target.closest('.block-option');
+    if (!btn) return;
+    
+    // Zatrzymujemy propagację, żeby canvas nie przesuwał ekranu!
+    e.stopPropagation();
+
+    const type = btn.dataset.type;
+    const text = btn.innerText.replace('# ', '').replace('[ ... ] ', '').trim();
+    
+    if (window.debugLog) window.debugLog(`Przechwycono GLOBALNIE kliknięcie w: ${text}`);
+
+    // Ukrywamy menu
+    const blockMenu = document.querySelector('#block-menu');
+    if (blockMenu) blockMenu.classList.add('hidden');
+
     if (!auth.currentUser) {
         console.warn("[Projektownik] Brak zalogowanego użytkownika!");
         return;
     }
-    
-    const type = e.detail?.type || 'empty';
-    const text = e.detail?.text || 'Nowy Blok';
-    
+
+    const id = 'block_' + Date.now();
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
     const spawnX = (centerX - translateX) / scale;
     const spawnY = (centerY - translateY) / scale;
 
-    const id = 'block_' + Date.now();
     const cmd = new AddCommand(id, {
         type: 'block',
         title: text,
         x: spawnX,
         y: spawnY,
-        width: 400,
-        height: 300
+        width: 300,
+        height: 400,
+        color: '#2a2a2a',
+        projectId: currentProjectId
     });
-    console.log("[Projektownik] Wykonuję komendę:", cmd);
     historyManager.execute(cmd);
 });
+
 
 // Funkcja pomocnicza do renderowania DOM (async parent resolution)
 function appendCardToDom(card, parentId) {
@@ -1125,7 +1178,8 @@ window.addEventListener('paste', async (e) => {
                     type: 'image',
                     url: url,
                     x: centerX,
-                    y: centerY
+                    y: centerY,
+                    projectId: currentProjectId
                 });
                 console.log("Obrazek pomyślnie dodany na Biurko!");
             } catch (err) {
