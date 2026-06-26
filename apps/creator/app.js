@@ -97,6 +97,8 @@ glassSlider.addEventListener('input', (e) => {
     const brightness = Math.max(0.02, 0.5 - (opacity * 0.48));
     document.documentElement.style.setProperty('--bg-brightness', brightness);
 });
+// Trigger once to apply default style
+glassSlider.dispatchEvent(new Event('input'));
 
 
 // --- NOTION-STYLE EDITOR LOGIC ---
@@ -492,7 +494,7 @@ async function collectProjectData() {
     }
     
     if (checkedDiff > 0) {
-        projectData.activity[today].completions = (projectData.activity[today].completions || projectData.activity[today].ai || 0) + (checkedDiff * 10);
+        projectData.activity[today].completions = (projectData.activity[today].completions || projectData.activity[today].ai || 0) + (checkedDiff * 3);
         lastCheckedCount = currentCheckedCount;
     } else if (checkedDiff < 0) {
         lastCheckedCount = currentCheckedCount;
@@ -517,10 +519,11 @@ async function initProject() {
             const docRef = doc(db, "projects", currentProjectId);
             await updateDoc(docRef, {
                 title: projectData.title,
-                subtitle: `v${projectData.version || '0.1'}`,
+                subtitle: projectData.version.startsWith('v') ? projectData.version : `v${projectData.version || '0.1'}`,
                 date: dateInput.value,
                 content: projectData.content,
                 activity: projectData.activity,
+                glassOpacity: glassSlider.value,
                 updatedAt: new Date().toISOString()
             });
         } else {
@@ -528,11 +531,13 @@ async function initProject() {
             lastLocalSaveTime = Date.now();
             await addDoc(collection(db, "projects"), {
                 title: projectData.title,
-                subtitle: `v${projectData.version || '0.1'}`,
+                subtitle: projectData.version.startsWith('v') ? projectData.version : `v${projectData.version || '0.1'}`,
                 isPublished: true,
                 themeColor: "magenta",
                 date: dateInput.value,
                 content: projectData.content,
+                activity: projectData.activity,
+                glassOpacity: glassSlider.value,
                 createdAt: new Date().toISOString()
             });
         }
@@ -586,6 +591,10 @@ async function loadProject(id) {
                     }
                     if (data.date) {
                         dateInput.value = data.date;
+                    }
+                    if (data.glassOpacity !== undefined) {
+                        glassSlider.value = data.glassOpacity;
+                        glassSlider.dispatchEvent(new Event('input'));
                     }
                     
                     projectData.activity = data.activity || {};
