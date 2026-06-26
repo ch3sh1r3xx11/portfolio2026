@@ -121,4 +121,4 @@ class SharedFlowbar extends HTMLElement {
     }
 }
 
-customElements.define('shared-flowbar', SharedFlowbar);bar);
+customElements.define('shared-flowbar', SharedFlowbar);
