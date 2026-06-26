@@ -19,6 +19,8 @@ export class FlowImageManager {
         this.startY = 0;
         this.startWidth = 0;
         this.startHeight = 0;
+        this.startLeft = 0;
+        this.startTop = 0;
         this.activeHandle = null;
         this.aspectRatio = 1;
 
@@ -134,6 +136,8 @@ export class FlowImageManager {
         this.startY = clientY;
         this.startWidth = container.offsetWidth;
         this.startHeight = container.offsetHeight;
+        this.startLeft = parseFloat(container.style.left) || 0;
+        this.startTop = parseFloat(container.style.top) || 0;
         
         // Zabezpieczenie przed dzieleniem przez zero
         this.aspectRatio = this.startHeight === 0 ? 1 : this.startWidth / this.startHeight;
@@ -144,34 +148,50 @@ export class FlowImageManager {
 
         const scale = this.getScale();
         const deltaX = (clientX - this.startX) / scale;
-        const deltaY = (clientY - this.startY) / scale;
 
         let newWidth = this.startWidth;
         let newHeight = this.startHeight;
+        let newLeft = this.startLeft;
+        let newTop = this.startTop;
+        const isAbsolute = window.getComputedStyle(this.selectedElement).position === 'absolute';
 
-        // Obliczanie proporcjonalne w zależności od uchwytu
-        if (this.activeHandle === 'bottom-right') {
+        // Oś obliczeń: dla uchwytów prawych bierzemy deltaX wprost, dla lewych odwracamy,
+        // bo ruch w lewo (deltaX < 0) oznacza zwiększenie szerokości.
+        if (this.activeHandle === 'bottom-right' || this.activeHandle === 'top-right') {
             newWidth = this.startWidth + deltaX;
-            newHeight = newWidth / this.aspectRatio;
-        } else if (this.activeHandle === 'bottom-left') {
+        } else if (this.activeHandle === 'bottom-left' || this.activeHandle === 'top-left') {
             newWidth = this.startWidth - deltaX;
-            newHeight = newWidth / this.aspectRatio;
-        } else if (this.activeHandle === 'top-right') {
-            newWidth = this.startWidth + deltaX;
-            newHeight = newWidth / this.aspectRatio;
-        } else if (this.activeHandle === 'top-left') {
-            newWidth = this.startWidth - deltaX;
-            newHeight = newWidth / this.aspectRatio;
         }
 
         // Limity minimalne (np. min width = 50px)
-        if (newWidth < 50) {
-            newWidth = 50;
-            newHeight = 50 / this.aspectRatio;
+        if (newWidth < 50) newWidth = 50;
+        
+        newHeight = newWidth / this.aspectRatio;
+
+        // Jeśli pozycja absolutna (Projektownik), musimy skorygować left/top by zachować odpowiednią kotwicę
+        if (isAbsolute) {
+            const dWidth = newWidth - this.startWidth;
+            const dHeight = newHeight - this.startHeight;
+
+            if (this.activeHandle === 'top-left') {
+                newLeft = this.startLeft - dWidth;
+                newTop = this.startTop - dHeight;
+            } else if (this.activeHandle === 'top-right') {
+                // Kotwica to dolny-lewy róg
+                newTop = this.startTop - dHeight;
+            } else if (this.activeHandle === 'bottom-left') {
+                // Kotwica to górny-prawy róg
+                newLeft = this.startLeft - dWidth;
+            }
         }
 
         this.selectedElement.style.width = `${newWidth}px`;
         this.selectedElement.style.height = `${newHeight}px`;
+        
+        if (isAbsolute) {
+            this.selectedElement.style.left = `${newLeft}px`;
+            this.selectedElement.style.top = `${newTop}px`;
+        }
 
         // Update tooltip. Obliczamy wymiar rzeczywisty ("fizyczny" np. cm dla efektu, tu po prostu pokażemy px lub wirtualne cm)
         // Zakładając że 100px = 2cm, więc mnożnik to 0.02 dla uzyskania "szer: X cm"

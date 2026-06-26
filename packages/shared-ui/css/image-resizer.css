@@ -4,11 +4,11 @@
  */
 
 .flow-resizable-container {
-    position: absolute;
+    position: relative; /* Wymagane dla tooltipa i handles */
     box-sizing: border-box;
-    /* Default state has no visual border until selected or hovered */
     border: 2px solid transparent;
     transition: border-color 0.2s ease-out;
+    resize: none !important;
 }
 
 /* Kiedy element jest zaznaczony */
