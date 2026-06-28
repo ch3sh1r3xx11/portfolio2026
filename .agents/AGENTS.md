@@ -7,3 +7,7 @@
 4. **Transport Wnętrza:** Zawartość (brudnopis), którą użytkownik zebrał pod blokiem w Projektowniku, MUSI transportować się do Kreatora, by użytkownik miał do niej wgląd podczas obróbki tekstu (jak podczas pracy w Confluence).
 
 **Zasada Programistyczna:** Mechanika Bloków musi być "współdzielona" i zunifikowana na poziomie bazy danych (Firebase). Unikamy duplikacji logiki w `apps/creator` i `apps/projektownik`. Kreator i Projektownik czytają tę samą paczkę informacji (Bloki z kolekcji), ale renderują ją na własny, specyficzny dla swojego interfejsu sposób.
+
+# R&D, Prototypowanie i Specific Knowledge
+1. **Izolacja Eksperymentów:** Zanim zintegrujemy zaawansowane mechaniki (fizyka animacji, układy binarne, orbity), budujemy je w oddzielnych, małych prototypach (np. folder w `apps/orbit-prototype`). Pozwala to nam chronić kod główny, oszczędzać tokeny LLM (zachować czysty kontekst) i skupić się na nauce samej koncepcji (Specific Knowledge).
+2. **Make it work, make it right, make it beautiful:** W fazie prototypowania używamy wyłącznie płaskich, silnych kolorów (Solid Colors) bez szkła i gradientów. Estetyka jest odkładana na moment, gdy twarda matematyka i układ danych (Mechanika) są udowodnione.
