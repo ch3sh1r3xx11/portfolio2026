@@ -49,3 +49,7 @@
     transform: scale(0.92); /* Tylko wciśnięcie, bez translateY */
     background: rgba(255,255,255,0.08);
 }
+
+@media (max-width: 768px) {
+    .bottom-pill { transform: scale(1.1); transform-origin: bottom center; }
+}

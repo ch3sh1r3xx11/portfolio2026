@@ -18,3 +18,7 @@
 ## ADR 004: WÅ‚asny mechanizm skalowania (FlowImageManager)
 - **Kontekst:** Wbudowany w przeglÄ…darkÄ™ atrybut `resize: both` byÅ‚ trudny do ostylowania (szary, obskurny trÃ³jkÄ…cik w rogu) i rzucaÅ‚ dziwne errory przy tablicach uÅ¼ywajÄ…cych macierzy transformacji `scale()`.
 - **Decyzja:** Napisano wÅ‚asny menedÅ¼er skalowania po krawÄ™dziach i rogach z wymuszaniem proporcji obrazka (lub bez, dla blokÃ³w Sticky Notes), ktÃ³ry na `pointerup` wysyÅ‚a finalne dane wprost do Historii (Undo/Redo).
+
+## Podejœcie Agile
+
+Priorytetyzujemy kompromisy pomiêdzy szybkoœci¹ renderowania a stopniem skomplikowania kodu (np. u¿ywanie wirtualnych kwadratów/Bounding Boxów dla wektorów SVG zamiast precyzyjnych obliczeñ wielok¹tów). Zawsze wybieramy najszybsz¹, najbardziej stabiln¹ i zoptymalizowan¹ œcie¿kê dla silnika.

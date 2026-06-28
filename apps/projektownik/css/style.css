@@ -124,6 +124,18 @@ body, html {
 /* bottom-pill and pill-btn styles extracted to shared-ui/css/toolbar.css */
 
 /* KARTY (OBIEKTY NA TABLICY) */
+.card-drawing {
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+.card-drawing:hover, .card-drawing.selected {
+    border: 1px dashed rgba(255,255,255,0.4) !important;
+    background: rgba(255,255,255,0.02) !important;
+}
+
 .card {
     position: absolute;
     z-index: 10;
