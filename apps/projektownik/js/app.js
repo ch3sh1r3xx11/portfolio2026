@@ -797,6 +797,7 @@ function createCardElement(id, data) {
         path.setAttribute("fill", "none");
         path.setAttribute("stroke-linecap", "round");
         path.setAttribute("stroke-linejoin", "round");
+        path.style.pointerEvents = "visibleStroke";
         path.style.filter = "drop-shadow(0 0 8px rgba(0,0,0,0.5))";
 
         svg.appendChild(path);
