@@ -12,6 +12,11 @@
 - [ ] Responsywność: skalowanie narzędziowego paska (Flowbar) dla małych ekranów (mobile).
 - [ ] Redesign System Menu: zmiana "Hamburgera" na 3 kropki (Kebab menu) i przeniesienie w prawy górny róg.
 - [ ] Mobile: przytrzymanie palca na ekranie wyzwala możliwość wklejenia zawartości schowka (np. zrzutu ekranu).
+  - **Plan Wdrożenia (Priorytet)**:
+    - Ponieważ na PC wklejanie (Ctrl+V) zdjęć już działa natywnie (mamy nasłuchiwacz globalny w `app.js`), na mobile zastosujemy dedykowane rozwiązanie `Long Press`.
+    - Po 600ms przytrzymaniu palca na Płótnie, wywołamy w miejscu palca **Podręczne Menu Kontekstowe**.
+    - W menu będą opcje: "📸 Dodaj z Galerii" i "📋 Wklej ze Schowka".
+    - Bezpośrednie kliknięcie na opcję wklejania sprawi, że wywołamy `navigator.clipboard.read()` w bezpiecznym, zaufanym dla Safari kontekście, co powinno odblokować wklejanie obrazów bezpośrednio na tablicę bez restrykcji systemowych.
 - [ ] UI/UX: Dokończenie Flowbara na dole (ustalenie 5 kluczowych ikon zamiast 6, żeby wyglądało to symetrycznie i czysto).
 - [ ] UX: Poprawa mechaniki "dodawania tekstu" na tablicę.
 - [ ] Customizacja: Możliwość zmiany kolorów dla notatek, bloków i samego tekstu.
