@@ -1262,24 +1262,26 @@ document.addEventListener('sys-logout', async () => {
     }
 });
 
-let glassBgState = 0;
-document.addEventListener('sys-glass-bg', () => {
+const applyGlassBg = (val) => {
     const bgLayer = document.querySelector('.bg-layer');
     if (!bgLayer) return;
     
-    // 4 stany przezroczystości/rozmycia do przełączania
-    const states = [
-        { filter: 'blur(10px) brightness(0.4)', opacity: '1' },     // Domyślny, kinowy
-        { filter: 'blur(20px) brightness(0.15)', opacity: '0.9' },  // Bardzo ciemny i głęboki
-        { filter: 'blur(3px) brightness(0.7)', opacity: '1' },      // Jaśniejszy, ostry detal miasta
-        { filter: 'none', opacity: '0' }                            // Wyłączony tło (czysty kolor)
-    ];
+    const ratio = val / 100;
+    const blurVal = ratio * 20; 
+    const brightnessVal = 1.0 - (ratio * 0.85); 
     
-    glassBgState = (glassBgState + 1) % states.length;
-    
-    bgLayer.style.transition = 'filter 0.5s ease, opacity 0.5s ease';
-    bgLayer.style.filter = states[glassBgState].filter;
-    bgLayer.style.opacity = states[glassBgState].opacity;
+    bgLayer.style.transition = 'filter 0.1s ease';
+    bgLayer.style.filter = `blur(${blurVal}px) brightness(${brightnessVal})`;
+    bgLayer.style.opacity = '1';
+};
+
+setTimeout(() => {
+    const savedGlassBg = localStorage.getItem('sys-glass-bg-slider') || 50;
+    applyGlassBg(savedGlassBg);
+}, 500);
+
+document.addEventListener('sys-glass-bg-slider', (e) => {
+    applyGlassBg(e.detail.value);
 });
 
 document.addEventListener('sys-save', () => {

@@ -14,6 +14,7 @@
 
   /* Typography */
   --font-main: 'Outfit', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
   
   /* Z-indexes */
   --z-base: 1;
