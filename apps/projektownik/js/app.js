@@ -693,11 +693,12 @@ function createCardElement(id, data) {
 
     } else {
         // Zwykła notatka (Sticky Note)
+        card.classList.add('sticky-note');
         card.style.width = data.width ? `${data.width}px` : '250px';
         card.style.height = data.height ? `${data.height}px` : '250px';
         card.innerHTML = `
             <button class="delete-btn" title="Usuń">×</button>
-            <div class="card-body" style="height: 100%; overflow: auto; padding-top: 25px;">${data.content || ''}</div>
+            <div class="card-body" style="height: 100%; overflow: auto;">${data.content || ''}</div>
         `;
         appendCardToDom(card, data.parentId);
         makeDraggable(card, id);
