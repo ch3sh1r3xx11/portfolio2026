@@ -744,14 +744,36 @@ window.cardInitialH = 0;
 function createCardElement(id, data) {
     if (document.getElementById(id)) return;
 
+    const handleFlowResize = (id, oldW, oldH, newW, newH, oldL, oldT, newL, newT) => {
+        if (oldW !== newW || oldH !== newH) {
+            const cmd = new ResizeCommand(id, oldW, oldH, newW, newH);
+            historyManager.execute(cmd);
+            
+            if (oldL !== newL || oldT !== newT) {
+                const cmdMove = new MoveCommand(id, oldL, oldT, newL, newT, data.parentId, data.parentId);
+                historyManager.execute(cmdMove);
+            }
+        }
+    };
+
     if (data.type === 'drawing') {
         const card = document.createElement('div');
-        card.className = 'card card-drawing';
+        card.className = 'card card-drawing flow-resizable-container';
         card.id = id;
         card.style.left = `${data.x}px`;
         card.style.top = `${data.y}px`;
         card.style.width = `${data.width}px`;
         card.style.height = `${data.height}px`;
+        card.dataset.startW = data.width;
+        card.dataset.startH = data.height;
+        card.style.setProperty('resize', 'none', 'important');
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.title = 'Usuń';
+        deleteBtn.style.zIndex = '1003';
+        deleteBtn.textContent = '×';
+        card.appendChild(deleteBtn);
 
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         svg.setAttribute("viewBox", `${data.x} ${data.y} ${data.width} ${data.height}`);
@@ -772,9 +794,27 @@ function createCardElement(id, data) {
 
         svg.appendChild(path);
         card.appendChild(svg);
-        canvas.appendChild(card);
+        appendCardToDom(card, data.parentId);
         
-        // Dziedziczy standardowe zachowania Karty!
+        makeDraggable(card, id);
+        imageManager.attachTo(card, id, handleFlowResize);
+        
+        deleteBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (deleteBtn.dataset.confirming === "true") {
+                const cmd = new DeleteCommand(id, data);
+                historyManager.execute(cmd);
+            } else {
+                deleteBtn.dataset.confirming = "true";
+                const oldHTML = deleteBtn.innerHTML;
+                deleteBtn.innerHTML = '🗑️?';
+                setTimeout(() => {
+                    deleteBtn.dataset.confirming = "false";
+                    deleteBtn.innerHTML = oldHTML;
+                }, 2000);
+            }
+        });
+        
         card.addEventListener('mousedown', () => selectCard(id));
         return;
     }
@@ -784,18 +824,6 @@ function createCardElement(id, data) {
     card.id = id;
     card.style.left = `${data.x}px`;
     card.style.top = `${data.y}px`;
-    
-    const handleFlowResize = (id, oldW, oldH, newW, newH, oldL, oldT, newL, newT) => {
-        if (oldW !== newW || oldH !== newH) {
-            const cmd = new ResizeCommand(id, oldW, oldH, newW, newH);
-            historyManager.execute(cmd);
-            
-            if (oldL !== newL || oldT !== newT) {
-                const cmdMove = new MoveCommand(id, oldL, oldT, newL, newT, data.parentId, data.parentId);
-                historyManager.execute(cmdMove);
-            }
-        }
-    };
     
     if (data.type === 'image') {
         card.classList.add('flow-resizable-container');
