@@ -53,9 +53,9 @@ class SharedSystemMenu extends HTMLElement {
             this.btnElement = document.createElement('div');
             this.btnElement.className = 'system-menu-btn';
             this.btnElement.innerHTML = `
-                <div class="hamburger-line"></div>
-                <div class="hamburger-line"></div>
-                <div class="hamburger-line"></div>
+                <div class="hamburger-line" style="width: 6px; height: 6px; border-radius: 50%;"></div>
+            <div class="hamburger-line" style="width: 6px; height: 6px; border-radius: 50%;"></div>
+            <div class="hamburger-line" style="width: 6px; height: 6px; border-radius: 50%;"></div>
             `;
             
             this.dropdownElement = document.createElement('div');
