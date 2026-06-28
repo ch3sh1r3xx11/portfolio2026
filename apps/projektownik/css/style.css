@@ -164,6 +164,7 @@ body, html {
     -webkit-backdrop-filter: blur(12px);
     border-radius: 0;
     border: 1px solid rgba(255, 255, 255, 0.08); /* Ekstremalnie subtelna szklana ramka */
+    overflow: visible !important;
 }
 
 .card.sticky-note .card-body {
