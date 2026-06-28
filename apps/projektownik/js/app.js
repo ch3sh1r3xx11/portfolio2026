@@ -875,44 +875,6 @@ function makeDraggable(element, id) {
             element.style.transform = '';
             element.style.zIndex = '';
             activeCard = null;
-        } else if (!hasCardMoved && !hasPanned) {
-            const now = Date.now();
-            if (now - lastCardTap < 300) {
-                const header = element.querySelector('.card-header');
-                const body = element.querySelector('.card-body');
-                let target = e.target;
-                if (!target.classList.contains('card-body') && !target.classList.contains('card-header')) {
-                    target = body || header;
-                }
-                
-                if (target) {
-                    target.setAttribute('contenteditable', 'true');
-                    target.focus();
-                }
-            } else {
-                const cardLeft = parseFloat(element.style.left);
-                const cardTop = parseFloat(element.style.top);
-                const cardWidth = element.offsetWidth;
-                const cardHeight = element.offsetHeight;
-                
-                const targetScale = 1.5;
-                const windowCenterX = window.innerWidth / 2;
-                const windowTargetY = window.innerHeight / 3;
-                
-                const newTranslateX = windowCenterX - (cardLeft + cardWidth / 2) * targetScale;
-                const newTranslateY = windowTargetY - (cardTop + cardHeight / 2) * targetScale;
-                
-                canvas.classList.add('smooth-pan');
-                translateX = newTranslateX;
-                translateY = newTranslateY;
-                scale = targetScale;
-                updateCanvas();
-                
-                setTimeout(() => {
-                    canvas.classList.remove('smooth-pan');
-                }, 600);
-            }
-            lastCardTap = now;
         }
     });
 }
@@ -925,6 +887,8 @@ function makeEditable(element, id) {
     let oldContent = '';
     
     const enableEdit = (e) => {
+        if (window.hasCardMoved || window.hasPanned || window.isResizingCard) return;
+        
         const el = e.target.closest('.card-header') || e.target.closest('.card-body');
         if(el) {
             el.setAttribute('contenteditable', 'true');
@@ -933,14 +897,14 @@ function makeEditable(element, id) {
             el.focus();
             
             // Magiczne ustawienie kursora dokładnie w miejscu kliknięcia
-            if (document.caretRangeFromPoint) {
+            if (document.caretRangeFromPoint && e.clientX && e.clientY) {
                 const range = document.caretRangeFromPoint(e.clientX, e.clientY);
                 if (range) {
                     const sel = window.getSelection();
                     sel.removeAllRanges();
                     sel.addRange(range);
                 }
-            } else if (document.caretPositionFromPoint) {
+            } else if (document.caretPositionFromPoint && e.clientX && e.clientY) {
                 const pos = document.caretPositionFromPoint(e.clientX, e.clientY);
                 if (pos) {
                     const range = document.createRange();
@@ -954,7 +918,7 @@ function makeEditable(element, id) {
         }
     };
     
-    element.addEventListener('dblclick', enableEdit);
+    element.addEventListener('pointerup', enableEdit);
     
     const saveContent = async (e) => {
         const el = e.target;
