@@ -78,12 +78,19 @@ function drawMove(clientX, clientY) {
 
 function endDrawing() {
     if (drawingPoints.length > 1) {
-        let bbox;
-        try {
-            bbox = currentDrawPath.getBBox();
-        } catch (e) {
-            bbox = { x: drawingPoints[0][0], y: drawingPoints[0][1], width: 10, height: 10 };
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const [px, py] of drawingPoints) {
+            if (px < minX) minX = px;
+            if (py < minY) minY = py;
+            if (px > maxX) maxX = px;
+            if (py > maxY) maxY = py;
         }
+        let bbox = {
+            x: minX,
+            y: minY,
+            width: maxX - minX,
+            height: maxY - minY
+        };
         
         const pad = 10;
         const x = bbox.x - pad;
@@ -766,7 +773,6 @@ function createCardElement(id, data) {
         card.style.height = `${data.height}px`;
         card.dataset.startW = data.width;
         card.dataset.startH = data.height;
-        card.dataset.lockRatio = "true";
         card.style.setProperty('resize', 'none', 'important');
         
         const deleteBtn = document.createElement('button');
@@ -778,10 +784,11 @@ function createCardElement(id, data) {
 
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         svg.setAttribute("viewBox", `${data.x} ${data.y} ${data.width} ${data.height}`);
+        svg.setAttribute("preserveAspectRatio", "none");
         svg.style.width = "100%";
         svg.style.height = "100%";
         svg.style.display = "block";
-        svg.style.pointerEvents = "none"; // Przepuszczamy kliknięcia dla wnętrza SVG, kolizję łapie ramka .card
+        svg.style.pointerEvents = "none";
 
         const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
         path.setAttribute("d", data.pathData);
@@ -790,7 +797,6 @@ function createCardElement(id, data) {
         path.setAttribute("fill", "none");
         path.setAttribute("stroke-linecap", "round");
         path.setAttribute("stroke-linejoin", "round");
-        path.setAttribute("vector-effect", "non-scaling-stroke");
         path.style.filter = "drop-shadow(0 0 8px rgba(0,0,0,0.5))";
 
         svg.appendChild(path);
@@ -816,7 +822,6 @@ function createCardElement(id, data) {
             }
         });
         
-        card.addEventListener('mousedown', () => selectCard(id));
         return;
     }
 
