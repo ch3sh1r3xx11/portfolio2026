@@ -272,6 +272,24 @@ viewport.addEventListener('touchend', (e) => {
     }
 });
 
+viewport.addEventListener('dblclick', (e) => {
+    if (e.target.closest('.card') || e.target.closest('#ui-layer')) return;
+    
+    canvas.classList.add('smooth-pan');
+            
+    const screenCenterX = window.innerWidth / 2;
+    const screenCenterY = window.innerHeight / 2;
+    const canvasCenterX = (screenCenterX - translateX) / scale;
+    const canvasCenterY = (screenCenterY - translateY) / scale;
+    
+    scale = 1;
+    
+    translateX = screenCenterX - canvasCenterX * scale;
+    translateY = screenCenterY - canvasCenterY * scale;
+    
+    updateCanvas();
+    setTimeout(() => canvas.classList.remove('smooth-pan'), 600);
+});
 
 // --- HISTORY MANAGER (UNDO / REDO) ---
 class HistoryManager {
@@ -330,6 +348,28 @@ const imageManager = new FlowImageManager({
 });
 
 document.addEventListener('keydown', (e) => {
+    // Auto-bullet logic
+    if (e.key === 'Enter' && e.target.isContentEditable && !e.shiftKey) {
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            const node = selection.focusNode;
+            const text = node.textContent || '';
+            const match = text.match(/^(\s*-\s+)/);
+            
+            if (match) {
+                e.preventDefault();
+                const bullet = match[1];
+                if (text.trim() === '-') {
+                    // Pusta linia z myślnikiem - przerywamy listę
+                    node.textContent = '';
+                } else {
+                    document.execCommand('insertHTML', false, '<br>' + bullet);
+                }
+                return;
+            }
+        }
+    }
+
     if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
         if (e.shiftKey) {
             historyManager.redo();

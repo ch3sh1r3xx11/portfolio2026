@@ -1,14 +1,15 @@
 .system-menu-container {
     position: fixed;
-    top: 50%;
-    left: 20px;
-    transform: translateY(-50%);
+    top: 20px;
+    right: 20px;
+    left: auto;
+    transform: none;
     z-index: 99999;
     display: flex;
-    flex-direction: row; /* Wyrzucamy menu na prawo od przycisku */
-    align-items: center;
+    flex-direction: row-reverse; /* Menu rozwija się w lewo od przycisku */
+    align-items: flex-start;
     gap: 15px;
-    pointer-events: none; /* Sam kontener nie blokuje kliknięć pod spodem */
+    pointer-events: none;
 }
 
 .system-menu-btn {
@@ -46,15 +47,9 @@
     transition: all 0.3s ease;
 }
 
-/* Animacja w krzyżyk, gdy aktywne */
-.system-menu-btn.active .hamburger-line:nth-child(1) {
-    transform: translateY(6px) rotate(45deg);
-}
-.system-menu-btn.active .hamburger-line:nth-child(2) {
-    opacity: 0;
-}
-.system-menu-btn.active .hamburger-line:nth-child(3) {
-    transform: translateY(-6px) rotate(-45deg);
+/* Animacja w kebab menu, gdy aktywne */
+.system-menu-btn.active .hamburger-line {
+    background-color: var(--bg-primary, #0a0a0c);
 }
 
 /* Wyskakujące okno z listą */
