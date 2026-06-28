@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 
 const rewrites = [
+    { source: /^\/projektownik-test\/(.*)/, destination: '/apps/projektownik-test/$1' },
+    { source: /^\/projektownik-test\/?$/, destination: '/apps/projektownik-test/index.html' },
     { source: /^\/projektownik\/(.*)/, destination: '/apps/projektownik/$1' },
     { source: /^\/projektownik\/?$/, destination: '/apps/projektownik/index.html' },
     { source: /^\/creator\/(.*)/, destination: '/apps/creator/$1' },
@@ -58,6 +60,7 @@ const server = http.createServer((req, res) => {
 
 server.listen(3000, () => {
     console.log('DEV SERVER STARTED ON http://localhost:3000');
+    console.log('Projektownik (Test): http://localhost:3000/projektownik-test');
     console.log('Projektownik: http://localhost:3000/projektownik');
     console.log('Kreator: http://localhost:3000/creator');
 });

@@ -1,0 +1,474 @@
+:root {
+    --magenta: #e8197a;
+    --teal: #00c9c8;
+    --purple: #9b3de8;
+    --neon-yellow: #f2ff00;
+    --sunset-orange: #ff5722;
+    --bg: #0c0c0e;
+    --dot-color: rgba(255, 255, 255, 0.20);
+    --font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    background-color: transparent; /* Changed from var(--bg) so .bg-layer is visible */
+    color: #fff;
+    font-family: var(--font-mono);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow: hidden; /* Zablokowanie standardowego scrolla */
+    touch-action: none; /* Wyłączenie standardowego szczypania przeglądarki, zrobimy własne */
+}
+
+/* WIDOK GŁÓWNY (OKNO) */
+#viewport {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    cursor: grab;
+}
+
+#viewport:active {
+    cursor: grabbing;
+}
+
+/* NIESKOŃCZONA TABLICA */
+#canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 10000px;
+    height: 10000px;
+    transform-origin: 0 0;
+    /* Tło z kropek, które "żyje" razem z tablicą */
+    background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+#canvas.smooth-pan {
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* INTERFEJS NAKŁADANY NA WIERZCH */
+/* --- FLOW MOTION UI --- */
+#ui-layer {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none; /* Pozwala klikać w płótno pod spodem */
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 30px) 20px;
+}
+
+/* TOP BAR */
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+    padding-top: 10px;
+}
+
+.top-left-actions {
+    display: flex;
+    gap: 10px;
+    pointer-events: auto;
+}
+
+.top-right-actions {
+    display: flex;
+    gap: 15px;
+    pointer-events: auto;
+}
+
+.project-title {
+    color: var(--text-color);
+    font-weight: 600;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(0,255,255,0.3);
+}
+
+.icon-btn {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-color);
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.2s ease;
+}
+
+.icon-btn:hover {
+    background: rgba(255,255,255,0.15);
+    transform: scale(1.05);
+}
+
+/* BOTTOM PILL */
+/* bottom-pill and pill-btn styles extracted to shared-ui/css/toolbar.css */
+
+/* KARTY (OBIEKTY NA TABLICY) */
+.card-drawing {
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    pointer-events: none !important;
+}
+.card-drawing:hover, .card-drawing.selected {
+    border: 1px dashed rgba(255,255,255,0.4) !important;
+    background: rgba(255,255,255,0.02) !important;
+}
+
+.card {
+    position: absolute;
+    z-index: 10;
+    background: rgba(18, 18, 20, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    color: #fff;
+    box-shadow: none;
+    backdrop-filter: blur(10px);
+    cursor: grab;
+    pointer-events: auto;
+    resize: both;
+    overflow: hidden;
+    min-width: 200px;
+    min-height: 50px;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.card-header[contenteditable="true"], .card-body[contenteditable="true"] {
+    user-select: text;
+    -webkit-user-select: text;
+    cursor: text;
+}
+
+.card.text-card {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    padding: 0;
+}
+
+.card.sticky-note {
+    padding: 12px 32px 12px 12px; /* marginesy dookoła, większy z prawej na krzyżyk */
+    background: rgba(26, 28, 31, 0.85); /* Chłodny, głęboki grafit między Notion a Confluence */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 0;
+    border: 1px solid rgba(255, 255, 255, 0.08); /* Ekstremalnie subtelna szklana ramka */
+    overflow: visible !important;
+}
+
+.card.sticky-note .card-body {
+    height: 100%;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.card.image-card {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    padding: 0;
+    overflow: visible !important; /* Pozwala kółkom do resizowania wyjść poza ramkę */
+}
+
+/* --- FORMATOWANIE WKLEJONYCH TABEL (np. z Notiona/Perplexity) --- */
+.card-body table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(255, 255, 255, 0.03) !important;
+    color: var(--text-light) !important;
+    font-size: 0.8rem;
+    margin-top: 10px;
+    border-radius: 6px;
+    overflow: hidden;
+}
+.card-body th, .card-body td {
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 8px !important;
+    background: transparent !important;
+    color: var(--text-light) !important;
+}
+.card-body a {
+    color: inherit !important;
+    text-decoration: none !important;
+}
+
+.card:active {
+    cursor: grabbing;
+}
+
+.card-header {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--magenta);
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding-bottom: 5px;
+    cursor: text;
+    padding-right: 20px; /* miejsce na krzyżyk */
+    outline: none;
+}
+
+.card-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+/* Ukrycie paska Vercela, który przeszkadza podczas pisania */
+#vercel-toolbar-wrapper, .vercel-toolbar {
+    display: none !important;
+}
+
+/* --- PRZYCISK DODAWANIA ZDJĘĆ --- */
+.delete-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    pointer-events: auto !important;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s, background 0.2s;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+}
+.card:hover .delete-btn {
+    opacity: 1;
+}
+.delete-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.card-body {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    min-height: 50px;
+    outline: none;
+    cursor: text;
+}
+
+.card.text-card .card-body {
+    width: 100%;
+    height: 100%;
+    color: var(--teal);
+    text-shadow: 0 0 15px rgba(0, 201, 200, 0.5);
+    font-weight: 700;
+    font-size: 0.9rem; /* Domyślny rozmiar dla 250px */
+}
+
+.card.text-card .delete-btn {
+    top: 5px;
+    right: 5px;
+}
+
+.card.text-card:hover {
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* LEWY TOOLBAR I KOTWICA */
+.left-toolbar {
+    position: fixed;
+    left: 20px;
+    top: 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: auto;
+}
+
+.icon-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-btn:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: var(--teal);
+    color: var(--teal);
+    transform: scale(1.1);
+}
+
+.anchor-marker {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    margin-left: -20px;
+    margin-top: -20px;
+    font-size: 2rem;
+    text-shadow: 0 0 10px var(--teal);
+    pointer-events: none;
+    z-index: 50;
+    animation: drop 0.5s ease-out;
+}
+
+#logout-btn {
+    color: #ff6b6b;
+    border-color: rgba(255,0,0,0.3);
+}
+
+#logout-btn:hover {
+    background: rgba(255,0,0,0.1);
+    border-color: #ff6b6b;
+}
+
+@keyframes drop {
+    0% { transform: translateY(-50px) scale(1.5); opacity: 0; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* EKRAN LOGOWANIA */
+#login-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--bg);
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-box {
+    background: rgba(18, 18, 20, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 40px;
+    border-radius: 12px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.login-box h2 {
+    color: var(--teal);
+    margin-bottom: 10px;
+    letter-spacing: 0.1em;
+}
+
+.login-box p {
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 30px;
+    font-size: 0.9rem;
+}
+
+#login-btn {
+    background: #fff;
+    color: #000;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+#login-btn:hover {
+    transform: scale(1.05);
+}
+
+/* --- KONTENERY (BLOKI) --- */
+.container-block {
+    background: rgba(25, 25, 30, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 10px;
+    z-index: 0;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+.container-block:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+}
+.container-block .card-header {
+    font-size: 1rem;
+    color: var(--teal);
+    text-transform: uppercase;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    letter-spacing: 0.15em;
+}
+.container-block .block-content-area {
+    pointer-events: none;
+}
+
+shared-flowbar {
+    pointer-events: auto;
+}
+
+/* BACKGROUND LAYER WITH SHADER */
+.bg-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    inset: 0 !important;
+    z-index: -10;
+    overflow: hidden;
+    pointer-events: none;
+    background-color: #0c0c0e !important;
+    background-image: none !important;
+    filter: none !important;
+    border: none !important;
+    margin: 0 !important;
+}
+
