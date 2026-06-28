@@ -1275,10 +1275,8 @@ const applyGlassBg = (val) => {
     bgLayer.style.opacity = '1';
 };
 
-setTimeout(() => {
-    const savedGlassBg = localStorage.getItem('sys-glass-bg-slider') || 50;
-    applyGlassBg(savedGlassBg);
-}, 500);
+const savedGlassBg = localStorage.getItem('sys-glass-bg-slider') || 50;
+applyGlassBg(savedGlassBg);
 
 document.addEventListener('sys-glass-bg-slider', (e) => {
     applyGlassBg(e.detail.value);
