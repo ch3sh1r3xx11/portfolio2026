@@ -159,9 +159,10 @@ body, html {
 
 .card.sticky-note {
     padding: 12px 32px 12px 12px; /* marginesy dookoła, większy z prawej na krzyżyk */
-    background: #000000;
-    border-radius: 0;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: #1e2124; /* Między Notion a Confluence (ciemny antracyt) */
+    border-radius: 2px; /* Praktycznie ostry kwadrat, ale bez pikselozy na narożnikach */
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 .card.sticky-note .card-body {
