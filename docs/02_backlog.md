@@ -2,6 +2,7 @@
 
 *Lista pomysłów do zrealizowania. Tylko konkrety, ułożone od najwyższego priorytetu.*
 
+- [ ] Mobile WebGL: Optymalizacja tła Strands (ograniczenie pixelRatio do 1, redukcja liczby fal, dynamiczne wyłączenie shaderów na słabszych urządzeniach lub iOS Safari z powodu crashowania GPU).
 - [ ] Funkcja Eksportu całej przestrzeni roboczej lub wybranych kart do PDF i Markdown.
 - [ ] Zmiana przezroczystości dla konkretnych bloków / kart (szkło na kartach).
 - [ ] Implementacja "rysowania swobodnego" / pisaka na tablicy.

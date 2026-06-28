@@ -34,6 +34,11 @@
 - **Decyzja:** Podczas wdrażania nowej architektury UI/UX używamy na start ostrych, litych kolorów (Solid Colors) bez efektów specjalnych. W pierwszej kolejności weryfikowana jest mechanika. Po jej zatwierdzeniu nakładana jest warstwa "Vibe Codingu" i Glassmorphismu.
 - **Konsekwencje:** Szybsze prototypowanie, mniej problemów z wydajnością na etapie testów (render pipeline przeglądarki) i wyraźnie rozdzielony proces inżynieryjny od artystycznego.
 
+## ADR 008: Wersja testowa tła animowanego (Strands WebGL)
+- **Kontekst:** Wprowadzenie animowanego tła opartego na shaderach WebGL (Strands) mogło zakłócić stabilne działanie wersji produkcyjnej, ze względu na spore wymagania wydajnościowe.
+- **Decyzja:** Stworzono izolowaną wersję testową aplikacji w folderze `apps/projektownik-test` oraz skonfigurowano dla niej oddzielne przekierowania na serwerze deweloperskim i Vercelu pod `/projektownik-test`. 
+- **Konsekwencje:** Możliwość swobodnego dopasowania parametrów wizualnych tła shaderowego oraz weryfikacji błędów pamięci GPU (jak crashowanie Safari na iOS) bez wpływu na główną i stabilną wersję `/projektownik`.
+
 ## Podejście Agile
 
 Priorytetyzujemy kompromisy pomiędzy szybkością renderowania a stopniem skomplikowania kodu (np. używanie wirtualnych kwadratów/Bounding Boxów dla wektorów SVG zamiast precyzyjnych obliczeń wielokątów). Zawsze wybieramy najszybszą, najbardziej stabilną i zoptymalizowaną ścieżkę dla silnika.
