@@ -83,7 +83,7 @@ function endDrawing() {
             type: 'drawing',
             pathData: currentDrawPathData,
             color: currentDrawColor,
-            parentId: currentProjectId,
+            projectId: currentProjectId,
             createdAt: Date.now()
         });
         if (currentDrawPath && currentDrawPath.parentNode) {
