@@ -159,10 +159,11 @@ body, html {
 
 .card.sticky-note {
     padding: 12px 32px 12px 12px; /* marginesy dookoła, większy z prawej na krzyżyk */
-    background: #1e2124; /* Między Notion a Confluence (ciemny antracyt) */
-    border-radius: 2px; /* Praktycznie ostry kwadrat, ale bez pikselozy na narożnikach */
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    background: rgba(26, 28, 31, 0.85); /* Chłodny, głęboki grafit między Notion a Confluence */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 0;
+    border: 1px solid rgba(255, 255, 255, 0.08); /* Ekstremalnie subtelna szklana ramka */
 }
 
 .card.sticky-note .card-body {
