@@ -130,6 +130,7 @@ body, html {
     backdrop-filter: none !important;
     box-shadow: none !important;
     padding: 0 !important;
+    overflow: visible !important;
 }
 .card-drawing:hover, .card-drawing.selected {
     border: 1px dashed rgba(255,255,255,0.4) !important;
