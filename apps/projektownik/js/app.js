@@ -348,28 +348,6 @@ const imageManager = new FlowImageManager({
 });
 
 document.addEventListener('keydown', (e) => {
-    // Auto-bullet logic
-    if (e.key === 'Enter' && e.target.isContentEditable && !e.shiftKey) {
-        const selection = window.getSelection();
-        if (selection.rangeCount > 0) {
-            const node = selection.focusNode;
-            const text = node.textContent || '';
-            const match = text.match(/^(\s*-\s+)/);
-            
-            if (match) {
-                e.preventDefault();
-                const bullet = match[1];
-                if (text.trim() === '-') {
-                    // Pusta linia z myślnikiem - przerywamy listę
-                    node.textContent = '';
-                } else {
-                    document.execCommand('insertHTML', false, '<br>' + bullet);
-                }
-                return;
-            }
-        }
-    }
-
     if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
         if (e.shiftKey) {
             historyManager.redo();
