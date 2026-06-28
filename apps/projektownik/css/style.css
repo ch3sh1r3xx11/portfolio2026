@@ -159,6 +159,9 @@ body, html {
 
 .card.sticky-note {
     padding: 12px 32px 12px 12px; /* marginesy dookoła, większy z prawej na krzyżyk */
+    background: #000000;
+    border-radius: 0;
+    border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .card.sticky-note .card-body {
