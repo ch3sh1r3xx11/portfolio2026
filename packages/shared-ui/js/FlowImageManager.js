@@ -165,12 +165,14 @@ export class FlowImageManager {
 
         const scale = this.getScale();
         const deltaX = (clientX - this.startX) / scale;
+        const deltaY = (clientY - this.startY) / scale;
 
         let newWidth = this.startWidth;
         let newHeight = this.startHeight;
         let newLeft = this.startLeft;
         let newTop = this.startTop;
         const isAbsolute = window.getComputedStyle(this.selectedElement).position === 'absolute';
+        const lockRatio = this.selectedElement.dataset.lockRatio !== "false";
 
         // Oś obliczeń: dla uchwytów prawych bierzemy deltaX wprost, dla lewych odwracamy,
         // bo ruch w lewo (deltaX < 0) oznacza zwiększenie szerokości.
@@ -183,7 +185,16 @@ export class FlowImageManager {
         // Limity minimalne (np. min width = 50px)
         if (newWidth < 50) newWidth = 50;
         
-        newHeight = newWidth / this.aspectRatio;
+        if (lockRatio) {
+            newHeight = newWidth / this.aspectRatio;
+        } else {
+            if (this.activeHandle === 'bottom-right' || this.activeHandle === 'bottom-left') {
+                newHeight = this.startHeight + deltaY;
+            } else if (this.activeHandle === 'top-right' || this.activeHandle === 'top-left') {
+                newHeight = this.startHeight - deltaY;
+            }
+            if (newHeight < 50) newHeight = 50;
+        }
 
         // Jeśli pozycja absolutna (Projektownik), musimy skorygować left/top by zachować odpowiednią kotwicę
         if (isAbsolute) {
@@ -242,8 +253,15 @@ export class FlowImageManager {
         
         const finalWidth = this.selectedElement.offsetWidth;
         const finalHeight = this.selectedElement.offsetHeight;
-        const id = this.selectedElement.dataset.id;
+        const finalLeft = parseFloat(this.selectedElement.style.left) || 0;
+        const finalTop = parseFloat(this.selectedElement.style.top) || 0;
+        const flowId = this.selectedElement.dataset.flowId || this.selectedElement.id;
         
-        this.onResizeComplete(id, finalWidth, finalHeight);
+        if (this.callbacks && this.callbacks.has(flowId)) {
+            const cb = this.callbacks.get(flowId);
+            cb(flowId, this.startWidth, this.startHeight, finalWidth, finalHeight, this.startLeft, this.startTop, finalLeft, finalTop);
+        } else {
+            this.onResizeComplete(flowId, finalWidth, finalHeight);
+        }
     }
 }

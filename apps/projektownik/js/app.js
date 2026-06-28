@@ -621,6 +621,18 @@ function createCardElement(id, data) {
     card.style.left = `${data.x}px`;
     card.style.top = `${data.y}px`;
     
+    const handleFlowResize = (id, oldW, oldH, newW, newH, oldL, oldT, newL, newT) => {
+        if (oldW !== newW || oldH !== newH) {
+            const cmd = new ResizeCommand(id, oldW, oldH, newW, newH);
+            historyManager.execute(cmd);
+            
+            if (oldL !== newL || oldT !== newT) {
+                const cmdMove = new MoveCommand(id, oldL, oldT, newL, newT, data.parentId, data.parentId);
+                historyManager.execute(cmdMove);
+            }
+        }
+    };
+    
     if (data.type === 'image') {
         card.classList.add('flow-resizable-container');
         card.classList.add('image-card');
@@ -640,21 +652,7 @@ function createCardElement(id, data) {
         makeDraggable(card, id);
         
         // Attach FlowImageManager with save callback
-        imageManager.attachTo(card, id, (id, oldW, oldH, newW, newH, newL, newT) => {
-            if (oldW !== newW || oldH !== newH) {
-                const cmd = new ResizeCommand(id, oldW, oldH, newW, newH);
-                historyManager.execute(cmd);
-                
-                // If it's absolute positioned and we changed left/top (e.g. dragged left handles)
-                const currentL = parseFloat(card.style.left) || 0;
-                const currentT = parseFloat(card.style.top) || 0;
-                if (currentL !== newL || currentT !== newT) {
-                    // ParentId is not changing during resize
-                    const cmd = new MoveCommand(id, currentL, currentT, newL, newT, data.parentId, data.parentId);
-                    historyManager.execute(cmd);
-                }
-            }
-        });
+        imageManager.attachTo(card, id, handleFlowResize);
     } else if (data.type === 'textblock') {
         card.classList.add('text-card');
         card.style.resize = 'both';
@@ -694,6 +692,8 @@ function createCardElement(id, data) {
     } else {
         // Zwykła notatka (Sticky Note)
         card.classList.add('sticky-note');
+        card.classList.add('flow-resizable-container');
+        card.dataset.lockRatio = "false";
         card.style.width = data.width ? `${data.width}px` : '250px';
         card.style.height = data.height ? `${data.height}px` : '250px';
         card.innerHTML = `
@@ -703,10 +703,11 @@ function createCardElement(id, data) {
         appendCardToDom(card, data.parentId);
         makeDraggable(card, id);
         makeEditable(card, id);
+        imageManager.attachTo(card, id, handleFlowResize);
     }
     
     // Tylko stare elementy korzystają z natywnego mouseup resize.
-    if (data.type !== 'image') {
+    if (data.type === 'textblock' || data.type === 'block') {
         let initialWidth = 0;
         let initialHeight = 0;
         
