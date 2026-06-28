@@ -180,8 +180,6 @@ class SharedFlowbar extends HTMLElement {
         document.addEventListener('click', (e) => {
             if (!this.contains(e.target)) {
                 blockMenu.classList.add('hidden');
-                colorMenu.classList.add('hidden');
-                drawBtn.classList.remove('active');
             }
         });
     }
