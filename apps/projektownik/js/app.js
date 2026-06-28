@@ -1272,7 +1272,7 @@ const applyGlassBg = (val) => {
     
     const ratio = val / 100;
     const blurVal = ratio * 20; 
-    const brightnessVal = 1.0 - (ratio * 0.85); 
+    const brightnessVal = 1.0 - (ratio * 0.95); 
     
     bgLayer.style.transition = 'filter 0.1s ease';
     bgLayer.style.filter = `blur(${blurVal}px) brightness(${brightnessVal})`;
