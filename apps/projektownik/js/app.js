@@ -1099,16 +1099,55 @@ window.addEventListener('mouseup', () => { window.debugLog('window mouseup fired
 window.addEventListener('pointerup', () => { window.debugLog('window pointerup fired'); handleCardDragEnd(); });
 window.addEventListener('touchend', handleCardDragEnd);
 
+const compressImage = (file) => {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                const MAX_DIMENSION = 1920;
+                
+                if (width > height && width > MAX_DIMENSION) {
+                    height *= MAX_DIMENSION / width;
+                    width = MAX_DIMENSION;
+                } else if (height > MAX_DIMENSION) {
+                    width *= MAX_DIMENSION / height;
+                    height = MAX_DIMENSION;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                canvas.toBlob((blob) => {
+                    resolve(blob || file);
+                }, 'image/webp', 0.85);
+            };
+            img.onerror = () => resolve(file);
+            img.src = e.target.result;
+        };
+        reader.onerror = () => resolve(file);
+        reader.readAsDataURL(file);
+    });
+};
+
 document.addEventListener('flowbar-add-image', async (e) => {
     if (!auth.currentUser) return;
     const file = e.detail?.file;
     if (!file) return;
     
-    console.log("Ładowanie obrazka (z Flowbara) do chmury...");
-    const fileRef = ref(storage, 'images/' + Date.now() + '_' + file.name);
+    console.log("Ładowanie i kompresja obrazka (z Flowbara) do chmury...");
+    const compressedBlob = await compressImage(file);
+    
+    // Zapisujemy jako zoptymalizowany plik .webp
+    const fileRef = ref(storage, 'images/' + Date.now() + '_' + Math.floor(Math.random()*1000) + '.webp');
     
     try {
-        await uploadBytes(fileRef, file);
+        await uploadBytes(fileRef, compressedBlob);
         const url = await getDownloadURL(fileRef);
         
         const centerX = window.innerWidth / 2;
