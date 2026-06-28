@@ -766,6 +766,7 @@ function createCardElement(id, data) {
         card.style.height = `${data.height}px`;
         card.dataset.startW = data.width;
         card.dataset.startH = data.height;
+        card.dataset.lockRatio = "true";
         card.style.setProperty('resize', 'none', 'important');
         
         const deleteBtn = document.createElement('button');
@@ -777,7 +778,6 @@ function createCardElement(id, data) {
 
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         svg.setAttribute("viewBox", `${data.x} ${data.y} ${data.width} ${data.height}`);
-        svg.setAttribute("preserveAspectRatio", "none");
         svg.style.width = "100%";
         svg.style.height = "100%";
         svg.style.display = "block";
@@ -790,6 +790,7 @@ function createCardElement(id, data) {
         path.setAttribute("fill", "none");
         path.setAttribute("stroke-linecap", "round");
         path.setAttribute("stroke-linejoin", "round");
+        path.setAttribute("vector-effect", "non-scaling-stroke");
         path.style.filter = "drop-shadow(0 0 8px rgba(0,0,0,0.5))";
 
         svg.appendChild(path);
