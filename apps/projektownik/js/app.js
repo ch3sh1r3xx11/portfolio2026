@@ -18,6 +18,82 @@ window.debugLog("App zainicjalizowana");
 const viewport = document.getElementById('viewport');
 const canvas = document.getElementById('canvas');
 
+// --- SVG DRAWING LAYER ---
+const drawingLayer = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+drawingLayer.id = "drawing-layer";
+drawingLayer.style.position = "absolute";
+drawingLayer.style.top = "0";
+drawingLayer.style.left = "0";
+drawingLayer.style.width = "100%";
+drawingLayer.style.height = "100%";
+drawingLayer.style.overflow = "visible";
+drawingLayer.style.pointerEvents = "none";
+drawingLayer.style.zIndex = "5"; // Pod notatkami, nad kropkami tła
+canvas.appendChild(drawingLayer);
+
+let isDrawingMode = false;
+let currentDrawColor = 'var(--neon-yellow)';
+let currentDrawPath = null;
+let currentDrawPathData = "";
+let drawingPoints = [];
+
+document.addEventListener('flowbar-toggle-draw', (e) => {
+    isDrawingMode = e.detail.active;
+    if (isDrawingMode) {
+        currentDrawColor = e.detail.color || 'var(--neon-yellow)';
+        viewport.style.cursor = 'crosshair';
+    } else {
+        viewport.style.cursor = 'default';
+    }
+});
+
+document.addEventListener('flowbar-draw-color-change', (e) => {
+    currentDrawColor = e.detail.color;
+});
+
+function startDrawing(clientX, clientY) {
+    const canvasX = (clientX - translateX) / scale;
+    const canvasY = (clientY - translateY) / scale;
+    drawingPoints = [[canvasX, canvasY]];
+    currentDrawPathData = `M ${canvasX} ${canvasY}`;
+    
+    currentDrawPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    currentDrawPath.setAttribute("d", currentDrawPathData);
+    currentDrawPath.setAttribute("stroke", currentDrawColor);
+    currentDrawPath.setAttribute("stroke-width", "4");
+    currentDrawPath.setAttribute("fill", "none");
+    currentDrawPath.setAttribute("stroke-linecap", "round");
+    currentDrawPath.setAttribute("stroke-linejoin", "round");
+    currentDrawPath.style.filter = "drop-shadow(0 0 8px rgba(0,0,0,0.5))";
+    drawingLayer.appendChild(currentDrawPath);
+}
+
+function drawMove(clientX, clientY) {
+    const canvasX = (clientX - translateX) / scale;
+    const canvasY = (clientY - translateY) / scale;
+    drawingPoints.push([canvasX, canvasY]);
+    currentDrawPathData += ` L ${canvasX} ${canvasY}`;
+    currentDrawPath.setAttribute("d", currentDrawPathData);
+}
+
+function endDrawing() {
+    if (drawingPoints.length > 1) {
+        const docRef = doc(collection(db, "notes"));
+        setDoc(docRef, {
+            type: 'drawing',
+            pathData: currentDrawPathData,
+            color: currentDrawColor,
+            parentId: currentProjectId,
+            createdAt: Date.now()
+        });
+        if (currentDrawPath && currentDrawPath.parentNode) {
+            currentDrawPath.parentNode.removeChild(currentDrawPath);
+        }
+    }
+    currentDrawPath = null;
+    drawingPoints = [];
+}
+
 // --- LOGOWANIE GOOGLE ---
 const systemMenu = document.querySelector('shared-system-menu');
 const bottomTools = document.querySelector('shared-flowbar');
@@ -102,12 +178,21 @@ viewport.addEventListener('mousedown', (e) => {
     canvas.classList.remove('smooth-pan');
     if (e.target.closest('.card') || e.target.closest('#ui-layer')) return;
     
+    if (isDrawingMode) {
+        startDrawing(e.clientX, e.clientY);
+        return;
+    }
+    
     isDraggingBoard = true;
     startX = e.clientX - translateX;
     startY = e.clientY - translateY;
 });
 
 window.addEventListener('mousemove', (e) => {
+    if (isDrawingMode && currentDrawPath) {
+        drawMove(e.clientX, e.clientY);
+        return;
+    }
     if (!isDraggingBoard) return;
     translateX = e.clientX - startX;
     translateY = e.clientY - startY;
@@ -115,6 +200,10 @@ window.addEventListener('mousemove', (e) => {
 });
 
 window.addEventListener('mouseup', () => {
+    if (isDrawingMode && currentDrawPath) {
+        endDrawing();
+        return;
+    }
     isDraggingBoard = false;
 });
 
@@ -157,6 +246,10 @@ viewport.addEventListener('touchstart', (e) => {
     if (e.target.closest('#ui-layer')) return;
 
     if (e.touches.length === 1) {
+        if (isDrawingMode) {
+            startDrawing(e.touches[0].clientX, e.touches[0].clientY);
+            return;
+        }
         const now = Date.now();
         if (now - lastViewportTapStart < 300) {
             isOneFingerZoom = true;
@@ -185,12 +278,25 @@ viewport.addEventListener('touchstart', (e) => {
     }
 }, { passive: false });
 
+window.addEventListener('touchend', () => {
+    if (isDrawingMode && currentDrawPath) {
+        endDrawing();
+        return;
+    }
+    isDraggingBoard = false;
+    isOneFingerZoom = false;
+});
+
 viewport.addEventListener('touchmove', (e) => {
     if (e.target.closest('#ui-layer')) return;
     if (e.target.closest('#ui-layer')) return;
     if (e.touches.length > 1) e.preventDefault(); // Blokuj domyślny scroll przy zoomie
 
     if (e.touches.length === 1) {
+        if (isDrawingMode && currentDrawPath) {
+            drawMove(e.touches[0].clientX, e.touches[0].clientY);
+            return;
+        }
         if (isOneFingerZoom) {
             if (Math.abs(e.touches[0].clientY - panTouchStartY) > 10) {
                 hasPanned = true;
@@ -620,6 +726,22 @@ window.cardInitialH = 0;
 
 function createCardElement(id, data) {
     if (document.getElementById(id)) return;
+
+    if (data.type === 'drawing') {
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.id = id;
+        path.setAttribute("d", data.pathData);
+        path.setAttribute("stroke", data.color || '#ffffff');
+        path.setAttribute("stroke-width", "4");
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke-linecap", "round");
+        path.setAttribute("stroke-linejoin", "round");
+        path.style.filter = "drop-shadow(0 0 8px rgba(0,0,0,0.5))";
+        
+        let drawingLayer = document.getElementById('drawing-layer');
+        if (drawingLayer) drawingLayer.appendChild(path);
+        return;
+    }
 
     const card = document.createElement('div');
     card.className = 'card';

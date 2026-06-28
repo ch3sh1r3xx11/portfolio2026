@@ -25,6 +25,27 @@ class SharedFlowbar extends HTMLElement {
                 }
                 .block-option:hover { background: rgba(255, 255, 255, 0.12); }
                 .block-option:active { background: rgba(255, 255, 255, 0.08); transform: scale(0.96); }
+                .color-palette-menu {
+                    position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+                    background: rgba(30, 30, 35, 0.6);
+                    border: 1px solid rgba(255,255,255,0.15);
+                    border-radius: 20px;
+                    padding: 8px 12px;
+                    display: flex; gap: 12px;
+                    backdrop-filter: saturate(180%) blur(30px);
+                    -webkit-backdrop-filter: saturate(180%) blur(30px);
+                    box-shadow: 0 8px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+                    z-index: 1050; transition: opacity 0.2s, transform 0.2s;
+                }
+                .color-palette-menu.hidden { display: none; opacity: 0; transform: translate(-50%, 10px); }
+                .color-dot {
+                    width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent;
+                    cursor: pointer; transition: transform 0.15s, border 0.15s;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                }
+                .color-dot:hover { transform: scale(1.15); }
+                .color-dot.active { border: 2px solid #fff; transform: scale(1.2); }
+                .pill-btn.active { background: rgba(255,255,255,0.1); color: var(--magenta, #ff00ff); }
             </style>
             
             <!-- block-menu musi byc poza bottom-pill-container, zeby transformX na nim nie zaburzał fixed positioning -->
@@ -61,13 +82,22 @@ class SharedFlowbar extends HTMLElement {
                     </button>
                     <input type="file" id="fb-image-upload" accept="image/*" style="display: none;">
                     
-                    <button class="pill-btn" id="fb-add-frame" title="Ramka (Przegroda)">
-                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
-                    </button>
-                    <button class="pill-btn" id="fb-add-kpi" title="Checkbox / Zadanie">
-                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                    <button class="pill-btn" id="fb-toggle-draw" title="Pisak (Rysowanie)">
+                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                        </svg>
                     </button>
                 </div>
+            </div>
+
+            <!-- Podmenu kolorów dla pisaka -->
+            <div id="draw-color-menu" class="color-palette-menu hidden">
+                <button class="color-dot active" data-color="var(--teal)" style="background-color: var(--teal);"></button>
+                <button class="color-dot" data-color="var(--neon-yellow)" style="background-color: var(--neon-yellow);"></button>
+                <button class="color-dot" data-color="var(--sunset-orange)" style="background-color: var(--sunset-orange);"></button>
+                <button class="color-dot" data-color="var(--magenta)" style="background-color: var(--magenta);"></button>
+                <button class="color-dot" data-color="var(--purple)" style="background-color: var(--purple);"></button>
+            </div>
             </div>
         `;
     }
@@ -107,23 +137,51 @@ class SharedFlowbar extends HTMLElement {
             if (!this.contains(e.target)) {
                 blockMenu.classList.add('hidden');
             }
-        });
-
         this.querySelector('#fb-add-note').addEventListener('click', () => emit('flowbar-add-note'));
         this.querySelector('#fb-add-text').addEventListener('click', () => emit('flowbar-add-text'));
         
-        const imageUploadInput = this.querySelector('#fb-image-upload');
-        this.querySelector('#fb-add-image').addEventListener('click', () => imageUploadInput.click());
+        const fileInput = this.querySelector('#fb-image-upload');
+        this.querySelector('#fb-add-image').addEventListener('click', () => fileInput.click());
 
-        imageUploadInput.addEventListener('change', (e) => {
-            if (e.target.files && e.target.files[0]) {
-                emit('flowbar-add-image', { file: e.target.files[0] });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                emit('flowbar-upload-image', e.target.files[0]);
+                e.target.value = '';
             }
-            e.target.value = '';
         });
 
-        this.querySelector('#fb-add-frame').addEventListener('click', () => emit('flowbar-add-frame'));
-        this.querySelector('#fb-add-kpi').addEventListener('click', () => emit('flowbar-add-kpi'));
+        const drawBtn = this.querySelector('#fb-toggle-draw');
+        const colorMenu = this.querySelector('#draw-color-menu');
+        const colorDots = this.querySelectorAll('.color-dot');
+        
+        drawBtn.addEventListener('click', (e) => {
+            const isActive = drawBtn.classList.toggle('active');
+            if (isActive) {
+                colorMenu.classList.remove('hidden');
+                emit('flowbar-toggle-draw', { active: true, color: this.querySelector('.color-dot.active').getAttribute('data-color') });
+            } else {
+                colorMenu.classList.add('hidden');
+                emit('flowbar-toggle-draw', { active: false });
+            }
+            e.stopPropagation();
+        });
+
+        colorDots.forEach(dot => {
+            dot.addEventListener('click', (e) => {
+                colorDots.forEach(d => d.classList.remove('active'));
+                dot.classList.add('active');
+                emit('flowbar-draw-color-change', { color: dot.getAttribute('data-color') });
+                e.stopPropagation();
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!this.contains(e.target)) {
+                blockMenu.classList.add('hidden');
+                colorMenu.classList.add('hidden');
+                drawBtn.classList.remove('active');
+            }
+        });
     }
 
     show() {
