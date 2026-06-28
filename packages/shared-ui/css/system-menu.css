@@ -59,6 +59,7 @@
 
 /* Wyskakujące okno z listą */
 .system-menu-dropdown {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
     background: rgba(20, 25, 30, 0.85);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);

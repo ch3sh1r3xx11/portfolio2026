@@ -239,9 +239,9 @@ class SharedSystemMenu extends HTMLElement {
         }
     }
 
-    fireEvent(eventName) {
-        console.log(`[SystemMenu] Emituję zdarzenie: ${eventName}`);
-        const event = new CustomEvent(eventName, { bubbles: true, composed: true });
+    fireEvent(eventName, detail = null) {
+        console.log(`[SystemMenu] Emituje zdarzenie: ${eventName}`, detail);
+        const event = new CustomEvent(eventName, { bubbles: true, composed: true, detail: detail });
         document.dispatchEvent(event);
     }
 }
