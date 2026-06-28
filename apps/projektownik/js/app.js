@@ -19,29 +19,19 @@ const viewport = document.getElementById('viewport');
 const canvas = document.getElementById('canvas');
 
 // --- LOGOWANIE GOOGLE ---
-const loginBtn = document.getElementById('login-btn');
-const logoutBtn = document.getElementById('logout-btn');
+const systemMenu = document.querySelector('shared-system-menu');
 const bottomTools = document.querySelector('shared-flowbar');
 const undoBtn = document.getElementById('undo-btn');
 const redoBtn = document.getElementById('redo-btn');
 
-loginBtn.addEventListener('click', () => {
+document.addEventListener('sys-login', () => {
     signInWithPopup(auth, provider).then((res) => {
         console.log("Zalogowano pomyślnie jako: " + res.user.email);
     }).catch(error => {
         console.error("Błąd logowania:", error);
     });
 });
-
-// Wylogowanie
-document.getElementById('logout-btn').addEventListener('click', async () => {
-    try {
-        await signOut(auth);
-        window.location.reload();
-    } catch (e) {
-        console.error("Błąd wylogowania: ", e);
-    }
-});
+// Wylogowanie przeniesione na dół do sekcji SYSTEM MENU LISTENERS
 
 // Odświeżenie aplikacji (PWA)
 document.getElementById('refresh-btn').addEventListener('click', () => {
@@ -80,15 +70,13 @@ onAuthStateChanged(auth, (user) => {
     if (user) {
         // Zalogowano
         console.log("Zalogowany jako:", user.email);
-        loginBtn.style.display = 'none';
-        logoutBtn.style.display = 'block';
+        if (systemMenu) systemMenu.setAuthState(true);
         if (bottomTools) bottomTools.show();
         if (undoBtn) undoBtn.style.display = 'block';
         if (redoBtn) redoBtn.style.display = 'block';
     } else {
         // Nie zalogowano (Gość)
-        loginBtn.style.display = 'block';
-        logoutBtn.style.display = 'none';
+        if (systemMenu) systemMenu.setAuthState(false);
         if (bottomTools) bottomTools.hide();
         if (undoBtn) undoBtn.style.display = 'none';
         if (redoBtn) redoBtn.style.display = 'none';
