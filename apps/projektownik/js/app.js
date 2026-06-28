@@ -1264,4 +1264,55 @@ window.addEventListener('paste', async (e) => {
     }
 });
 
-// Usunięcie początkowej karty w HTML na rzecz bazy
+// --- SYSTEM MENU LISTENERS ---
+document.addEventListener('sys-logout', async () => {
+    try {
+        await signOut(auth);
+        window.location.href = '../login/index.html';
+    } catch(err) {
+        console.error("Błąd podczas wylogowywania:", err);
+    }
+});
+
+let glassBgState = 0;
+document.addEventListener('sys-glass-bg', () => {
+    const bgLayer = document.querySelector('.bg-layer');
+    if (!bgLayer) return;
+    
+    // 4 stany przezroczystości/rozmycia do przełączania
+    const states = [
+        { filter: 'blur(10px) brightness(0.4)', opacity: '1' },     // Domyślny, kinowy
+        { filter: 'blur(20px) brightness(0.15)', opacity: '0.9' },  // Bardzo ciemny i głęboki
+        { filter: 'blur(3px) brightness(0.7)', opacity: '1' },      // Jaśniejszy, ostry detal miasta
+        { filter: 'none', opacity: '0' }                            // Wyłączony tło (czysty kolor)
+    ];
+    
+    glassBgState = (glassBgState + 1) % states.length;
+    
+    bgLayer.style.transition = 'filter 0.5s ease, opacity 0.5s ease';
+    bgLayer.style.filter = states[glassBgState].filter;
+    bgLayer.style.opacity = states[glassBgState].opacity;
+});
+
+document.addEventListener('sys-save', () => {
+    // Projektownik zapisuje w locie. To tylko wizualny feedback
+    const toast = document.createElement('div');
+    toast.style.position = 'fixed';
+    toast.style.bottom = '80px'; // Trochę wyżej by nie zasłaniać Flowbara
+    toast.style.left = '50%';
+    toast.style.transform = 'translateX(-50%)';
+    toast.style.background = 'var(--teal, rgba(0, 201, 200, 0.9))';
+    toast.style.color = '#000';
+    toast.style.padding = '10px 20px';
+    toast.style.borderRadius = '20px';
+    toast.style.fontFamily = 'sans-serif';
+    toast.style.fontWeight = 'bold';
+    toast.style.zIndex = '9999';
+    toast.style.transition = 'opacity 0.3s ease';
+    toast.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
+    toast.innerText = 'Zapisano w chmurze!';
+    
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; }, 1500);
+    setTimeout(() => { toast.remove(); }, 1800);
+});
