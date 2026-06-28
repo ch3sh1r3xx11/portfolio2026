@@ -807,6 +807,7 @@ function makeDraggable(element, id) {
     element.addEventListener('mousedown', (e) => {
         if(e.target.contentEditable === "true" && document.activeElement === e.target) return; 
         if(e.target.closest('.delete-btn')) return;
+        if(e.target.classList.contains('flow-resize-handle')) return;
         
         const rect = element.getBoundingClientRect();
         // Sprawdź czy kliknięto w prawy dolny róg (uchwyt resize), biorąc pod uwagę skalowanie!
@@ -835,7 +836,8 @@ function makeDraggable(element, id) {
     let lastCardTap = 0;
     
     element.addEventListener('touchstart', (e) => {
-        if(e.target.classList.contains('delete-btn')) return;
+        if(e.target.classList.contains('delete-btn') || e.target.closest('.delete-btn')) return;
+        if(e.target.classList.contains('flow-resize-handle')) return;
         if(e.touches.length > 1) return;
         
         isLongPress = false;
