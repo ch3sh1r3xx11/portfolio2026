@@ -78,11 +78,28 @@ function drawMove(clientX, clientY) {
 
 function endDrawing() {
     if (drawingPoints.length > 1) {
+        let bbox;
+        try {
+            bbox = currentDrawPath.getBBox();
+        } catch (e) {
+            bbox = { x: drawingPoints[0][0], y: drawingPoints[0][1], width: 10, height: 10 };
+        }
+        
+        const pad = 10;
+        const x = bbox.x - pad;
+        const y = bbox.y - pad;
+        const width = Math.max(bbox.width + pad * 2, 20);
+        const height = Math.max(bbox.height + pad * 2, 20);
+
         const docRef = doc(collection(db, "notes"));
         setDoc(docRef, {
             type: 'drawing',
             pathData: currentDrawPathData,
             color: currentDrawColor,
+            x: x,
+            y: y,
+            width: width,
+            height: height,
             projectId: currentProjectId,
             createdAt: Date.now()
         });
@@ -728,8 +745,23 @@ function createCardElement(id, data) {
     if (document.getElementById(id)) return;
 
     if (data.type === 'drawing') {
+        const card = document.createElement('div');
+        card.className = 'card card-drawing';
+        card.id = id;
+        card.style.left = `${data.x}px`;
+        card.style.top = `${data.y}px`;
+        card.style.width = `${data.width}px`;
+        card.style.height = `${data.height}px`;
+
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("viewBox", `${data.x} ${data.y} ${data.width} ${data.height}`);
+        svg.setAttribute("preserveAspectRatio", "none");
+        svg.style.width = "100%";
+        svg.style.height = "100%";
+        svg.style.display = "block";
+        svg.style.pointerEvents = "none"; // Przepuszczamy kliknięcia dla wnętrza SVG, kolizję łapie ramka .card
+
         const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.id = id;
         path.setAttribute("d", data.pathData);
         path.setAttribute("stroke", data.color || '#ffffff');
         path.setAttribute("stroke-width", "4");
@@ -737,9 +769,13 @@ function createCardElement(id, data) {
         path.setAttribute("stroke-linecap", "round");
         path.setAttribute("stroke-linejoin", "round");
         path.style.filter = "drop-shadow(0 0 8px rgba(0,0,0,0.5))";
+
+        svg.appendChild(path);
+        card.appendChild(svg);
+        canvas.appendChild(card);
         
-        let drawingLayer = document.getElementById('drawing-layer');
-        if (drawingLayer) drawingLayer.appendChild(path);
+        // Dziedziczy standardowe zachowania Karty!
+        card.addEventListener('mousedown', () => selectCard(id));
         return;
     }
 
