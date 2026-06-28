@@ -21,7 +21,7 @@ class SharedSystemMenu extends HTMLElement {
             { label: 'udostępnij > export md i pdf i link', event: 'sys-share' },
             { label: 'dodaj do ulubionych', event: 'sys-favorite' },
             { type: 'divider' },
-            { label: 'przezroczystość szkła bg', event: 'sys-glass-bg' },
+            { type: 'slider', label: 'przezroczystość szkła bg', event: 'sys-glass-bg-slider', min: 0, max: 100, default: 50 },
             { label: 'bloki', event: 'sys-blocks' },
             { label: 'przezroczystość szkła bloków', event: 'sys-glass-blocks' },
             { label: 'kolory', event: 'sys-colors' },
@@ -30,6 +30,7 @@ class SharedSystemMenu extends HTMLElement {
             { label: 'opcje widoku', event: 'sys-view-opts' },
             { type: 'divider' },
             { label: 'pomoc', event: 'sys-help' },
+            { label: 'zaloguj', event: 'sys-login' },
             { label: 'wyloguj', event: 'sys-logout' }
         ];
     }
@@ -37,6 +38,11 @@ class SharedSystemMenu extends HTMLElement {
     connectedCallback() {
         this.render();
         this.setupListeners();
+    }
+    
+    setAuthState(isLoggedIn) {
+        this.isLoggedIn = isLoggedIn;
+        if(this.isOpen) this.renderDropdownContent();
     }
 
     render() {
@@ -68,9 +74,48 @@ class SharedSystemMenu extends HTMLElement {
         
         if (this.currentView === 'main') {
             this.menuItems.forEach(item => {
+                // Auth filtering
+                if (item.event === 'sys-login' && this.isLoggedIn) return;
+                if (item.event === 'sys-logout' && !this.isLoggedIn) return;
+                
                 if (item.type === 'divider') {
                     const div = document.createElement('div');
                     div.className = 'system-menu-divider';
+                    this.dropdownElement.appendChild(div);
+                } else if (item.type === 'slider') {
+                    const div = document.createElement('div');
+                    div.className = 'system-menu-slider-container';
+                    div.style.padding = '8px 16px';
+                    div.style.display = 'flex';
+                    div.style.flexDirection = 'column';
+                    div.style.gap = '8px';
+                    
+                    const label = document.createElement('div');
+                    label.textContent = item.label;
+                    label.style.fontSize = '12px';
+                    label.style.opacity = '0.7';
+                    label.style.pointerEvents = 'none';
+                    
+                    const input = document.createElement('input');
+                    input.type = 'range';
+                    input.min = item.min || 0;
+                    input.max = item.max || 100;
+                    
+                    const savedVal = localStorage.getItem(item.event) || item.default;
+                    input.value = savedVal;
+                    
+                    input.addEventListener('input', (e) => {
+                        e.stopPropagation();
+                        localStorage.setItem(item.event, e.target.value);
+                        this.fireEvent(item.event, { value: e.target.value });
+                    });
+                    
+                    input.addEventListener('click', e => e.stopPropagation());
+                    input.addEventListener('mousedown', e => e.stopPropagation());
+                    input.addEventListener('touchstart', e => e.stopPropagation());
+                    
+                    div.appendChild(label);
+                    div.appendChild(input);
                     this.dropdownElement.appendChild(div);
                 } else {
                     const div = document.createElement('div');
