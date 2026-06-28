@@ -1,5 +1,7 @@
 {
   "rewrites": [
+    { "source": "/projektownik-test/(.*)", "destination": "/apps/projektownik-test/$1" },
+    { "source": "/projektownik-test", "destination": "/apps/projektownik-test/index.html" },
     { "source": "/projektownik/(.*)", "destination": "/apps/projektownik/$1" },
     { "source": "/projektownik", "destination": "/apps/projektownik/index.html" },
     { "source": "/creator/(.*)", "destination": "/apps/creator/$1" },
