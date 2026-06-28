@@ -137,6 +137,8 @@ class SharedFlowbar extends HTMLElement {
             if (!this.contains(e.target)) {
                 blockMenu.classList.add('hidden');
             }
+        });
+
         this.querySelector('#fb-add-note').addEventListener('click', () => emit('flowbar-add-note'));
         this.querySelector('#fb-add-text').addEventListener('click', () => emit('flowbar-add-text'));
         
