@@ -2,6 +2,9 @@
 
 *Format wpisu: Data | Co zrobiono w kilku żołnierskich słowach.*
 
+**2026-07-13 | Spójność portfolio ↔ Useme (sesja Mateusz + Claude)**
+Po postawieniu tego samego dnia publicznego profilu freelancera na Useme wyrównano portfolio do wspólnego brandu. Usunięto publiczny pomarańczowy link `[TESTOWO] PROJEKTOWNIK DEMO ↗` z górnej nawigacji (appka testowa zostaje pod swoim URL-em, znika tylko z menu). Logo w nav zmienione na `creative_ai_driven_pm_` (echo avatara terminal-style z Useme/IG). Do panelu "specific knowledge" dodano pozycję **Automation** (n8n, API/webhooki, Docker, lokalne LLM/Ollama, Gemini API, Claude) — wcześniej strona w ogóle nie pokazywała stacku automatyzacji, którym profil Useme się otwiera. Panel "współpraca" domknięty konwersyjnie: nowe chipy `ZLEĆ AUTOMATYZACJĘ → USEME ↗` (link do profilu contractor 669724), `EMAIL ↗` (ai_driven_pm@icloud.com), GitHub przefarbowany na purple dla rozróżnienia. Zsynchronizowano też lokalną kopię roboczą (OneDrive `portfolio_deploy`) do origin/main po force-pushu — była na v0.4 z czerwca.
+
 **2026-06-28 | Mobile Fixes & System Menu UI**
 Złamaliśmy ostatecznie problem wylewających się, ogromnych zdjęć z iOS/Android pisając kompresor WEBP na poziomie przeglądarki (Canvas) przed wrzutką na serwer. Sticky notes otrzymały nowy, czarny wygląd bez promienia (border-radius: 0) i możliwość skalowania swobodnego dzięki `FlowImageManager`. Ożywiono boczny "Hamburger" menu, integrując w nim bezpieczne logowanie, suwak regulacji ciemnego "szkła" w tle (zapisujący na żywo stan w localStorage bez opóźnienia) oraz podpięto mu główną czcionkę systemową projektu. Utworzono fundamenty architektoniczne (katalog `/docs`).
 
